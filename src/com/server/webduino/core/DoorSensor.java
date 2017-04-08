@@ -80,7 +80,7 @@ public class DoorSensor extends SensorBase {
             json.put("shieldid", shieldid);
             json.put("online", online);
             json.put("subaddress", subaddress);
-            json.put("current", open);
+            json.put("status", open);
             json.put("name", getName());
             json.put("lastupdate", getStrLastUpdate());
             json.put("type", type);

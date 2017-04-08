@@ -107,18 +107,28 @@ public class Sensors implements Shields.ShieldsListener {
             // Extract data from result set
             while (rs.next()) {
 
+                String type;
+                if (rs.getString("type") != null)
+                    type = rs.getString("type");
+                else
+                    continue;
+
                 SensorBase sensor = null;
-                if (true) {
+                if (type.equals("temperature")) {
                     sensor = new TemperatureSensor();
+                } else if (type.equals("doorsensor")) {
+                    sensor = new DoorSensor();
+                } else {
+                    continue;
                 }
+                sensor.type = type;
                 sensor.id = rs.getInt("id");
                 sensor.shieldid = rs.getInt("shieldid");
                 if (rs.getString("subaddress") != null)
                     sensor.subaddress = rs.getString("subaddress");
                 if (rs.getString("name") != null)
                     sensor.name = rs.getString("name");
-                if (rs.getString("type") != null)
-                    sensor.type = rs.getString("type");
+
                 list.add(sensor);
             }
             // Clean-up environment

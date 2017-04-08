@@ -65,10 +65,23 @@ function loadSensors() {
                 newtr.find('td[name="onlinestatus"]').text("Online");
             else
                 newtr.find('td[name="onlinestatus"]').text("Offline");
-            newtr.find('td[name="type"]').text(elem.type);
+
+
             newtr.find('td[name="date"]').text(elem.lastupdate);
-            newtr.find('td[name="temperature"]').text(elem.temperature + "°C");
-            newtr.find('td[name="avtemperature"]').text(elem.avtemperature + "°C");
+
+            newtr.find('td[name="type"]').text(elem.type);
+            if (elem.type == "temperature") {
+                text = "temp:" + elem.temperature + "°C" + "av.temp:" + elem.avtemperature + "°C";
+                newtr.find('td[name="status"]').text(text);
+            } else if (elem.type == "doorsensor") {
+                text = "door ";
+                if (elem.status == true)
+                    text += "open";
+                else
+                    text += "closed";
+                newtr.find('td[name="status"]').text(text);
+            }
+
             newtr.find('td[name="name"]').text(elem.name);
             newtr.find('td[name="subaddress"]').text(elem.subaddress);
 

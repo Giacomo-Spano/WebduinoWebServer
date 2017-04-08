@@ -69,7 +69,7 @@
                 <option value="doorsensor">Sensore porta</option>
             </select>
             <br>
-            <div class="bo" id="sensorproperties" name='sensorproperties'>
+            <div class="subsensorbox" id="sensorproperties" name='sensorproperties'>
                 <strong>genric: </strong><input type="number" name="subSensorNumber" min="1" max="10" step="1">
             </div>
             <br>
@@ -80,13 +80,14 @@
         <!-- sensor custom properties - questi sono i template delle proprietà custom dei sensori-->
         <div id="onewiresensor" name='onewiresensor'>
             <strong>numero sensori: </strong><input type="number" name="temperatureSensorNumber" min="1" max="10"
-                                                    step="1" value="3">
+                                                    step="1" value="1">
             <div name='subsensorlist'>
+                <div class="subsensorbox" name='subsensor'>
+                    <input type='hidden' name='addr' value='0'>
+                    <strong>#: </strong><input type='text' name='name' value="prova"><br>
+                </div>
             </div>
-            <div name='subsensor'>
-                <input type='hidden' name='addr' value='0'>
-                <strong>#: </strong><input type='text' name='name'><br>
-            </div>
+
 
         </div>
 

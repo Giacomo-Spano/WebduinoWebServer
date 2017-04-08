@@ -3,47 +3,17 @@ var listDiv;
 var temperatureDiv;
 var doorDiv;
 
-var temperatureSensorsCheckBox;
-var pinSelect;
-
-var onChangeTemperatureSensorsEnabledFunction = function onChangeTemperatureSensorsEnabled() {
-
-    var jsonString;
-    var enabled = false;
-    if (this.checked == true) {
-        enabled = true;
-    }
-    jsonString = '{"command" : "temperaturesensorsettings", "temperaturesensorsenabled" : ' + enabled + '}';
-    var json = JSON.parse(jsonString);
-    sendCommand(json, refreshFunction);
-};
-
-var onChangePinSelectFunction = function onChangePinSelect() {
-
-    pin = this.value;
-    var jsonString = '{"command" : "temperaturesensorsettings", "temperaturepin" : "' + pin + '"}';
-    var json = JSON.parse(jsonString);
-    sendCommand(json, refreshFunction);
-};
-
-
 var refreshFunction = function refresh(json) {
 
-
-    for (i = 0; i < json.sensors.length; i++) {
-
-        div = addSensor();
-        updateSensorDiv(div, json.sensors[i]);
-
-        /*var clone = sensorDiv.cloneNode(true); // true means clone all childNodes and all event handlers
-         clone.id = sensorDiv.id + i;
-         updateSensorDiv(clone, json.sensors[i]);
-         listDiv.appendChild(clone);*/
+    for (j = 0; j < json.sensors.length; j++) {
+        div = addSensor(json.sensors[j]);
+        //updateSensorDiv(div, json.sensors[i]);
     }
 
     document.getElementById('addSensorButton').addEventListener("click", function () {
-        addSensor(div);
+        addSensor(null);
     }, false);
+
     document.getElementById('saveButton').addEventListener("click", function () {
         save();
     }, false);
@@ -51,112 +21,96 @@ var refreshFunction = function refresh(json) {
     sensorDiv.style.display = 'none';
     temperatureDiv.style.display = 'none';
     doorDiv.style.display = 'none';
-
-    //var pinSelectControl = document.getElementById('pinSelect');
-    //pinSelectControl.value = json.temperaturesensorspin;
 };
 
 function load() {
 
     sensorDiv = document.getElementById('sensor');
-    //sensorDiv.style.display = 'none';
-
     temperatureDiv = document.getElementById('onewiresensor');
-    //temperatureDiv.style.display = 'none';
-
     doorDiv = document.getElementById('doorsensor');
-    //doorDiv.style.display = 'none';
-
     listDiv = document.getElementById('sensorList');
     listDiv.innerHTML = '';
 
-
-    //temperatureSensorsCheckBox = document.getElementById('temperatureSensorsCheckBox');
-    //temperatureSensorsCheckBox.onchange = onChangeTemperatureSensorsEnabledFunction;
-    //pinSelect = document.getElementById('pinSelect').onchange = onChangePinSelectFunction;
     getJson(sensorsStatusPath, refreshFunction);
 }
 
-function updateSensorDiv(div, sensor) {
+function addSensor(sensor) {
 
-    div.getElementsByTagName('h2')[0].innerHTML = 'Sensore ' + sensor.name;
-    div.getElementsByTagName('input')['enabled'].checked = true;
-    div.getElementsByTagName('input')['name'].value = sensor.name;
-    //div.getElementsByTagName('input')['addr'].value = sensor.addr;
-
-    div.getElementsByTagName('select')['sensorTypeSelect'].addEventListener("click", function () {
-        onChangeSensorType(this);
-    }, false);
-
-    if (sensor.type == 'onewiresensor') {
-
-    }
-    /*nameForm = div.getElementsByTagName('form')['nameForm'];
-     nameForm.id = 'nameFrom'+n;
-     nameForm.onsubmit = function () {
-     event.preventDefault();
-     sendPost(this, commandResponse);
-     };*/
-}
-
-/*var onChangeTemperatureSensorNumberFunction = function onChangeTemperatureSensorNumber() {
-
- n = this.value;
- div = temperatureDiv.getElementsByTagName('div')['subsensor'];
-
- };*/
-
-function addTemperatureProperties(div) {
-    var newDiv = temperatureDiv.cloneNode(true);
-    numdiv = newDiv.getElementsByTagName('input')['temperatureSensorNumber'];
-    numdiv.addEventListener('input', function () {
-        //onChangeTemperatureSensorNumberFunction(this.value);
-        subSensorDiv = newDiv.getElementsByTagName('div')['subsensor'];
-        subSensorDiv.style.display = 'none';
-        subSensorList = newDiv.getElementsByTagName('div')['subsensorlist'];
-        subSensorList.innerHTML = '';
-        for (i = 0; i < this.value; i++) {
-            newsubdiv = subSensorDiv.cloneNode(true);
-            subSensorDiv.style.display = 'block';
-            subSensorList.appendChild(newsubdiv);
-        }
-    });
-    newDiv.style.display = 'block';
-    div.innerHTML = '';
-    div.appendChild(newDiv);
-}
-function onChangeSensorType(elem, value) {
-
-    type = elem.value;
-    div = elem.parentNode.getElementsByTagName('div')['sensorproperties'];
-    if (type == 'onewiresensor') {
-
-        addTemperatureProperties(div);
-
-
-    } else {
-
-        var newDiv = doorDiv.cloneNode(true);
-        newDiv.style.display = 'block';
-        div.innerHTML = '';
-        div.appendChild(newDiv);
-    }
-};
-
-function deleteSensor(element) {
-    element.parentNode.removeChild(element);
-}
-
-function addSensor() {
     var newSensor = sensorDiv.cloneNode(true); // true means clone all childNodes and all event handlers
     newSensor.style.display = 'block';
     newSensor.getElementsByTagName('input')['deleteButton'].addEventListener("click", function () {
         deleteSensor(newSensor);
     }, false);
-    //newSensor.id = sensorDiv.id + i;
-    //updateSensorDiv(clone, json.sensors[i]);
+
+    if (sensor != null) {
+        newSensor.getElementsByTagName('h2')[0].innerHTML = 'Sensore ' + sensor.name;
+        newSensor.getElementsByTagName('input')['enabled'].checked = true;
+        newSensor.getElementsByTagName('input')['name'].value = sensor.name;
+        newSensor.getElementsByTagName('select')['sensorTypeSelect'].value = sensor.type;
+    }
+    newSensor.getElementsByTagName('select')['sensorTypeSelect'].addEventListener("change", function () {
+        onChangeSensorType(this);
+    }, false);
+
+    div = newSensor.getElementsByTagName('div')['sensorproperties'];
+    if (sensor != null) {
+        addSensorProperties(div, sensor.type, sensor);
+    } else {
+        addSensorProperties(div, "onewiresensor", null);
+    }
+
     listDiv.appendChild(newSensor);
     return newSensor;
+}
+
+function addSensorProperties(div,type,sensor) {
+
+    if (type == 'onewiresensor') {
+        addTemperatureProperties(div,sensor);
+    } else {
+        div.innerHTML = '';
+    }
+}
+
+function addTemperatureProperties(div,sensor) {
+
+    var newDiv = temperatureDiv.cloneNode(true);
+    addSubTemperatureSensor(newDiv,sensor);
+    newDiv.style.display = 'block';
+    div.innerHTML = '';
+    div.appendChild(newDiv);
+}
+
+function addSubTemperatureSensor(div,sensor) {
+    subSensorDiv = div.getElementsByTagName('div')['subsensor'];
+    subSensorList = div.getElementsByTagName('div')['subsensorlist'];
+    subSensorList.innerHTML = '';
+
+    if (sensor != null) {
+        for (i = 0; i < sensor.temperaturesensors.length; i++) {
+            newsubdiv = subSensorDiv.cloneNode(true);
+            newsubdiv.getElementsByTagName('input')['name'].value = sensor.temperaturesensors[i].name;
+            subSensorDiv.style.display = 'block';
+            subSensorList.appendChild(newsubdiv);
+        }
+    } else {
+        newsubdiv = subSensorDiv.cloneNode(true);
+        newsubdiv.getElementsByTagName('input')['name'].value = "nome";
+        subSensorDiv.style.display = 'block';
+        subSensorList.appendChild(newsubdiv);
+    }
+}
+
+function onChangeSensorType(elem/*, value*/) {
+
+    type = elem.value;
+    div = elem.parentNode.getElementsByTagName('div')['sensorproperties'];
+
+    addSensorProperties(div,type,null);
+};
+
+function deleteSensor(element) {
+    element.parentNode.removeChild(element);
 }
 
 function save() {
@@ -177,21 +131,26 @@ function save() {
         var poperties = {};
         if (type == 'onewiresensor') {
 
-            sublist = item.getElementsByTagName('div')['onewiresensor'].getElementsByTagName('div');
-            //poperties ['title'] = 'id';
-            //poperties ['email'] = 'email';
+            properties = item.getElementsByTagName('div')['sensorproperties'];
+            subsensorlist = properties.getElementsByClassName('subsensorbox');
+
             var str = '';
-            for(k = 0; k < sublist.length;k++) {
+            for(k = 0; k < subsensorlist.length;k++) {
 
                 temperaturesensor = {};
-                temperaturesensor ['name'] = 'nome';
+                temperaturesensor ['name'] = subsensorlist[k].getElementsByTagName('input')['name'].value;
                 if (k > 0)
                     str += ',';
                 str += JSON.stringify(temperaturesensor);
             }
             poperties ['temperaturesensors'] = str;
 
-        } else {
+        } else if (type == 'doorsensor') {
+
+            poperties  = "";
+
+        } else
+        {
 
         }
         sensorsJson.sensors.push({
@@ -208,9 +167,4 @@ function save() {
 function commandResponse(json) {
     document.getElementById('command').innerHTML += 'command result' + JSON.stringify(json);
     getJson(temperatureSensorsStatusPath, refreshFunction);
-}
-
-function sendPost(form, callback) {
-    var data = formInputToJSON(form);
-    sendCommand(data, callback);
 }

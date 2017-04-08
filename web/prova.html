@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="ESP8266.css" rel="stylesheet"/>
+    <link href="switch.css" rel="stylesheet"/>
+    <title></title>
+    <script>        function myFunction() {
+        var request = new XMLHttpRequest();
+        request.open('GET', '/heaterstatus', true);
+        request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        request.onload = function () {
+            if (this.status >= 200 && this.status < 400) {
+                var json = JSON.parse(this.response);
+                if (json.enabled)                        document.getElementById('heaterEnabled').checked = true; else                        document.getElementById('heaterEnabled').checked = false;
+                var mySelect = document.getElementById('pinSelect');
+                for (var i, j = 0; i = mySelect.options[j]; j++) {
+                    if (i.value == json.pin) {
+                        mySelect.selectedIndex = j;
+                        break;
+                    }
+                }
+                var settingsform = document.getElementById('heater');
+                settingsform.onsubmit = function () {
+                    send()
+                };
+                var form = document.getElementById('startManualForm');
+                form.onsubmit = function () {
+                    send()
+                };
+                var form2 = document.getElementById('manualOffForm');
+                form2.onsubmit = function () {
+                    send()
+                };
+                var form3 = document.getElementById('stopManualForm');
+                form3.onsubmit = function () {
+                    send()
+                };
+                if (json.status == 'manual' || json.status == 'manualoff') {
+                    form1.hidden = true;
+                    form2.hidden = true;
+                } else {
+                    form3.hidden = true;
+                }
+            }
+        };
+        request.send();
+    }
+    function send(e) {
+        e.preventDefault();
+        var data = {};
+        for (var i = 0, ii = form.length; i < ii; ++i) {
+            var input = form[i];
+            if (input.name) {
+                data[input.name] = input.value;
+            }
+        }
+        alert('The form was submitted' + JSON.stringify(data));
+        var xhr = new XMLHttpRequest();
+        xhr.open(form.method, form.action, true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.send(JSON.stringify(data));
+        xhr.onloadend = function () {
+        };
+    }    </script>
+</head>
+<body onload='myFunction()'><!--Header---><h1 id="head">Webduino</h1>
+<ul id="navigation">
+    <li><a href="#" class="button hvr-underline-from-center">Home</a></li>
+    <li><a href="#" class="button hvr-underline-from-center">Impostazioni</a></li>
+    <li><a href="#" class="button hvr-underline-from-center">Rete</a></li>
+    <li><s

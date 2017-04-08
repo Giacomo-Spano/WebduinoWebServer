@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>jQuery.post demo</title>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+
+<form action="/program" id="searchForm">
+    <input type="text" name="s" placeholder="Search...">
+    <input type="submit" value="save">
+</form>
+<!-- the result of the search will be rendered inside this div -->
+<div id="result"></div>
+
+<script>
+    // Attach a submit handler to the form
+    $( "#searchForm" ).submit(function( event ) {
+
+
+        // Stop form from submitting normally
+        event.preventDefault();
+
+        // Get some values from elements on the page:
+        var $form = $( this );
+        var term = $form.find( "input[name='s']" ).val();
+
+        var program = {
+            "term": term,
+            "id": "10",
+            "name" : "nome",
+            "dateenabled" : "true",
+            "active" : "true",
+            "startdate" : "01-03-2010",
+            "starttime" : "01:03:00",
+            "enddate" : "01-03-2016",
+            "endtime" : "01:03:00",
+            "sunday" : "true",
+            "monday" : "true",
+            "tuesday" : "false",
+            "wednesday" : "true",
+            "thursday" : "true",
+            "friday" : "true",
+            "saturday" : "true"
+        };
+
+        SaveProgram(program, function (jsondata) {
+
+            $( "#result" ).empty().append( "--" + JSON.stringify(jsondata) + jsondata.answer );
+        });
+
+    });
+
+    function SaveProgram(program, callback) {
+
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:9090/webduino/program",
+            data: JSON.stringify(program),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            processData: true,
+            success: function (data, status, jqXHR) {
+
+                callback(data);
+            },
+            error: function (xhr) {
+                alert(xhr.responseText);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

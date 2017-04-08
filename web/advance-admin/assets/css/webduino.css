@@ -1,0 +1,342 @@
+
+
+.icon-2x {
+    font-size: 2em;
+}
+.icon-3x {
+    font-size: 3em;
+}
+.icon-4x {
+    font-size: 4em;
+}
+.icon-5x {
+    font-size: 5em;
+}
+
+.verticalaligndiv {
+    /*background-color: red;*/
+    text-align: center;
+    line-height: 60px;
+}
+
+.wbdn-btn-hr {
+    height:4px;
+    margin: 2px;
+
+}
+
+.verticalLine {
+    border-left: thick solid #ff0000;
+    height: 50px;
+    background-color: blue;
+    vertical-align: middle;
+
+}
+.horizontalLine {
+    border-bottom: thick solid #ff0000;
+    width: 50px;
+    background-color: blue;
+    text-align: center;
+
+}
+
+/* row box horixz align*/
+.container-box {
+    width: 500px;
+    /*border: 1px solid red;*/
+    padding: 1px;
+    margin: 4px;
+}
+.row-box {
+    text-align: center;
+    /*border: 1px solid green;*/
+}
+.content-box {
+    display: inline-block;
+    margin-right: 6px;
+    /*background-color: #EEE;*/
+}
+.clear-box {
+    clear: both;
+}
+
+
+
+
+/* blink text*/
+.blink {
+    display: inline;
+    color: inherit;
+    animation: blink 1s steps(1) infinite;
+    -webkit-animation: blink 1s steps(1) infinite;
+}
+@keyframes blink { 50% { color: transparent; } }
+@-webkit-keyframes blink { 50% { color: transparent; } }
+/* end blink text */
+
+/*  --- DROPDOWN POPUPBUTTON   ------*/
+.mydropdowncheckbox{
+    opacity: 0;
+}
+.mydropdowncheckbox:checked + .mydropdown {
+
+    display: block;
+}
+
+.mydropdownlabel {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    font-size: 14px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    /*height: 50px;*/
+
+    border-radius: 4px;
+    color: #fff;
+
+    margin-bottom: 0;
+    line-height: 1.42857143;
+}
+
+.mydropdown {
+    display: none;
+    position: absolute;
+    /*display: inline-block;*/
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+.mydropdown-content {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    line-height: 1.42857143;
+}
+/*  --- END DROPDOWN POPUPBUTTON   ------*/
+
+/* Switch Left Right
+==========================*/
+.switch-left-right .switch-label {
+    overflow: hidden;
+}
+.switch-left-right .switch-label:before, .switch-left-right .switch-label:after {
+    width: 20px;
+    height: 20px;
+    top: 4px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 11px 0 0 0;
+    text-indent: -12px;
+    border-radius: 20px;
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 0 3px rgba(0, 0, 0, 0.1);
+}
+.switch-left-right .switch-label:before {
+    background: #eceeef;
+    text-align: left;
+    padding-left: 80px;
+}
+.switch-left-right .switch-label:after {
+    text-align: left;
+    text-indent: 9px;
+    background: #FF7F50;
+    left: -100px;
+    opacity: 1;
+    width: 100%;
+}
+.switch-left-right .switch-input:checked ~ .switch-label:before {
+    opacity: 1;
+    left: 100px;
+}
+.switch-left-right .switch-input:checked ~ .switch-label:after {
+    left: 0;
+}
+.switch-left-right .switch-input:checked ~ .switch-label {
+    background: inherit;
+}
+/*  end Switch Left Right*/
+
+.wbdn-btn {
+    display: inline-block;
+    padding: 5px;
+    margin-bottom: 3px;
+    margin-top: 0px;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+
+    text-decoration: none !important;
+    height: 180px;
+    width: 180px;
+
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: none;
+    border-radius: 5px;
+
+    color: #fff;
+    /*border-color: #46b8da;*/
+}
+
+.wbdn-btn-blue {
+    background-color: #00f;
+}
+.wbdn-btn-green {
+    background-color: #0f0;
+}
+.wbdn-btn-red {
+    background-color: #f00;
+}
+.wbdn-btn-orange {
+    background-color: #ff6a00;
+}
+.wbdn-btn-yellow {
+    background-color: #ffff00;
+}
+
+.wdbn-label-1 {
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-style: normal;
+}
+.wdbn-label-2 {
+    font-size: 40px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-style: normal;
+}
+
+.wdbn-label-3 {
+    font-size: 16px;
+    font-weight: 800;
+    font-style: normal;
+}
+
+
+.wdbn-box-2 { // aggiunto
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+
+
+.wbdn-command-btn {
+
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+
+}
+
+.wbdn-command-btn-blue {
+
+    color: #fff;
+    background-color: #5bc0de;
+    border-color: #46b8da;
+}
+
+.wbdn-command-btn-green {
+    color: #fff;
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+}
+
+.wbdn-command-btn-black {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.wbdn-command-btn-orange {
+    color: #fff;
+    background-color: #f0ad4e;
+    border-color: #eea236;
+}
+
+.wbdn-command-btn-red {
+    color: #fff;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
+
+.wbdn-command-btn-float {
+    float: right;
+    /*margin: 0 0 10px 10px;*/
+}
+
+
+/*--------------MODAL-----------*/
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+/* The Close Button */
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/*--------------END MODAL---------------*/
+
+
+
+
+
+

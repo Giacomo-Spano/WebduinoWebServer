@@ -52,7 +52,7 @@ public class Sensors implements Shields.ShieldsListener {
 
 
     public SensorBase getFromShieldIdandSubaddress(int shieldid, String subaddress) {
-        for (SensorBase sensor: list) {
+        for (SensorBase sensor : list) {
             if (sensor.subaddress.equals(subaddress) && sensor.shieldid == shieldid)
                 return sensor;
         }
@@ -64,20 +64,40 @@ public class Sensors implements Shields.ShieldsListener {
 
         Date date = Core.getDate();
         for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject json = null;
+
             try {
-                json = jsonArray.getJSONObject(i);
-                if (json.has("addr")) {
-                    String subaddress = json.getString("addr");
-                    SensorBase sensor = getFromShieldIdandSubaddress(shieldid, subaddress);
-                    if (sensor != null)
-                        sensor.updateFromJson(date,json);
+                JSONObject json = jsonArray.getJSONObject(i);
+                String subaddress = "";
+                if (json.has("type")) {
+                    String type = json.getString("type");
+
+                    if (type == "onewiresensor") {
+                        if (json.has("temperaturesensors")) {
+                            JSONArray jsonTemperatureSensorArray = new JSONArray(json.getJSONArray("temperaturesensors"));
+                            for (int k = 0; k < jsonArray.length(); k++) {
+                                JSONObject tempSensor = jsonTemperatureSensorArray.getJSONObject(i);
+                                if (tempSensor.has("addr")) {
+                                    subaddress = json.getString("addr");
+                                    SensorBase sensor = getFromShieldIdandSubaddress(shieldid, subaddress);
+                                    if (sensor != null)
+                                        sensor.updateFromJson(date, json);
+                                }
+                            }
+                        } else {
+                            // per identificare un sensere è necesario conoschere shieldid e addr
+                            if (json.has("addr")) {
+                                subaddress = json.getString("addr");
+                                SensorBase sensor = getFromShieldIdandSubaddress(shieldid, subaddress);
+                                if (sensor != null)
+                                    sensor.updateFromJson(date, json);
+                            }
+                        }
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-
         /*for (TemperatureSensor.TemperatureSensorListener listener : sensor.lis) {
             listener.changeAvTemperature(shieldid,subaddress,sensor.);
         }
@@ -85,8 +105,8 @@ public class Sensors implements Shields.ShieldsListener {
         for (SensorsListener listener : listeners) {
             listener.updatedSensorValue(sensor);
         }*/
+        return true;
 
-        return  true;
     }
 
 

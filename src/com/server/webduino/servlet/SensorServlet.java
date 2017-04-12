@@ -78,8 +78,8 @@ public class SensorServlet extends HttpServlet {
     private void updateShieldSensorsStatus(JSONObject jsonObj/*, URL url*/) throws JSONException {
         Date lastupdate = Core.getDate();
 
-        if (jsonObj.has("id")) {
-            int shieldid = jsonObj.getInt("id");
+        if (jsonObj.has("shieldid")) {
+            int shieldid = jsonObj.getInt("shieldid");
             if (jsonObj.has("sensors")) {
                 JSONArray jsonArray = jsonObj.getJSONArray("sensors");
                 updateSensors(shieldid, lastupdate, jsonArray);

@@ -69,8 +69,8 @@ public class Shield extends httpClient {
             lastUpdate = date;
             if (json.has("MAC"))
                 MACAddress = json.getString("MAC");
-            if (json.has("boardname"))
-                boardName = json.getString("boardname");
+            if (json.has("shieldName"))
+                boardName = json.getString("shieldName");
             if (json.has("localport"))
                 port = json.getInt("localport");
             else
@@ -95,8 +95,17 @@ public class Shield extends httpClient {
                     if (j.has("type")) {
                         String type = j.getString("type");
                         SensorBase sensor;
-                        if (type.equals("temperature")) {
-                            sensor = (SensorBase) new TemperatureSensor();
+                        if (type.equals("onewiresensor")) {
+                            OnewireSensor onewireSensor = new OnewireSensor();
+                            if (j.has("temperaturesensors")) {
+                                JSONArray tempSensorArray = j.getJSONArray("temperaturesensors");
+                                for (int k = 0; k < tempSensorArray.length(); k++) {
+                                    if (tempSensorArray.getJSONObject(k).has("id") && tempSensorArray.getJSONObject(k).has("name"))
+                                    onewireSensor.addTemperatureSensor(tempSensorArray.getJSONObject(k).getString("id"),tempSensorArray.getJSONObject(k).getString("name"));
+                                }
+                            }
+                            sensor = (SensorBase) onewireSensor;
+
                         } else if (type.equals("currentsensor")) {
                             sensor = (SensorBase) new CurrentSensor();
                         } else if (type.equals("humiditysensor")) {

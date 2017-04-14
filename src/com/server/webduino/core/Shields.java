@@ -32,15 +32,20 @@ public class Shields {
 
     interface ShieldsListener {
         void addedActuator(Actuator actuator);
+
         void addedSensor(SensorBase sensor);
+
         void addedShield(Shield shield);
 
         void updatedActuator(Actuator actuator);
+
         void updatedSensor(SensorBase sensor);
+
         void updatedShield(Shield shield);
     }
 
     protected List<ShieldsListener> listeners = new ArrayList<>();
+
     public void addListener(ShieldsListener toAdd) {
         listeners.add(toAdd);
     }
@@ -55,12 +60,12 @@ public class Shields {
     public void addTemeratureSensorListener(TemperatureSensor.TemperatureSensorListener toAdd) {
 
         for (SensorBase sensor : mSensors.getLastSensorData()) {
-                try { // aggiungi un listener solo se è un sensore di temperatura
-                    TemperatureSensor ts = (TemperatureSensor) sensor;
-                    ts.addListener(toAdd);
-                } catch (ClassCastException e) {
-                    e.printStackTrace();
-                }
+            try { // aggiungi un listener solo se è un sensore di temperatura
+                TemperatureSensor ts = (TemperatureSensor) sensor;
+                ts.addListener(toAdd);
+            } catch (ClassCastException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -84,16 +89,16 @@ public class Shields {
     }
 
     boolean updateSensors(int shieldid, JSONArray jsonArray) {
-        return mSensors.updateSensors(shieldid,jsonArray);
+        return mSensors.updateSensors(shieldid, jsonArray);
     }
 
     public void requestActuatorsUpdate() {
 
-        for(SensorBase sensor : mSensors.getSensorList()){
+        for (SensorBase sensor : mSensors.getSensorList()) {
             requestSensorStatusUpdate(sensor);
         }
 
-        for(SensorBase actuator : mActuators.getActuatorList()){
+        for (SensorBase actuator : mActuators.getActuatorList()) {
             requestSensorStatusUpdate(actuator);
         }
 
@@ -104,7 +109,7 @@ public class Shields {
             String res = sensor.requestStatusUpdate();
             if (res == null) {
                 LOGGER.severe("sensor " + sensor.id + " OFFLINE");
-                Core.sendPushNotification(SendPushMessages.notification_error, "errore", "ACTUATOR " + sensor.id + " OFFLINE", "0",sensor.id);
+                Core.sendPushNotification(SendPushMessages.notification_error, "errore", "ACTUATOR " + sensor.id + " OFFLINE", "0", sensor.id);
             } else {
                 LOGGER.info(res);
 
@@ -122,10 +127,12 @@ public class Shields {
 
 
     public Actuator getFromShieldId(int shieldid, String subaddress) {
-        return mActuators.getFromShieldId(shieldid, subaddress); }
+        return mActuators.getFromShieldId(shieldid, subaddress);
+    }
 
     public Actuator getFromId(int id) {
-        return mActuators.getFromId(id); }
+        return mActuators.getFromId(id);
+    }
 
     public List<TemperatureSensor> getSensorList() {
         //return mTemperatureSensorList;
@@ -171,23 +178,48 @@ public class Shields {
 
 
             for (SensorBase sensor : shield.sensors) {
-                //SensorBase sensor = Shields.getSensorFromId(id);
-                sql = "INSERT INTO sensors (shieldid, type, subaddress, name)" +
-                        " VALUES ("
-                        + "\"" + lastid + "\","
-                        + "\"" + sensor.type + "\","
-                        + "\"" + sensor.subaddress + "\","
-                        + "\"" + sensor.name + "\" ) " +
-                        "ON DUPLICATE KEY UPDATE "
-                        + "shieldid=\"" + lastid + "\","
-                        + "type=\"" + sensor.type + "\","
-                        + "subaddress=\"" + sensor.subaddress + "\","
-                        + "name=\"" + sensor.name + "\""
-                        + ";";
-                stmt.executeUpdate(sql);
+
+                 // se è un sensore onewire aggiungi un sensore per ongi sensore ttmperatura
+                // altrimenti uno solo
+                if (sensor instanceof OnewireSensor) {
+
+                    OnewireSensor onewireSensor = (OnewireSensor)sensor;
+                    for (int i = 0; i < onewireSensor.temperatureSensors.size(); i++) {
+                        OnewireSensor.TempSensor tempSensor = onewireSensor.temperatureSensors.get(i);
+                        String subaddress = sensor.subaddress + "." + tempSensor.id;
+                        sql = "INSERT INTO sensors (shieldid, type, subaddress, name)" +
+                                " VALUES ("
+                                + "\"" + lastid + "\","
+                                + "\"" + "temperature" + "\","
+                                + "\"" + subaddress + "\","
+                                + "\"" + tempSensor.name + "\" ) " +
+                                "ON DUPLICATE KEY UPDATE "
+                                + "shieldid=\"" + lastid + "\","
+                                + "type=\"" + "temperature" + "\","
+                                + "subaddress=\"" + subaddress + "\","
+                                + "name=\"" + tempSensor.name + "\""
+                                + ";";
+                        stmt.executeUpdate(sql);
+                    }
+                } else {
+
+                    sql = "INSERT INTO sensors (shieldid, type, subaddress, name)" +
+                            " VALUES ("
+                            + "\"" + lastid + "\","
+                            + "\"" + sensor.type + "\","
+                            + "\"" + sensor.subaddress + "\","
+                            + "\"" + sensor.name + "\" ) " +
+                            "ON DUPLICATE KEY UPDATE "
+                            + "shieldid=\"" + lastid + "\","
+                            + "type=\"" + sensor.type + "\","
+                            + "subaddress=\"" + sensor.subaddress + "\","
+                            + "name=\"" + sensor.name + "\""
+                            + ";";
+                    stmt.executeUpdate(sql);
+                }
             }
 
-            for(SensorBase actuator : shield.actuators) {
+            for (SensorBase actuator : shield.actuators) {
                 //SensorBase actuator = Shields.getActuatorFromId(id);
                 sql = "INSERT INTO actuators (shieldid, type, subaddress, name)" +
                         " VALUES ("
@@ -221,19 +253,19 @@ public class Shields {
 
         if (affectedRows == 2) { // row updated
             shield.id = lastid;
-            for(ShieldsListener listener : listeners) {
+            for (ShieldsListener listener : listeners) {
                 listener.updatedShield(shield);
             }
         } else if (affectedRows == 1) { // row inserted
             shield.id = lastid;
 
-            for(ShieldsListener listener : listeners) {
+            for (ShieldsListener listener : listeners) {
                 listener.addedShield(shield);
-                for(SensorBase actuator : shield.actuators) {
+                for (SensorBase actuator : shield.actuators) {
                     //SensorBase actuator = Shields.getActuatorFromId(id);
                     listener.addedActuator((Actuator) actuator);
                 }
-                for(SensorBase sensor : shield.sensors) {
+                for (SensorBase sensor : shield.sensors) {
                     //SensorBase sensor = Shields.getActuatorFromId(id);
                     listener.addedSensor(sensor);
                 }
@@ -487,7 +519,7 @@ public class Shields {
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) {
                 String strurl = rs.getString("url");
-                strurl = strurl.replace("http://","");
+                strurl = strurl.replace("http://", "");
                 url = new URL("http://" + strurl + ":" + rs.getInt("port"));
             }
             // Clean-up environment

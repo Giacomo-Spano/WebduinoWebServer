@@ -71,29 +71,32 @@ public class Sensors implements Shields.ShieldsListener {
                 if (json.has("type")) {
                     String type = json.getString("type");
 
-                    if (type == "onewiresensor") {
+                    if (json.has("addr")) {
+                        subaddress = json.getString("addr");
+                    }
+                    if (type.equals("onewiresensor")) {
                         if (json.has("temperaturesensors")) {
-                            JSONArray jsonTemperatureSensorArray = new JSONArray(json.getJSONArray("temperaturesensors"));
-                            for (int k = 0; k < jsonArray.length(); k++) {
-                                JSONObject tempSensor = jsonTemperatureSensorArray.getJSONObject(i);
+                            JSONArray jsonTemperatureSensorArray = json.getJSONArray("temperaturesensors");
+                            for (int k = 0; k < jsonTemperatureSensorArray.length(); k++) {
+                                JSONObject tempSensor = jsonTemperatureSensorArray.getJSONObject(k);
                                 if (tempSensor.has("addr")) {
-                                    subaddress = json.getString("addr");
+                                    subaddress = tempSensor.getString("addr");
+                                    //subaddress += id;
                                     SensorBase sensor = getFromShieldIdandSubaddress(shieldid, subaddress);
                                     if (sensor != null)
-                                        sensor.updateFromJson(date, json);
+                                        sensor.updateFromJson(date, tempSensor);
                                 }
                             }
+                        }
                         } else {
                             // per identificare un sensere è necesario conoschere shieldid e addr
-                            if (json.has("addr")) {
-                                subaddress = json.getString("addr");
-                                SensorBase sensor = getFromShieldIdandSubaddress(shieldid, subaddress);
-                                if (sensor != null)
-                                    sensor.updateFromJson(date, json);
-                            }
+
+                            SensorBase sensor = getFromShieldIdandSubaddress(shieldid, subaddress);
+                            if (sensor != null)
+                                sensor.updateFromJson(date, json);
+
                         }
                     }
-                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }

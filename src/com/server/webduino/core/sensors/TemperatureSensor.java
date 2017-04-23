@@ -1,49 +1,46 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
-public class OnewireSensor extends SensorBase {
+import static com.server.webduino.core.sensors.SensorBase.SensorListener.SensorEvents;
+import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
 
-    private static Logger LOGGER = Logger.getLogger(OnewireSensor.class.getName());
+public class TemperatureSensor extends SensorBase {
+
+    private static Logger LOGGER = Logger.getLogger(TemperatureSensor.class.getName());
 
     private double temperature;
     private double avTemperature;
 
 
-    public interface TemperatureSensorListener {
+    public interface TemperatureSensorListener extends SensorBase.SensorListener {
+        public String TemperatureEvents = "temperature event";
         void changeTemperature(int sensorId, double temperature);
         void changeAvTemperature(int sensorId, double avTemperature);
     }
 
-    public class TempSensor {
-        String name;
-        String id;
-    }
+    //private List<TemperatureSensorListener> listeners = new ArrayList<TemperatureSensorListener>();
 
-    public List<TempSensor> temperatureSensors = new ArrayList<TempSensor>();
-
-    public void addTemperatureSensor(String id, String name) {
-        TempSensor tempSensor = new TempSensor();
-        tempSensor.name = name;
-        tempSensor.id = id;
-        temperatureSensors.add(tempSensor);
-    }
-
-    private List<TemperatureSensorListener> listeners = new ArrayList<TemperatureSensorListener>();
-
-    public void addListener(TemperatureSensorListener toAdd) {
+    /*public void addListener(TemperatureSensorListener toAdd) {
         listeners.add(toAdd);
+    }*/
+
+    public boolean sendEvent(String eventtype) {
+        if (super.sendEvent(eventtype) || eventtype == TemperatureEvents)
+            return true;
+        return false;
     }
 
-    public OnewireSensor() {
-        //type = "temperature";
-        statusUpdatePath = "/temperaturesensorstatus";
+
+
+    public TemperatureSensor(int id, String name, String subaddress, int shieldid) {
+
+        super(id, name, subaddress, shieldid);
+        type = "temperature";
     }
 
     public void setTemperature(double temperature) {
@@ -57,8 +54,12 @@ public class OnewireSensor extends SensorBase {
             TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
             dl.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
-            for (TemperatureSensorListener hl : listeners)
-                hl.changeTemperature(id, temperature);
+            for (SensorListener listener : listeners) {
+                if (listener instanceof TemperatureSensorListener) {
+                    TemperatureSensorListener l = (TemperatureSensorListener) listener;
+                    l.changeTemperature(id, temperature);
+                }
+            }
         }
     }
 
@@ -70,8 +71,12 @@ public class OnewireSensor extends SensorBase {
         double oldAvtemperature = this.avTemperature;
         this.avTemperature = avTemperature;
         // Notify everybody that may be interested.
-        for (TemperatureSensorListener hl : listeners)
-            hl.changeAvTemperature(id, avTemperature);
+        for (SensorListener listener : listeners) {
+            if (listener instanceof TemperatureSensorListener) {
+                TemperatureSensorListener l = (TemperatureSensorListener) listener;
+                l.changeAvTemperature(id, avTemperature);
+            }
+        }
     }
 
     @Override
@@ -91,7 +96,7 @@ public class OnewireSensor extends SensorBase {
     }
 
     @Override
-    void updateFromJson(Date date, JSONObject json) {
+    public void updateFromJson(Date date, JSONObject json) {
 
         LOGGER.info("updateFromJson json=" + json.toString());
         try {

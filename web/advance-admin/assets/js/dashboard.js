@@ -59,19 +59,21 @@ function loadSensors() {
 
             tr = $mSensorPanel.find('tr[name="sensor"]');
             newtr = $mSensorRow.clone();
+            // id
             newtr.find('td[name="id"]').text(elem.id);
+            // shieldid
             newtr.find('td[name="shieldid"]').text(elem.shieldid);
             if (elem.online)
                 newtr.find('td[name="onlinestatus"]').text("Online");
             else
                 newtr.find('td[name="onlinestatus"]').text("Offline");
-
-
+            // last upodate
             newtr.find('td[name="date"]').text(elem.lastupdate);
-
+            // type
             newtr.find('td[name="type"]').text(elem.type);
+            // status
             if (elem.type == "temperature") {
-                text = "temp:" + elem.temperature + "°C" + "av.temp:" + elem.avtemperature + "°C";
+                text = "temp:" + elem.temperature + "°C" + " av.temp:" + elem.avtemperature + "°C";
                 newtr.find('td[name="status"]').text(text);
             } else if (elem.type == "doorsensor") {
                 text = "door ";
@@ -80,9 +82,24 @@ function loadSensors() {
                 else
                     text += "closed";
                 newtr.find('td[name="status"]').text(text);
+            } else if (elem.type == "heatersensor") {
+                text = "status " + elem.status
+                + "</br>" + "rele " + elem.relestatus
+                + "</br>" + "target " + elem.target
+                + "</br>" + "temperature " + elem.temperature
+                + "</br>" + "sensor " + elem.sensorIDname + "(" + elem.sensorid + ")"
+                + "</br>" + "progam " + elem.program + "." + elem.timerange + " " + elem.programname;
+
+
+
+                newtr.find('td[name="status"]').text(text);
+            } else {
+                newtr.find('td[name="status"]').text("undefined");
             }
 
+            //name
             newtr.find('td[name="name"]').text(elem.name);
+            // subaddress
             newtr.find('td[name="subaddress"]').text(elem.subaddress);
 
             tr.last().after(newtr);
@@ -91,12 +108,11 @@ function loadSensors() {
         .done(function () {
             console.log("succes");
         })
-        .fail(function () {
-            console.log("error1");
-            alert("error1");
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            alert('getJSON request failed! ' + textStatus);
         })
         .always(function () {
-            console.log("error2");
+            //console.log("get Sensor Error");
         });
 }
 function setActuatorElement(element, actuator) {
@@ -116,9 +132,9 @@ function setActuatorElement(element, actuator) {
     element.find('td[name="remote"]').text(actuator.remotetemperature + "°C");
     element.find('input[name="target"]').val(actuator.target);
     if (actuator.localsensor)
-        element.find('td[name="sensor"]').text("Locale");
+        element.find('td[name="sensors"]').text("Locale");
     else
-        element.find('td[name="sensor"]').text("Remoto: " + actuator.sensorID);
+        element.find('td[name="sensors"]').text("Remoto: " + actuator.sensorID);
 
     element.find('td[name="url"]').text(actuator.url);
     element.find('td[name="name"]').text(actuator.name);
@@ -257,11 +273,11 @@ function loadActiveProgramList() {
             newtr.find('td[name="start"]').text(elem.startdate);
             newtr.find('td[name="end"]').text(elem.enddate);
             newtr.find('td[name="temperature"]').text(elem.temperature);
-            newtr.find('td[name="sensor"]').text("#" + elem.sensor);
-            //newtr.find('td[name="sensor"]').text("#" + elem.sensor + " " + elem.sensorname + " (" + elem.sensortemperature + "°C)");
+            newtr.find('td[name="sensors"]').text("#" + elem.sensor);
+            //newtr.find('td[name="sensors"]').text("#" + elem.sensors + " " + elem.sensorname + " (" + elem.sensortemperature + "°C)");
             //newtr.find('td[name="endtime"]').text(elem.startdate);
             //newtr.find('td[name="temperature"]').text(elem.temperature);
-            //newtr.find('td[name="sensor"]').text("#" + elem.sensor + " " + elem.sensorname + " (" + elem.sensortemperature + "°C)");
+            //newtr.find('td[name="sensors"]').text("#" + elem.sensors + " " + elem.sensorname + " (" + elem.sensortemperature + "°C)");
 
             //tr.last().before(newtr);
         });
@@ -290,7 +306,7 @@ function loadActiveProgram() {
             console.log("succes");
         })
         .fail(function () {
-            //console.log("error1");
+            console.log("load active program error");
         })
         .always(function () {
             console.log("cannot load active program");
@@ -308,7 +324,7 @@ function load() {
     $activeProgram = $(this).find('div[id="activeprogrampanel"]');
 
     loadSensors();
-    loadActuators();
-    loadShields();
-    loadActiveProgramList();
+    //loadActuators();
+    //loadShields();
+    //loadActiveProgramList();
 }

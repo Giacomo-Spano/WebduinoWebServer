@@ -13,6 +13,7 @@ import java.util.Iterator;
  */
 public class Program {
     public int id;
+    public int sensorId;
     public boolean active;
     public boolean dateEnabled;
     public String name;
@@ -36,7 +37,7 @@ public class Program {
         TimeRange tr = new TimeRange(mActiveTimeRange);
         return tr;
     }*/
-    TimeRange getTimeRangeFromId(int id) {
+    public TimeRange getTimeRangeFromId(int id) {
 
         Iterator<TimeRange> iterator = mTimeRanges.iterator();
         TimeRange currentTimeRange = null;

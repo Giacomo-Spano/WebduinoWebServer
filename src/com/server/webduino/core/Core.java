@@ -1,5 +1,6 @@
 package com.server.webduino.core;
 
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONArray;
 
 import java.text.ParseException;
@@ -35,8 +36,6 @@ public class Core {
 
     public Core() {
 
-
-
         production_envVar = System.getenv("PRODUCTION");
         appDNS_envVar = System.getenv("OPENSHIFT_APP_DNS");
         mysqlDBHost_envVar = System.getenv("OPENSHIFT_MYSQL_DB_HOST");
@@ -68,12 +67,6 @@ public class Core {
     }
 
     public static String getDbUrl() {
-        /*if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFT)) { // production
-            return "jdbc:mysql://" + mysqlDBHost_envVar + ":" + mysqlDBPort_envVar + "/" + "webduino";
-        } else if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFTTEST)) { // test
-            return "jdbc:mysql://" + mysqlDBHost_envVar + ":" + mysqlDBPort_envVar + "/" + "webduino";
-            //return "jdbc:mysql://" + mysqlDBHost_envVar + ":" + mysqlDBPort_envVar + "/" + "jbossews";
-        } else*/
         //test
         if (production_envVar != null && production_envVar.equals("0")) {
             //LOGGER.info("jdbc:mysql://127.0.0.1:3306/webduino_debug");
@@ -91,17 +84,9 @@ public class Core {
 
         mShields = new Shields();
         mShields.init();
-        mPrograms = new Programs();
-
-        //mSensors.addListener(mPrograms);
-
-        mShields.addListener(mPrograms); /// TODO quetso a cosa serve????
-
-        mShields.addTemeratureSensorListener(mPrograms);// metti program in ascolto di ogni variazione di temperatura
 
         Settings settings = new Settings();
-        mPrograms.init((HeaterActuator) getFromId(settings.HeaterActuatorId));
-        mPrograms.read(); // caricare actuator prima di program!!
+
         mDevices.read();
     }
 
@@ -109,12 +94,7 @@ public class Core {
 
         LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
         new PushNotificationThread(type, title, description, value, id).start();
-
         LOGGER.info("sendPushNotification sent");
-    }
-
-    public ArrayList<Actuator> getActuators() {
-        return mShields.getActuators();
     }
 
     public List<Shield> getShields() {
@@ -129,20 +109,12 @@ public class Core {
         return mShields.updateSensors(shieldid, jsonArray);
     }
 
-    public static Actuator getFromShieldId(int shieldid, String subaddress) {
-        return mShields.getFromShieldId(shieldid, subaddress);
-    }
-
-    public Actuator getFromId(int id) {
-        return mShields.getFromId(id);
+    public static SensorBase getFromShieldId(int shieldid, String subaddress) {
+        return mShields.getFromShieldIdandSubaddress(shieldid, subaddress);
     }
 
     public ArrayList<Program> getPrograms() {
         return mPrograms.getProgramList();
-    }
-
-    public List<TemperatureSensor> getSensors() {
-        return mShields.getSensorList();
     }
 
     public static int registerShield(Shield shield) {
@@ -157,8 +129,10 @@ public class Core {
         return mPrograms.getProgramFromId(id);
     }
 
-    public ActiveProgram getActiveProgram() {
-        return mPrograms.getActiveProgram();
+    public ActiveProgram getActiveProgram(int id) {
+        SensorBase sensor = getSensorFromId(id);
+        return sensor.getActiveProgram();
+        //return mPrograms.getActiveProgram(id);
     }
 
     public Date getLastActiveProgramUpdate() {
@@ -169,16 +143,16 @@ public class Core {
         return mShields.getSensorFromId(id);
     }
 
-    public static Actuator getActuatorFromId(int id) {
-        return mShields.getActuatorFromId(id);
-    }
-
     public int deleteProgram(int id) {
         return mPrograms.delete(id);
     }
 
     public int updatePrograms(Program program) {
         return mPrograms.insert(program);
+    }
+
+    public JSONArray getShieldsJsonArray() {
+        return mShields.getShieldsJsonArray();
     }
 
     public static Date getDate() {
@@ -201,7 +175,10 @@ public class Core {
         return newDate;
     }
 
-    public JSONArray getShieldsJsonArray() {
-        return mShields.getShieldsJsonArray();
+    public static String boolToString(boolean val) {
+        if (val)
+            return "true";
+        else
+            return "false";
     }
 }

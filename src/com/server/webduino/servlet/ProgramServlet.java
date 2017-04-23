@@ -2,6 +2,9 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.TemperatureSensor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -171,8 +174,8 @@ public class ProgramServlet extends HttpServlet {
                 tr.endTime = Time.valueOf(JSONrange.getString("endtime") + ":00");
             if (!JSONrange.isNull(("temperature")))
                 tr.temperature = JSONrange.getDouble("temperature");
-            /*if (!JSONrange.isNull(("sensor")))
-                tr.shieldId = JSONrange.getInt("sensor");*/
+            /*if (!JSONrange.isNull(("sensors")))
+                tr.shieldId = JSONrange.getInt("sensors");*/
             if (!JSONrange.isNull(("sensorid")))
                 tr.sensorId = JSONrange.getInt("sensorid");
             if (!JSONrange.isNull(("priority")))
@@ -219,7 +222,7 @@ public class ProgramServlet extends HttpServlet {
                     if (active.endDate != null)
                         json.put("enddate", df.format(active.endDate));
                     json.put("temperature", active.timeRange.temperature);
-                    json.put("sensor", active.timeRange.sensorId);
+                    json.put("sensors", active.timeRange.sensorId);
 
 
                     jsonarray.put(json);
@@ -245,7 +248,7 @@ public class ProgramServlet extends HttpServlet {
             }
         } else if (activeParamValue != null) {
 
-            ActiveProgram activeProgram = core.getActiveProgram();
+            ActiveProgram activeProgram = core.getActiveProgram(0);
             if (activeProgram == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             } else {
@@ -259,7 +262,7 @@ public class ProgramServlet extends HttpServlet {
                     json.put("timerangename", activeProgram.timeRange.name);
                     json.put("endtime", activeProgram.timeRange.endTime);
                     json.put("temperature", activeProgram.timeRange.temperature);
-                    json.put("sensor", activeProgram.timeRange.sensorId);
+                    json.put("sensors", activeProgram.timeRange.sensorId);
                     String sensorName = "local";
                     Double sensorTemperature = 0.0;
                     if (activeProgram.timeRange.sensorId != 0) {

@@ -1,4 +1,4 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +23,9 @@ public class CurrentSensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public CurrentSensor() {
+    public CurrentSensor(int id, String name, String subaddress, int shieldid) {
+        super(id, name, subaddress, shieldid);
+        type = "currentsensor";
     }
 
     public void setCurrent(double current) {
@@ -53,7 +55,7 @@ public class CurrentSensor extends SensorBase {
     }
 
     @Override
-    void updateFromJson(Date date, JSONObject json) {
+    public void updateFromJson(Date date, JSONObject json) {
 
         LOGGER.info("updateFromJson json=" + json.toString());
         try {

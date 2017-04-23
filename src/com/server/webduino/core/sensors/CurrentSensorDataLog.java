@@ -1,4 +1,7 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
+
+import com.server.webduino.core.Core;
+import com.server.webduino.core.DataLog;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;

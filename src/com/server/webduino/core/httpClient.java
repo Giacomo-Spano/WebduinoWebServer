@@ -16,8 +16,8 @@ public class httpClient {
     private static Logger LOGGER = Logger.getLogger(httpClient.class.getName());
 
     public class Result {
-        boolean res;
-        String response = "";
+        public boolean res;
+        public String response = "";
     }
 
     protected Result callGet(String param, String path, URL url) {

@@ -47,10 +47,10 @@ public class HomeServlet extends HttpServlet  {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         String str = dateFormat.format(date);
 
-        /*TemperatureSensor sensor;
+        /*TemperatureSensor sensors;
         URL remoteURL1 = new URL("http://"+"192.168.1.95:80"); // studio
-        sensor = new TemperatureSensor(remoteURL1);
-        String txt = sensor.requestStatusUpdate();*/
+        sensors = new TemperatureSensor(remoteURL1);
+        String txt = sensors.requestStatusUpdate();*/
         //SensorData data = Shields.get(0);
 
         PrintWriter out = response.getWriter();

@@ -20,7 +20,7 @@ function load() {
     //$mTemperature = $(this).find('.temperature');
     $mTemperature = $(this).find('h5[id="temperature"]');
     $mRele = $(this).find('div[id="rele"]');
-    //$mSensorRow = $mSensorPanel.find('tr[name="sensor"]');
+    //$mSensorRow = $mSensorPanel.find('tr[name="sensors"]');
 
     loadTemperature();
     //loadActiveProgram();

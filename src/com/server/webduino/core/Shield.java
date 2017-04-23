@@ -1,18 +1,20 @@
 package com.server.webduino.core;
 
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import sun.management.Sensor;
 
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//import static com.server.webduino.core.SensorBase.Status_Offline;
+//import static com.server.webduino.core.sensors.SensorBase.Status_Offline;
 
 public class Shield extends httpClient {
 
@@ -22,26 +24,58 @@ public class Shield extends httpClient {
     protected String MACAddress;
     protected String boardName;
     protected Date lastUpdate;
-    List<SensorBase> sensors = new ArrayList<>();
-    List<Actuator> actuators = new ArrayList<>();
+    protected List<SensorBase> sensors = new ArrayList<>();
     public URL url;
     public int port;
 
-    /*public Shield(JSONObject jsonObj) {
-        //FromJson(jsonObj);
-    }*/
+    protected String statusUpdatePath = "/sensorstatus";
 
     public Shield() {
+    }
+
+    public String requestStatusUpdate() { //
+
+        LOGGER.info("requestStatusUpdate:" + statusUpdatePath);
+
+        Result result = call("GET", "", statusUpdatePath);
+        if (result != null && result.res)
+            return result.response;
+
+        for (int i = 0; i < 2; i++) {
+
+            LOGGER.log(Level.WARNING, "retry..." + (i + 1));
+            result = call("GET", "", statusUpdatePath);
+            if (result != null && result.res)
+                return result.response;
+        }
+        LOGGER.info("end requestStatusUpdate" + result.response);
+        return null;
+    }
+
+    protected Result call(String method, String param, String path) {
+
+        LOGGER.info("call: " + method + "," + param + "," + path);
+        LOGGER.info("url: " + url.toString());
+
+        Result result = null;
+        if (method.equals("GET")) {
+            result = callGet(param, path, url);
+        } else if (method.equals("POST")) {
+            result = callPost(param, path, url);
+        }
+
+        LOGGER.info("end call");
+        return result;
     }
 
     /*public boolean sensorsIsNotUpdated() {
 
         Date currentDate = Core.getDate();
         boolean res = false;
-        for (SensorBase sensor : sensors) {
+        for (SensorBase sensors : sensors) {
             //SensorBase s = Shields.getSensorFromId(id);
-            if (sensor.lastUpdate == null || (currentDate.getTime() - sensor.lastUpdate.getTime()) > (30*1000) ) {
-                sensor.onlinestatus = Status_Offline;
+            if (sensors.lastUpdate == null || (currentDate.getTime() - sensors.lastUpdate.getTime()) > (30*1000) ) {
+                sensors.onlinestatus = Status_Offline;
                 res = true;
             }
         }
@@ -94,42 +128,43 @@ public class Shield extends httpClient {
                     JSONObject j = jsonArray.getJSONObject(i);
                     if (j.has("type")) {
                         String type = j.getString("type");
-                        SensorBase sensor;
-                        if (type.equals("onewiresensor")) {
-                            OnewireSensor onewireSensor = new OnewireSensor();
-                            if (j.has("temperaturesensors")) {
-                                JSONArray tempSensorArray = j.getJSONArray("temperaturesensors");
+                        String name = "";
+                        String subaddress = "";
+                        if (j.has("name"))
+                            name = j.getString("name");
+                        if (j.has("addr"))
+                            subaddress = j.getString("addr");
+
+                        SensorBase sensor = SensorFactory.createSensor(type, name, subaddress, 0, 0);
+                        if (sensor == null) {
+                            continue;
+                        } else {
+
+                            if (j.has("childsensors")) {
+                                JSONArray tempSensorArray = j.getJSONArray("childsensors");
                                 for (int k = 0; k < tempSensorArray.length(); k++) {
-                                    if (tempSensorArray.getJSONObject(k).has("id") && tempSensorArray.getJSONObject(k).has("name"))
-                                    onewireSensor.addTemperatureSensor(tempSensorArray.getJSONObject(k).getString("id"),tempSensorArray.getJSONObject(k).getString("name"));
+
+                                    String childSubaddress = "";
+                                    if (j.has("addr"))
+                                        childSubaddress = tempSensorArray.getJSONObject(k).getString("addr");
+
+                                    String childName = "";
+                                    if (j.has("name"))
+                                        childName = tempSensorArray.getJSONObject(k).getString("name");
+
+                                    int id = tempSensorArray.getJSONObject(k).getInt("id");
+
+                                    SensorBase childSensor = SensorFactory.createSensor("temperature", childName, childSubaddress, id, 0);
+                                    if (childSensor != null)
+                                        sensor.addChildSensor(childSensor);
                                 }
                             }
-                            sensor = (SensorBase) onewireSensor;
-
-                        } else if (type.equals("currentsensor")) {
-                            sensor = (SensorBase) new CurrentSensor();
-                        } else if (type.equals("humiditysensor")) {
-                            sensor = (SensorBase) new HumiditySensor();
-                        } else if (type.equals("pressuresensor")) {
-                            sensor = (SensorBase) new PressureSensor();
-                        } else if (type.equals("pirsensor")) {
-                            sensor = (SensorBase) new PIRSensor();
-                        } else if (type.equals("doorsensor")) {
-                            sensor = (SensorBase) new DoorSensor();
-                        } else {
-                            continue;
                         }
-                        if (j.has("name"))
-                            sensor.name = j.getString("name");
-                        if (j.has("addr"))
-                            sensor.subaddress = j.getString("addr");
-                        if (j.has("type"))
-                            sensor.type = j.getString("type");
                         sensors.add(sensor);
                     }
                 }
             }
-            if (json.has("actuators")) {
+            /*if (json.has("actuators")) {
                 JSONArray jsonArray = json.getJSONArray("actuators");
                 for (int i = 0; i < jsonArray.length(); i++) {
                     JSONObject j = jsonArray.getJSONObject(i);
@@ -152,7 +187,7 @@ public class Shield extends httpClient {
                         actuators.add(actuator);
                     }
                 }
-            }
+            }*/
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -162,6 +197,7 @@ public class Shield extends httpClient {
         }
         return true;
     }
+
 
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
@@ -176,19 +212,19 @@ public class Shield extends httpClient {
             json.put("port", port);
             JSONArray jarray = new JSONArray();
             for (SensorBase sensor : sensors) {
-                //SensorBase sensor = Shields.getSensorFromId(id);
+                //SensorBase sensors = Shields.getSensorFromId(id);
                 if (sensor != null)
                     jarray.put(sensor.getJson());
             }
             json.put("sensorIds", jarray);
 
-            jarray = new JSONArray();
+            /*jarray = new JSONArray();
             for (SensorBase actuator : actuators) {
                 //SensorBase actuator = Shields.getActuatorFromId(id);
                 if (actuator != null)
                     jarray.put(actuator.getJson());
             }
-            json.put("actuatorIds", jarray);
+            json.put("actuatorIds", jarray);*/
 
         } catch (JSONException e) {
             e.printStackTrace();

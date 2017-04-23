@@ -35,8 +35,8 @@ public class UpdateSensorsThread extends Thread {
         LOGGER.info("UpdateSensorsThread -START");
         Core core = (Core)context.getAttribute(QuartzListener.CoreClass);
         core.updateSensors(shieldid,jsonArray);
-        //SensorBase sensor = core.getSensorFromShieldIdAndSubadress(shieldid,subaddress);
-        //sensor.updateFromJson(json);
+        //SensorBase sensors = core.getSensorFromShieldIdAndSubadress(shieldid,subaddress);
+        //sensors.updateFromJson(json);
         LOGGER.info("UpdateSensorsThread - END");
     }
 }

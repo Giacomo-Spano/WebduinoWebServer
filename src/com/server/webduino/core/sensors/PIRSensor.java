@@ -1,4 +1,4 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +23,9 @@ public class PIRSensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public PIRSensor() {
+    public PIRSensor(int id, String name, String subaddress, int shieldid) {
+        super(id, name, subaddress, shieldid);
+        type = "pirsensor";
     }
 
     public void setStatus(boolean motionDetected) {
@@ -53,7 +55,7 @@ public class PIRSensor extends SensorBase {
     }
 
     @Override
-    void updateFromJson(Date date, JSONObject json) {
+    public void updateFromJson(Date date, JSONObject json) {
 
         LOGGER.info("updateFromJson json=" + json.toString());
         try {

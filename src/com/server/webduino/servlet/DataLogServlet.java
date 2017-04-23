@@ -1,8 +1,9 @@
 package com.server.webduino.servlet;
 
 import com.server.webduino.core.*;
+import com.server.webduino.core.sensors.HeaterDataLog;
+import com.server.webduino.core.sensors.TemperatureSensorDataLog;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -13,7 +14,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.util.*;
 
 /**

@@ -1,4 +1,4 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,59 +8,61 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class PressureSensor extends SensorBase {
+public class DoorSensor extends SensorBase {
 
-    private static Logger LOGGER = Logger.getLogger(PressureSensor.class.getName());
+    private static Logger LOGGER = Logger.getLogger(DoorSensor.class.getName());
 
-    private double pressure;
+    private boolean open;
 
-    public interface PressureSensorListener {
-        void changePressure(int sensorId, double current);
+    public interface CurrentSensorListener {
+        void changeStatus(int sensorId, boolean open);
     }
 
-    private List<PressureSensorListener> listeners = new ArrayList<PressureSensorListener>();
-    public void addListener(PressureSensorListener toAdd) {
+    private List<CurrentSensorListener> listeners = new ArrayList<CurrentSensorListener>();
+    public void addListener(CurrentSensorListener toAdd) {
         listeners.add(toAdd);
     }
 
-    public PressureSensor() {
+    public DoorSensor(int id, String name, String subaddress, int shieldid) {
+        super(id, name, subaddress, shieldid);
+        type = "doorsensor";
     }
 
-    public void setPressure(double pressure) {
+    public void setStatus(boolean open) {
 
-        LOGGER.info("setCurrent");
+        LOGGER.info("setStatus");
 
-        double oldPressure = this.pressure;
-        this.pressure = pressure;
+        boolean oldOpen = this.open;
+        this.open = open;
 
-        if (pressure != oldPressure) {
+        if (open != oldOpen) {
             CurrentSensorDataLog dl = new CurrentSensorDataLog();
             dl.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
-            for (PressureSensorListener hl : listeners)
-                hl.changePressure(id, pressure);
+            for (CurrentSensorListener hl : listeners)
+                hl.changeStatus(id, open);
         }
     }
 
     @Override
     public void writeDataLog(String event) {
-        PressureSensorDataLog dl = new PressureSensorDataLog();
+        DoorSensorDataLog dl = new DoorSensorDataLog();
         dl.writelog(event, this);
     }
 
-    public double getPressure() {
-        return pressure;
+    public boolean getStatus() {
+        return open;
     }
 
     @Override
-    void updateFromJson(Date date, JSONObject json) {
+    public void updateFromJson(Date date, JSONObject json) {
 
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
             lastUpdate = date;
             online = true;
-            if (json.has("pressure"))
-                setPressure(json.getDouble("pressure"));
+            if (json.has("open"))
+                setStatus(json.getBoolean("open"));
             if (json.has("name"))
                 name = json.getString("name");
             super.setData(shieldid, subaddress, name, date);
@@ -80,7 +82,7 @@ public class PressureSensor extends SensorBase {
             json.put("shieldid", shieldid);
             json.put("online", online);
             json.put("subaddress", subaddress);
-            json.put("current", pressure);
+            json.put("status", open);
             json.put("name", getName());
             json.put("lastupdate", getStrLastUpdate());
             json.put("type", type);

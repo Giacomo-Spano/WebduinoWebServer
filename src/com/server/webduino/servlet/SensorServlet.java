@@ -3,6 +3,7 @@ package com.server.webduino.servlet;
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
 //import com.server.webduino.core.SensorData;
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -87,20 +88,6 @@ public class SensorServlet extends HttpServlet {
         }
 
     }
-
-    /*private void registerShield(JSONObject jsonObj, URL url) throws JSONException {
-
-        int id;
-
-        String MACAddress = "";
-        String boardName = "";
-        Date lastupdate = Core.getDate();
-
-        Shield shield = new Shield(jsonObj);
-
-        new RegisterShieldThread(shield).start();
-    }*/
-
 
     private void updateSensors(int shieldid, Date lastupdate, JSONArray jsonArray) {
 

@@ -1,24 +1,25 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
+
+import com.server.webduino.core.Core;
+import com.server.webduino.core.DataLog;
 
 import java.sql.*;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class TemperatureSensorDataLog extends DataLog {
+public class PIRSensorDataLog extends DataLog {
 
-    public Double temperature = 0.0;
-    public Double avTemperature = 0.0;
-    public String tableName = "temperaturedatalog";
+    public boolean open = false;
+    public String tableName = "currentdatalog";
 
     @Override
     public String getSQLInsert(String event, SensorBase sensor) {
 
-        TemperatureSensor temperatureSensor = (TemperatureSensor) sensor;
+        PIRSensor pirSensor = (PIRSensor) sensor;
         String sql;
-        sql = "INSERT INTO " + tableName + " (id, subaddress, date, temperature, avtemperature) VALUES ("
-                + temperatureSensor.id + ",'" + temperatureSensor.subaddress + "',"  + getStrDate() + "," + temperatureSensor.getTemperature() + "," + temperatureSensor.getAvTemperature() + ");";
+        sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
+                + pirSensor.id + ",'" + pirSensor.subaddress + "',"  + getStrDate() + "," + pirSensor.getStatus() + ");";
         return sql;
     }
 
@@ -39,16 +40,15 @@ public class TemperatureSensorDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM temperaturedatalog WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM " + tableName + " WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                TemperatureSensorDataLog data = new TemperatureSensorDataLog();
+                PIRSensorDataLog data = new PIRSensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.temperature = rs.getDouble("temperature");
-
+                data.open = rs.getBoolean("motion");
                 list.add(data);
             }
             // Clean-up environment

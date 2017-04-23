@@ -1,6 +1,10 @@
 package com.server.webduino.core;
 
 import com.quartz.NextProgramQuartzJob;
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.HeaterActuator;
+import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.TemperatureSensor;
 import com.server.webduino.servlet.SendPushMessages;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -22,39 +26,43 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * Created by Giacomo Span� on 07/11/2015.
  */
-public class Programs implements HeaterActuator.HeaterActuatorListener, TemperatureSensor.TemperatureSensorListener,
-        Shields.ShieldsListener, Sensors.SensorsListener {
+public class Programs {
 
     Scheduler scheduler = null;
     JobDetail mNextProgramJob = null;
 
     public Programs() {
-
+        actuatorStatus = "";
     }
 
-    //private HeaterActuator mActuator;
+    public interface ProgramsListener {
+        void programChanged(ActiveProgram newProgram);
+    }
+
+    protected List<Programs.ProgramsListener> listeners = new ArrayList<>();
+
+    public void addListener(Programs.ProgramsListener toAdd) {
+        listeners.add(toAdd);
+    }
+
     protected int actuatorId;
+
+    protected String actuatorStatus;
+
+
+    protected int sensorId;
     private static final Logger LOGGER = Logger.getLogger(Programs.class.getName());
     private ArrayList<Program> mProgramList;
     protected ArrayList<ActiveProgram> mNextProgramList;
     private Date mLastActiveProgramUpdate;
-    protected ActiveProgram mActiveProgram = null, mOldActiveProgram = null;
+    protected ActiveProgram mOldActiveProgram = null;
     private double mActiveSensorTemperature;
     private Date lastTemperatureSent;
 
-    public HeaterActuator getActuator() {
-        return (HeaterActuator) Core.getActuatorFromId(actuatorId);
-    }
+    protected double oldTemperature = 0.0;
 
-    public void init(HeaterActuator actuator) {
 
-        actuatorId = actuator.id;
-
-        //mActuator = actuator;
-        if (actuator != null) {
-            //mActuator = (HeaterActuator) actuator;//Core.getFromShieldId(1);
-            actuator.addListener(this);
-        }
+    public void init(SensorBase sensor) {
 
         try {
             scheduler = new StdSchedulerFactory().getScheduler();
@@ -64,9 +72,11 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
         }
     }
 
-    public void read() { // reload all program data from db
+    public void read(int sensorid) { // reload all program data from db
 
         mProgramList = new ArrayList<Program>();
+        sensorId = sensorid;
+        String sql;
         try {
             // Register JDBC driver
             Class.forName("com.mysql.jdbc.Driver");
@@ -74,8 +84,9 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             // Execute SQL query
             Statement stmt = conn.createStatement();
-            String sql;
-            sql = "SELECT id, active, name, dateenabled, starttime, startdate, endtime, enddate, sunday, monday, tuesday, wednesday, thursday, friday, saturday, priority FROM programs ORDER BY priority ASC";
+
+            //sql = "SELECT id, active, name, dateenabled, starttime, startdate, endtime, enddate, sunday, monday, tuesday, wednesday, thursday, friday, saturday, priority FROM programs ORDER BY priority ASC";
+            sql = "SELECT * FROM programs WHERE sensorid=" + sensorid + " ORDER BY priority ASC" + ";";
             ResultSet rs = stmt.executeQuery(sql);
 
             // Extract data from result set
@@ -83,6 +94,7 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
                 Program program = new Program();
                 //Retrieve by column name
                 program.id = rs.getInt("id");
+                program.sensorId = rs.getInt("sensorid");
                 program.active = (boolean) rs.getObject("active");
                 program.dateEnabled = (boolean) rs.getObject("dateenabled");
                 program.name = rs.getString("name");
@@ -135,7 +147,7 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
             //Handle errors for Class.forName
             e.printStackTrace();
         }
-        checkProgram();
+        //checkProgram();
     }
 
     public void checkProgram() {
@@ -143,128 +155,64 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
         LOGGER.info("checkProgram");
         mLastActiveProgramUpdate = Core.getDate();
 
-        HeaterActuator actuator = getActuator();
-        if (actuator == null || actuator.getStatus() == null) {
-            ;// errore  NESSUN ACTUATOR DISPONIBILE
-            LOGGER.severe("->No actuator available");
-            Core.sendPushNotification(SendPushMessages.notification_error, "errore", ">No actuator available", "0",0);
+        if (actuatorStatus.equals(HeaterActuator.STATUS_MANUAL) || actuatorStatus.equals(HeaterActuator.STATUS_MANUALOFF)) {
+            LOGGER.info("->actuator in manual mode");
             mOldActiveProgram = null;
             return;
         }
 
-        if (actuator.getStatus().equals(HeaterActuator.STATUS_MANUAL) || actuator.getStatus().equals(HeaterActuator.STATUS_MANUALOFF)) {
-            LOGGER.info("->actuator in manual mode");
+        LOGGER.info("->Check active program");
+        Date currentDate = Core.getDate();
+
+        // calcola il programma attivo ora
+        ActiveProgram activeProgram = getActiveProgram(currentDate);
+
+        // se non esiste nessun  programma attivo riprocva tra un mionuto
+        if (activeProgram == null) {
+            LOGGER.info("->No active program");
+            Core.sendPushNotification(SendPushMessages.notification_error, "errore", "no active program", "0", 0);
             mOldActiveProgram = null;
 
+            // schedula controllo programmi tra un minuto
+            Date date = Core.getDate();
+            Calendar now = Calendar.getInstance();
+            now.setTime(date);
+            now.add(Calendar.MINUTE, 1);
+            Date oneMinuteFromNow = now.getTime();
+            scheduleJob(oneMinuteFromNow);
+
+            mOldActiveProgram = activeProgram;
+            return;
+        }
+        // aggiorna la lista dei prossimo programmi e schedula il successivo
+        mNextProgramList = nextPrograms(currentDate);
+        LOGGER.info("found " + mNextProgramList.size() + "active program");
+        // se esiste almeno un programma schedula la prossima chiamata a checkprogranm alla fine di quello corrente e l'inizio del successivo
+        // All'enddate del primo sarà chiamata la check program dal job
+        if (mNextProgramList == null) {
+            LOGGER.severe("mNextProgramList NULL");
+        } else if (mNextProgramList.get(0) != null && mNextProgramList.get(0).endDate != null) {
+            Date date = mNextProgramList.get(0).endDate;
+            scheduleJob(date);
         } else {
-            LOGGER.info("->Check active program");
-            Date currentDate = Core.getDate();
-            mActiveProgram = getActiveProgram(currentDate);
+            LOGGER.severe("CANNOT schedule next job");
+        }
 
-            mNextProgramList = nextPrograms(currentDate);
-            LOGGER.info("found " + mNextProgramList.size() + "active program");
 
-            if (mNextProgramList == null) {
-                LOGGER.severe("mNextProgramList NULL");
-            } else if (mNextProgramList.get(0) != null && mNextProgramList.get(0).endDate != null) {
-                Date date = mNextProgramList.get(0).endDate;
-                scheduleJob(date);
-            } else {
-                LOGGER.severe("CANNOT schedule next job");
+        if (activeProgram == null)
+            return;
+
+        boolean programChanged = false;
+        if (mOldActiveProgram == null || activeProgram.program.id != mOldActiveProgram.program.id
+                || activeProgram.timeRange.ID != mOldActiveProgram.timeRange.ID) {
+            programChanged = true;
+        }
+        mOldActiveProgram = activeProgram;
+
+        if (programChanged) {
+            for (ProgramsListener listener : listeners) {
+                listener.programChanged(activeProgram);
             }
-
-            if (mActiveProgram == null) {
-                LOGGER.info("->No active program");
-                Core.sendPushNotification(SendPushMessages.notification_error, "errore", "no active program", "0",0);
-                mOldActiveProgram = null;
-
-                // schedula controllo programmi tra un minuto
-                Date date = Core.getDate();
-                Calendar now = Calendar.getInstance();
-                now.setTime(date);
-                now.add(Calendar.MINUTE, 1);
-                Date oneMinuteFromNow = now.getTime();
-                scheduleJob(oneMinuteFromNow);
-
-            } else {
-                LOGGER.info("->Active program" + mActiveProgram.program.id + " " + mActiveProgram.program.name);
-
-                if (actuator.getStatus().equals(HeaterActuator.STATUS_IDLE) || actuator.getStatus().equals(HeaterActuator.STATUS_AUTOPROGRAM)) {
-
-                    DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-                    String timeStr = timeFormat.format(currentDate);
-                    Time currentTime = Time.valueOf(timeStr);
-                    SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-                    boolean commandSent = false;
-                    try {
-                        // calcola la durata del prossimo programma
-                        Date date1 = format.parse(currentTime.toString());
-                        Date date2 = format.parse(mActiveProgram.timeRange.endTime.toString());
-                        long difference = date2.getTime() - date1.getTime();
-                        long duration = (difference / 1000 + 59) / 60; // aggiungi 59 secondi per non fare andare l'actuator in idle
-
-                        // get current temperature from active sensor local or remote
-                        double currentTemperature = 0.0; // temperatura del sensore locale o remoto
-                        if (mActiveProgram.timeRange.sensorId == 0) {
-                            currentTemperature = getActuator().avTemperature;
-                        } else {
-                            currentTemperature = mActiveSensorTemperature;//temperatureSensor.getAvTemperature();
-                            //Core.getActuatorFromId()
-                        }
-
-                        if (mActiveProgram.timeRange.sensorId == 0) { // active sensor local
-
-                            HeaterActuatorCommand cmd = new HeaterActuatorCommand();
-                            cmd.command = HeaterActuatorCommand.Command_Program_ReleOn;
-                            cmd.duration = duration;
-                            cmd.targetTemperature = mActiveProgram.timeRange.temperature;
-                            cmd.remoteSensor = false;
-                            cmd.activeProgramID = mActiveProgram.program.id;
-                            cmd.activeTimeRangeID = mActiveProgram.timeRange.ID;
-                            cmd.activeSensorID = 0;//mActiveProgram.timeRange.sensorId;
-                            cmd.activeSensorTemperature = 0;//currentTemperature;
-                            commandSent = actuator.sendCommand(cmd);
-                            if (!commandSent)
-                                LOGGER.severe("sendCommand Program on failed: " + mActiveProgram.program.id + " " + mActiveProgram.program.name);
-
-                        } else { // active sensor remote
-
-                            HeaterActuatorCommand cmd = new HeaterActuatorCommand();
-                            //cmd.command = HeaterActuatorCommand.Command_Program_ReleOff;
-                            cmd.duration = duration;
-                            cmd.targetTemperature = mActiveProgram.timeRange.temperature;
-                            cmd.remoteSensor = true;
-                            cmd.activeProgramID = mActiveProgram.program.id;
-                            cmd.activeTimeRangeID = mActiveProgram.timeRange.ID;
-                            cmd.activeSensorID = mActiveProgram.timeRange.sensorId;
-                            cmd.activeSensorTemperature = currentTemperature;
-
-                            if (currentTemperature < mActiveProgram.timeRange.temperature) { // temperatura bassa
-
-                                cmd.command = HeaterActuatorCommand.Command_Program_ReleOn;
-
-                            } else { // temperatura alta
-
-                                cmd.command = HeaterActuatorCommand.Command_Program_ReleOff;
-                            }
-                            commandSent = actuator.sendCommand(cmd);
-                            if (!commandSent) {
-                                LOGGER.severe("sendCommand " + cmd.command + " failed: " + mActiveProgram.program.id + " " + mActiveProgram.program.name);
-
-                                if (actuator.getRemoteTemperature() != currentTemperature) {
-                                    actuator.sendCommand(HeaterActuatorCommand.Command_Send_Temperature, 0, 0.0, false, 0, 0, mActiveProgram.timeRange.sensorId, mActiveSensorTemperature);
-                                }
-                            }
-                        }
-
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                } else if(actuator.getStatus().equals(HeaterActuator.STATUS_MANUAL)) {
-                    actuator.sendCommand(HeaterActuatorCommand.Command_Send_Temperature, 0, 0.0, false, 0, 0, mActiveProgram.timeRange.sensorId, mActiveSensorTemperature);
-                }
-            }
-            mOldActiveProgram = mActiveProgram;
         }
     }
 
@@ -454,11 +402,6 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
         return mProgramList;
     }
 
-    public ActiveProgram getActiveProgram() {
-
-        return mActiveProgram;
-    }
-
     public Date getLastActiveProgramUpdate() {
 
         return mLastActiveProgramUpdate;
@@ -511,7 +454,7 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
             sql = "DELETE FROM programs WHERE id=" + id;
             Statement stmt = conn.createStatement();
             int numero = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-
+/// questa sezione sembra duplicata???? perchèmcancella due volte?????? DA CORREGGERE e eliminare
             sql = "DELETE FROM programs WHERE id=" + id;
             stmt = conn.createStatement();
             numero = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -522,7 +465,7 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
             stmt.close();
             conn.close();
 
-            read();
+            read(sensorId);
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -534,10 +477,9 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
         return id;
     }
 
-
     public int insert(Program prgm) {
 
-        LOGGER.info("update prgm=" + prgm.id + " " + prgm.name);
+        LOGGER.info("update prgm=" + prgm.id + " " + prgm.name + " sensorid=" + prgm.sensorId);
 
         Connection conn = null;
         int lastid;
@@ -570,15 +512,16 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
                 endTime = "'" + tf.format((prgm.endTime)) + "'";
 
 
-            sql = "INSERT INTO programs (id, priority, active,name,dateenabled, startdate, starttime, enddate, endtime, sunday, monday, tuesday, wednesday, thursday, friday, saturday)" +
-                    " VALUES (" + prgm.id + "," + prgm.priority + "," + prgm.active + "," + "'" + prgm.name + "'" + "," + prgm.dateEnabled + "," + startDate + "," + startTime + "," + endDate + "," + endTime + ","
-                    + boolToString(prgm.Sunday) + ","
-                    + boolToString(prgm.Monday) + ","
-                    + boolToString(prgm.Tuesday) + ","
-                    + boolToString(prgm.Wednesday) + ","
-                    + boolToString(prgm.Thursday) + ","
-                    + boolToString(prgm.Friday) + ","
-                    + boolToString(prgm.Saturday) + ") ON DUPLICATE KEY UPDATE " +
+            sql = "INSERT INTO programs (id, sensorid, priority, active,name,dateenabled, startdate, starttime, enddate, endtime, sunday, monday, tuesday, wednesday, thursday, friday, saturday)" +
+                    " VALUES (" + prgm.id + "," + prgm.sensorId + "," + prgm.priority + "," + prgm.active + "," + "'" + prgm.name + "'" + "," + prgm.dateEnabled + "," + startDate + "," + startTime + "," + endDate + "," + endTime + ","
+                    + Core.boolToString(prgm.Sunday) + ","
+                    + Core.boolToString(prgm.Monday) + ","
+                    + Core.boolToString(prgm.Tuesday) + ","
+                    + Core.boolToString(prgm.Wednesday) + ","
+                    + Core.boolToString(prgm.Thursday) + ","
+                    + Core.boolToString(prgm.Friday) + ","
+                    + Core.boolToString(prgm.Saturday) + ") ON DUPLICATE KEY UPDATE " +
+                    "sensorid=" + prgm.sensorId + "," +
                     "priority=" + prgm.priority + "," +
                     "active=" + prgm.active + "," +
                     "name=" + "'" + prgm.name + "'" + "," +
@@ -657,19 +600,11 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
             }
         }
 
-
-        read(); // reload data
+        read(prgm.sensorId); // reload data
         return lastid;
     }
 
-    String boolToString(boolean val) {
-        if (val)
-            return "true";
-        else
-            return "false";
-    }
-
-    Program getProgramFromId(int id) {
+    public Program getProgramFromId(int id) {
         Iterator<Program> iterator = mProgramList.iterator();
         while (iterator.hasNext()) {
             Program program = iterator.next();
@@ -684,33 +619,14 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
         return mNextProgramList;
     }
 
-    @Override
-    public void changeStatus(String newStatus, String oldStatus) {
-
-        LOGGER.info("changeStatus");
-        String description = "Status changed from " + oldStatus + " to " + newStatus;
-
-        checkProgram();
-
-        Core.sendPushNotification(SendPushMessages.notification_statuschange, "Status", description, "0", actuatorId);
-
-        //Core.sendPushNotification(SendPushMessages.notification_statuschange, "title", "description", "0");
+    public void setHeaterStatus(String status) {
+        actuatorStatus = status;
     }
 
-    @Override
-    public void changeReleStatus(boolean newReleStatus, boolean oldReleStatus) {
-        // chiamato quando cambia lo stato del relè dell'heateractuator
-        if (newReleStatus == true)
-            Core.sendPushNotification(SendPushMessages.notification_relestatuschange, "titolo", "stato rele", "acceso",actuatorId);
-        else
-            Core.sendPushNotification(SendPushMessages.notification_relestatuschange, "titolo", "rele", "spento",actuatorId);
-    }
+    public void heaterProgramChange(HeaterActuator heater, int newProgram, int oldProgram, int newTimerange, int oldTimerange) {
 
-    @Override
-    public void changeProgram(HeaterActuator heater, int newProgram, int oldProgram, int newTimerange, int oldTimerange) {
+        /*String activeSensor = "no active sensors";
 
-        String activeSensor = "no active sensor";
-        ;
         if (heater != null)
             activeSensor = "" + heater.getActiveSensorID();
 
@@ -723,78 +639,20 @@ public class Programs implements HeaterActuator.HeaterActuatorListener, Temperat
             if (tr != null) {
                 timerange = "" + tr.ID + "." + tr.name;
             }
-        }
-
-        String description = "New program " + program + " " + timerange + " " + " sensor " + activeSensor;
-        Core.sendPushNotification(SendPushMessages.notification_programchange, "Program", description, "0",actuatorId);
+        }*/
     }
 
-    @Override
-    public void changeTemperature(int sensorId, double temperature) {
-        // chiamato quando cambia la temperatura di un sensore di temperatura
-
+    public void setSensorTemperature(double temperature) {
+        // chiamato quando cambia la temperatura delsensore di temperatura attivo
         LOGGER.info("changeTemperature sensorId=" + sensorId + ", temperature = " + temperature);
-
 
         double roundedTemperature;
         BigDecimal bd = new BigDecimal(temperature).setScale(1, RoundingMode.HALF_EVEN);
         roundedTemperature = bd.doubleValue();
 
-
-        if (mActiveProgram == null) {
-            LOGGER.severe("No active program");
-        } else if (mActiveProgram.timeRange.sensorId == sensorId) {
-            mActiveSensorTemperature = roundedTemperature;
-            checkProgram();
+        if (oldTemperature == temperature) {
+            return;
         }
-    }
-
-    @Override
-    public void changeAvTemperature(int sensorId, double avTemperature) {
-        // chiamato quando cambia la temperatura media di un sensore di temperatura
-
-        LOGGER.info("changeAvTemperature sendorId=" + sensorId + ", avTemperature = " + avTemperature);
-
-        /*if (mActiveProgram == null) {
-            LOGGER.severe("No active program");
-        } else if (mActiveProgram.timeRange.sensorId == sensorId) {
-            mActiveSensorTemperature = avTemperature;
-            checkProgram();
-        }*/
-    }
-
-    @Override
-    public void addedActuator(Actuator actuator) {
-
-    }
-
-    @Override
-    public void addedSensor(SensorBase sensor) {
-
-    }
-
-    @Override
-    public void addedShield(Shield shield) {
-
-    }
-
-    @Override
-    public void updatedActuator(Actuator actuator) {
-
-    }
-
-    @Override
-    public void updatedSensor(SensorBase sensor) {
-
-    }
-
-    @Override
-    public void updatedShield(Shield shield) {
-
-    }
-
-    @Override
-    public void updatedSensorValue(SensorBase sensor) {
-
+        mActiveSensorTemperature = roundedTemperature;
     }
 }

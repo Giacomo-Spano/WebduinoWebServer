@@ -1,8 +1,8 @@
 package com.server.webduino.servlet.simulator;
 
-import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
-import org.json.JSONArray;
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,8 +13,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 /**
@@ -93,7 +91,7 @@ public class ActuatorStatusServlet extends HttpServlet {
                     return;
                 }
                 int actuatorId = json.getInt("actuatorid");
-                Actuator actuator = Core.getActuatorFromId(actuatorId);
+                Actuator actuator = (Actuator) Core.getSensorFromId(actuatorId);
                 ActuatorCommand cmd = actuator.getCommandFromJson(json);
                 if (cmd == null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -4,14 +4,11 @@
 package com.quartz;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.HeaterActuator;
 import com.server.webduino.core.Programs;
-import com.server.webduino.servlet.SendPushMessages;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import javax.servlet.ServletContext;
 import java.util.Date;
 import java.util.logging.Logger;
 

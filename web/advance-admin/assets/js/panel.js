@@ -1,5 +1,5 @@
 var actuatorServletPath = "../actuator";
-var sensorServletPath = "../sensor";
+var sensorServletPath = "../sensors";
 
 var sensorItemElem;
 
@@ -93,7 +93,7 @@ function getSensors() {
 
          /*last = sensorItem;
          newItem = sensorItem.clone();
-         newItem.find('i').html(sensor.name + ": " + sensor.avtemperature + "°C");
+         newItem.find('i').html(sensors.name + ": " + sensors.avtemperature + "°C");
          last.last().after(newItem);
             */
          });
@@ -135,10 +135,10 @@ function refreshActuatorControls() {
     $('label[name="currenttime"]').text(time);
 
     if (actuator.localsensor) {
-        $('t[name="sensor"]').text("locale");
+        $('t[name="sensors"]').text("locale");
         $('i[name="currenttemperature"]').text(localtemperature + "°");
     } else {
-        $('t[name="sensor"]').text(activeSensorName);
+        $('t[name="sensors"]').text(activeSensorName);
         $('i[name="currenttemperature"]').text(remotetemperature + "°");
     }
     $('t[name="localtemperature"]').text(localtemperature + "°");

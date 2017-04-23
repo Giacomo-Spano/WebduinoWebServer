@@ -1,5 +1,7 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.Core;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,23 +14,16 @@ public abstract class Actuator extends SensorBase {
 
     private static final Logger LOGGER = Logger.getLogger(Actuator.class.getName());
 
-
-
-    /*static final int relestatus_off = 0;
-    static final int relestatus_on = 1;
-    static final int relestatus_disabled = 2;
-    static final int relestatus_enabled = 3;*/
-
     private String status = "";
 
-    public Actuator() {
+    public Actuator(int id, String name, String subaddress, int shieldid) {
+        super(id,name,subaddress,shieldid);
     }
 
     public void SetData(int id, int shieldid, String subaddress, String name, Date lastupdate) {
         super.setData(shieldid, subaddress, name, lastUpdate);
 
         this.id = id;
-        //this.name = name;
         listeners = new ArrayList<ActuatorListener>();
     }
 
@@ -48,7 +43,6 @@ public abstract class Actuator extends SensorBase {
 
     public void setStatus(String status) {
 
-        String oldStatus = this.status;
         this.status = status;
 
     }
@@ -57,7 +51,7 @@ public abstract class Actuator extends SensorBase {
         return status;
     }
 
-    protected Boolean postCommand(String postParam, String path) {
+    public Boolean postCommand(String postParam, String path) {
             // questa per ora è usata solo dat heater actuator
 
         //String result = callPost(path, postParam);
@@ -92,14 +86,12 @@ public abstract class Actuator extends SensorBase {
             writeDataLog("command FAILED");
             return false;
         }
-
     }
-
 
     public abstract Boolean sendCommand(ActuatorCommand cmd);
 
     @Override
-    void updateFromJson(Date date, JSONObject json) {
+    public void updateFromJson(Date date, JSONObject json) {
     }
 
     @Override

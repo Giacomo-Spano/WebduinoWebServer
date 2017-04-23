@@ -1,22 +1,25 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
+
+import com.server.webduino.core.Core;
+import com.server.webduino.core.DataLog;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class PressureSensorDataLog extends DataLog {
+public class DoorSensorDataLog extends DataLog {
 
-    public Double pressure = 0.0;
+    public boolean open = false;
     public String tableName = "currentdatalog";
 
     @Override
     public String getSQLInsert(String event, SensorBase sensor) {
 
-        PressureSensor pressureSensor = (PressureSensor) sensor;
+        DoorSensor doorSensor = (DoorSensor) sensor;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
-                + pressureSensor.id + ",'" + pressureSensor.subaddress + "',"  + getStrDate() + "," + pressureSensor.getPressure() + ");";
+                + doorSensor.id + ",'" + doorSensor.subaddress + "',"  + getStrDate() + "," + doorSensor.getStatus() + ");";
         return sql;
     }
 
@@ -42,10 +45,10 @@ public class PressureSensorDataLog extends DataLog {
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                PressureSensorDataLog data = new PressureSensorDataLog();
+                DoorSensorDataLog data = new DoorSensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.pressure = rs.getDouble("pressure");
+                data.open = rs.getBoolean("open");
                 list.add(data);
             }
             // Clean-up environment

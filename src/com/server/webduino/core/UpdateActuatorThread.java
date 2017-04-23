@@ -1,6 +1,8 @@
 package com.server.webduino.core;
 
 import com.quartz.QuartzListener;
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.HeaterActuator;
 import org.json.JSONException;
 import org.json.JSONObject;
 

@@ -1,5 +1,6 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors.commands;
 
+import com.server.webduino.core.sensors.Actuator;
 import org.json.JSONObject;
 
 import java.util.logging.Logger;
@@ -16,13 +17,13 @@ public class ActuatorCommand {
         return false;
     }
 
-    public JSONObject getJSONCommand(int actuatorId) {
+    public JSONObject getJSONCommand(int actuatorId, String subaddress) {
         return null;
     }
 
     public boolean send(Actuator actuator) {
 
-        JSONObject json = getJSONCommand(actuator.id);
+        JSONObject json = getJSONCommand(actuator.getId(), actuator.getSubaddress());
         if (json != null) {
 
             String path = "/command";

@@ -1,12 +1,12 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.ReleActuatorCommand;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.util.logging.Logger;
 
 public class ReleActuator extends Actuator /*implements TemperatureSensor.TemperatureSensorListener*/ {
@@ -17,10 +17,9 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
 
     protected boolean on;
 
-    public ReleActuator() {
-        super();
+    public ReleActuator(int id, String name, String subaddress, int shieldid) {
+        super(id, name, subaddress, shieldid);
         type = "releactuator";
-        statusUpdatePath = "/relestatus";
     }
 
     @Override
@@ -40,7 +39,7 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
         /*if (on != oldReleStatus) {
             // Notify everybody that may be interested.
             for (ActuatorListener hl : listeners)
-                hl.changeReleStatus(on, oldReleStatus);
+                hl.changedReleStatus(on, oldReleStatus);
         }*/
     }
 

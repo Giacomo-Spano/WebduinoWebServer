@@ -1,22 +1,26 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
+
+import com.server.webduino.core.Core;
+import com.server.webduino.core.DataLog;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class HumiditySensorDataLog extends DataLog {
+public class TemperatureSensorDataLog extends DataLog {
 
-    public int humidity = 0;
-    public String tableName = "currentdatalog";
+    public Double temperature = 0.0;
+    public Double avTemperature = 0.0;
+    public String tableName = "temperaturedatalog";
 
     @Override
     public String getSQLInsert(String event, SensorBase sensor) {
 
-        HumiditySensor humiditySensor = (HumiditySensor) sensor;
+        TemperatureSensor temperatureSensor = (TemperatureSensor) sensor;
         String sql;
-        sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
-                + humiditySensor.id + ",'" + humiditySensor.subaddress + "',"  + getStrDate() + "," + humiditySensor.getHumidity() + ");";
+        sql = "INSERT INTO " + tableName + " (id, subaddress, date, temperature, avtemperature) VALUES ("
+                + temperatureSensor.id + ",'" + temperatureSensor.subaddress + "',"  + getStrDate() + "," + temperatureSensor.getTemperature() + "," + temperatureSensor.getAvTemperature() + ");";
         return sql;
     }
 
@@ -37,15 +41,16 @@ public class HumiditySensorDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM " + tableName + " WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM temperaturedatalog WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                HumiditySensorDataLog data = new HumiditySensorDataLog();
+                TemperatureSensorDataLog data = new TemperatureSensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.humidity = rs.getInt("humidity");
+                data.temperature = rs.getDouble("temperature");
+
                 list.add(data);
             }
             // Clean-up environment

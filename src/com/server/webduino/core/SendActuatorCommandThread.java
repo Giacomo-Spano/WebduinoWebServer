@@ -1,5 +1,8 @@
 package com.server.webduino.core;
 
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
+
 import java.util.logging.Logger;
 
 /**
@@ -24,7 +27,7 @@ public class SendActuatorCommandThread extends Thread {
 
         LOGGER.info("SendActuatorCommandThread ");
 
-        Actuator actuator = Core.getActuatorFromId(actuatorId);
+        Actuator actuator = (Actuator) Core.getSensorFromId(actuatorId);
         boolean res;
         if (actuator != null)
             res = actuator.sendCommand(command);

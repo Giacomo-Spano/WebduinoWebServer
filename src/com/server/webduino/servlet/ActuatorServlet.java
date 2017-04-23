@@ -2,6 +2,9 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,8 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 /**
@@ -38,21 +39,20 @@ public class ActuatorServlet extends HttpServlet {
 
         if (id != null) {
 
-            Actuator actuator = core.getFromShieldId(Integer.valueOf(id), null);
+            SensorBase actuator = core.getFromShieldId(Integer.valueOf(id), null);
             JSONObject json = actuator.getJson();
             out.print(json.toString());
 
         } else {
 
-            ArrayList<Actuator> list = core.getActuators();
-            //create Json Object
+            //ArrayList<Actuator> list = core.getActuators();
             JSONArray jsonarray = new JSONArray();
-            Iterator<Actuator> iterator = list.iterator();
+            /*Iterator<Actuator> iterator = list.iterator();
             while (iterator.hasNext()) {
                 Actuator actuator = iterator.next();
                 JSONObject json = actuator.getJson();
                 jsonarray.put(json);
-            }
+            }*/
             out.print(jsonarray.toString());
         }
 
@@ -109,7 +109,7 @@ public class ActuatorServlet extends HttpServlet {
                     return;
                 }
                 int actuatorId = json.getInt("actuatorid");
-                Actuator actuator = Core.getActuatorFromId(actuatorId);
+                Actuator actuator = (Actuator)Core.getSensorFromId(actuatorId);
                 ActuatorCommand cmd = actuator.getCommandFromJson(json);
                 if (cmd == null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

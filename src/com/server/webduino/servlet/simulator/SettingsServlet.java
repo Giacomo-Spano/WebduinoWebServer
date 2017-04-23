@@ -1,6 +1,8 @@
 package com.server.webduino.servlet.simulator;
 
 import com.server.webduino.core.*;
+import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -83,7 +85,7 @@ public class SettingsServlet extends HttpServlet {
                     return;
                 }
                 int actuatorId = json.getInt("actuatorid");
-                Actuator actuator = Core.getActuatorFromId(actuatorId);
+                Actuator actuator = (Actuator) Core.getSensorFromId(actuatorId);
                 ActuatorCommand cmd = actuator.getCommandFromJson(json);
                 if (cmd == null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

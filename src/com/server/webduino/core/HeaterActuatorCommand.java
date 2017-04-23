@@ -1,9 +1,10 @@
 package com.server.webduino.core;
 
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
+import com.server.webduino.core.sensors.TemperatureSensor;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.logging.Logger;
 
 /**
@@ -78,19 +79,20 @@ public class HeaterActuatorCommand extends ActuatorCommand {
     }
 
     @Override
-    public JSONObject getJSONCommand(int actuatorId) {
+    public JSONObject getJSONCommand(int actuatorId, String subaddress) {
 
         JSONObject json = new JSONObject();
 
         try {
             json.put("actuatorid", actuatorId);
+            json.put("addr", subaddress);
             if (command.equals(HeaterActuatorCommand.Command_Program_ReleOn)) {
 
                 json.put("command", HeaterActuatorCommand.Command_Program_ReleOn);
                 json.put("duration", duration);
                 json.put("target", targetTemperature);
                 json.put("localsensor", !remoteSensor);
-                json.put("sensor", activeSensorID);
+                json.put("sensors", activeSensorID);
                 json.put("program", activeProgramID);
                 json.put("timerange", activeTimeRangeID);
                 json.put("temperature", activeSensorTemperature);
@@ -101,7 +103,7 @@ public class HeaterActuatorCommand extends ActuatorCommand {
                 json.put("duration", duration);
                 json.put("target", targetTemperature);
                 json.put("localsensor", !remoteSensor);
-                json.put("sensor", activeSensorID);
+                json.put("sensors", activeSensorID);
                 json.put("program", activeProgramID);
                 json.put("timerange", activeTimeRangeID);
                 json.put("temperature", activeSensorTemperature);
@@ -112,7 +114,7 @@ public class HeaterActuatorCommand extends ActuatorCommand {
                 json.put("duration", duration);
                 json.put("target", targetTemperature);
                 json.put("localsensor", !remoteSensor);
-                json.put("sensor",activeSensorID);
+                json.put("sensors",activeSensorID);
                 //json.put("program",activeProgramID);
                 //json.put("timerange",activeTimeRangeID);
                 TemperatureSensor tempSensor = (TemperatureSensor) Core.getSensorFromId(activeSensorID);
@@ -127,7 +129,7 @@ public class HeaterActuatorCommand extends ActuatorCommand {
                 json.put("duration", duration);
             /*json.put("target",targetTemperature);
             json.put("localsensor",!remoteSensor);
-            json.put("sensor",activeSensorID);
+            json.put("sensors",activeSensorID);
             json.put("program",activeProgramID);
             json.put("timerange",activeTimeRangeID);
             json.put("temperature",activeSensorTemperature);*/
@@ -138,7 +140,7 @@ public class HeaterActuatorCommand extends ActuatorCommand {
                 json.put("duration", duration);
                 //json.put("target",targetTemperature);
                 //json.put("localsensor",!remoteSensor);
-                //json.put("sensor",activeSensorID);
+                //json.put("sensors",activeSensorID);
                 //json.put("program",activeProgramID);
                 //json.put("timerange",activeTimeRangeID);
                 json.put("temperature", activeSensorTemperature);
@@ -149,7 +151,7 @@ public class HeaterActuatorCommand extends ActuatorCommand {
                 json.put("duration", duration);
                 //json.put("target",targetTemperature);
                 json.put("localsensor", !remoteSensor);
-                json.put("sensor", activeSensorID);
+                json.put("sensors", activeSensorID);
                 //json.put("program",activeProgramID);
                 //json.put("timerange",activeTimeRangeID);
                 json.put("temperature", activeSensorTemperature);

@@ -1,11 +1,6 @@
 package com.server.webduino.servlet;
 
-import com.quartz.QuartzListener;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.Shield;
-import com.server.webduino.core.Shields;
-import com.server.webduino.core.TemperatureSensor;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,13 +8,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
 
 //import com.server.webduino.core.SensorData;

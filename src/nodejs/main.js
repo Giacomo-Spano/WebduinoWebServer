@@ -73,7 +73,7 @@ function sendSensorStatus(id, temp, avtemp){
                         };
     
     request({
-        url: 'http://localhost:8080/webduino/sensor',
+        url: 'http://localhost:8080/webduino/sensors',
         method: "POST",
         json: true,   // <--Very important!!!
         body: myJSONObject

@@ -1,5 +1,7 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.Core;
+import com.server.webduino.core.DataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -8,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class ReleDataLog extends DataLog {
+public class HeaterDataLog extends DataLog {
     //public Date date = new Date();
     //public Date time = new Date();
     protected String status = "";
@@ -86,7 +88,7 @@ public class ReleDataLog extends DataLog {
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                ReleDataLog data = new ReleDataLog();
+                HeaterDataLog data = new HeaterDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
                 data.releStatus = rs.getBoolean("relestatus");

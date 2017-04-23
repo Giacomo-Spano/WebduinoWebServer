@@ -2,7 +2,7 @@ var $mProgramForm;
 var $mProgramPanel;
 
 var programservletpath = "../program";
-var sensorServletPath = "../sensor";
+var sensorServletPath = "../sensors";
 
 
 var $sensors = [];
@@ -105,7 +105,7 @@ function createProgramPanel(elem) {
         $tr.find('td[id="starttime"]').text(starttime);
         $tr.find('td[id="id"]').text(elem.timeranges[i].id);
         $tr.find('td[id="endtime"]').text(elem.timeranges[i].endtime);
-        $tr.find('td[id="sensor"]').text(elem.timeranges[i].sensorid);
+        $tr.find('td[id="sensors"]').text(elem.timeranges[i].sensorid);
         $tr.find('td[id="temperature"]').text(elem.timeranges[i].temperature);
 
         starttime = elem.timeranges[i].endtime;
@@ -171,7 +171,7 @@ function createProgramForm(elem) {
         $tr.find('input[name="endtime"]').val(value.endtime);
 
 
-        sensorCombo = $tr.find('select[name="sensor"]');//.val(value.sensorid);
+        sensorCombo = $tr.find('select[name="sensors"]');//.val(value.sensorid);
 
         sensorCombo.empty();
         for (i = 0; i < $sensors.length; i++) {
@@ -332,7 +332,7 @@ function onAddTimeRangeButtonClick() {
     tr = $(this).parent().parent();
     newtr = tr.clone();
     newtr.find('input[name="temperature"]').val("20");
-    newtr.find('select[name="sensor"]').val("0");
+    newtr.find('select[name="sensors"]').val("0");
     newtr.find('input[name="endtime"]').val("00:00");
     newtr.find('input[name="endtime"]').change(function () { // set next timerange starttime to this endtime
         newtr.find('td[id="starttime"]').text($(this).val());
@@ -430,7 +430,7 @@ function onSaveButtonClick() {
     $.each($tr2, function (idx, elem) {
 
         endtime = $(this).find("input[name=endtime]").val();
-        sensor = $(this).find("select[name=sensor]").val();
+        sensor = $(this).find("select[name=sensors]").val();
         subaddress = $(this).find("select[name=subaddress]").val();
         temperature = $(this).find("input[name=temperature]").val();
         name = $(this).find("input[name=timerangename]").val();

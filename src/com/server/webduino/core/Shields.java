@@ -61,7 +61,7 @@ public class Shields {
 
         read();
 
-        requestShieldsUpdate();
+        //requestShieldsUpdate();
         initPrograms();
 
         //mSensors.initPrograms(); // non può esserre chiamata dentro costruttore sensors perchà usa mSensor

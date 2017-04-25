@@ -1,8 +1,13 @@
 package com.server.webduino.core;
 
+import com.quartz.QuartzListener;
 import com.server.webduino.core.sensors.SensorBase;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
-public class Core {
+public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
 
@@ -34,6 +39,9 @@ public class Core {
 
     public static Devices mDevices = new Devices();
 
+    private MQTTThread mqttThreadReceive;
+    private MQTTThread mqttThreadSend;
+
     public Core() {
 
         production_envVar = System.getenv("PRODUCTION");
@@ -43,6 +51,7 @@ public class Core {
         tmpDir_envVar = System.getenv("OPENSHIFT_TMP_DIR");
         dataDir_envVar = System.getenv("OPENSHIFT_DATA_DIR");
     }
+
 
     public static String getUser() {
         if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFT))
@@ -88,6 +97,12 @@ public class Core {
         Settings settings = new Settings();
 
         mDevices.read();
+
+        mqttThreadReceive = new MQTTThread(this, true);
+        mqttThreadReceive.start();
+
+        //mqttThreadSend = new MQTTThread(this,false);
+        //mqttThreadSend.start();
     }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
@@ -180,5 +195,95 @@ public class Core {
             return "true";
         else
             return "false";
+    }
+
+    @Override
+    public void messageReceived(String topic, String message) {
+
+        parseTopic(topic, message);
+
+        /*try {
+            JSONObject jsonObj = new JSONObject(message);
+            if (jsonObj.has("shieldid")) {
+                int shieldid = 0;
+
+                shieldid = jsonObj.getInt("shieldid");
+
+                if (jsonObj.has("sensors")) {
+                    JSONArray jsonArray = jsonObj.getJSONArray("sensors");
+                    //updateSensors(shieldid, lastupdate, jsonArray);
+
+                    //Core core = (Core) context.getAttribute(QuartzListener.CoreClass);
+                    //core.updateSensors(shieldid, jsonArray);
+
+                    //updateSensors(shieldid, jsonArray);
+                    parseTopic(topic,message);
+
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }*/
+    }
+
+
+    public void parseTopic(String topic, String message) {
+
+        String[] list = topic.split("/");
+
+        if (list == null) {
+            return;
+        }
+
+        if (list[0].equals("toServer")) {
+            if (list.length > 1) {
+                if (list[1].equals("shield")) {
+                    if (list.length > 2) {
+                        int shieldid = Integer.parseInt(list[2]);
+                        if (list.length > 3) {
+                            String command = list[3];
+                            callCommand(command, shieldid, message);
+                        }
+                    }
+                } else if (list[1].equals("register")) {
+                    callCommand("register", 0, message);
+                }
+            }
+        } else if (list[0].equals("send")) {
+
+        }
+    }
+
+    public void callCommand(String command, int shieldid, String json) {
+        if (command.equals("update")) {
+            try {
+                JSONObject jsonObj = new JSONObject(json);
+
+                if (jsonObj.has("sensors")) {
+                    JSONArray jsonArray = jsonObj.getJSONArray("sensors");
+                    updateSensors(shieldid, jsonArray);
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if (command.equals("register")) {
+            try {
+                JSONObject jsonObj = new JSONObject(json);
+                if (jsonObj.has("shield")) {
+                    JSONObject shieldJson = jsonObj.getJSONObject("shield");
+                    Shield shield = new Shield();
+                    shield.FromJson(shieldJson);
+                    int id = registerShield(shield);
+                    SimpleMqttClient smc = new SimpleMqttClient();
+                    smc.runClient("fromServer/shield/5c:cf:7f:86:3e:46/registerresponse", ""+id);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            SimpleMqttClient smc = new SimpleMqttClient();
+            smc.runClient("fromServer", "prova");
+        }
     }
 }

@@ -40,6 +40,7 @@ public class SimpleMqttClient implements MqttCallback {
     public void connectionLost(Throwable t) {
         System.out.println("Connection lost!");
         // code to reconnect to the broker would go here if desired
+        connect();
     }
 
     @Override
@@ -59,7 +60,7 @@ public class SimpleMqttClient implements MqttCallback {
         String clientID = clientId;//M2MIO_THING;
         connOpt = new MqttConnectOptions();
         connOpt.setCleanSession(true);
-        connOpt.setKeepAliveInterval(30);
+        connOpt.setKeepAliveInterval(600);
         //connOpt.setUserName(M2MIO_USERNAME);
         //connOpt.setPassword(M2MIO_PASSWORD_MD5.toCharArray());
 
@@ -159,6 +160,10 @@ public class SimpleMqttClient implements MqttCallback {
         // disconnect
         try {
             myClient.connect();
+
+            if (!isConnected()) {
+                ;
+            }
         } catch (MqttException e) {
             e.printStackTrace();
         }

@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
+
 //@WebServlet(name = "SensorServlet")
 public class ShieldServlet extends HttpServlet {
 
@@ -83,6 +84,7 @@ public class ShieldServlet extends HttpServlet {
             return;
         }
 
+        response.setStatus(HttpServletResponse.SC_OK);
         JSONObject json = new JSONObject();
         try {
             json.put("result", "success");
@@ -91,7 +93,6 @@ public class ShieldServlet extends HttpServlet {
         }
         // finally output the json string
         out.print(json.toString());
-        //out.print("");
     }
 
     private JSONObject handleErrorEvent(StringBuffer jb) {
@@ -164,7 +165,6 @@ public class ShieldServlet extends HttpServlet {
 
         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
-
         if (command != null && id != null) {
 
             String json = "";
@@ -194,9 +194,10 @@ public class ShieldServlet extends HttpServlet {
 
     private final String updateSettingStatusRequest = "updatesettingstatusrequest";
     private final String updateSensorStatusRequest = "updatesensorstatusrequest";
-
+    // questa classe fa una chiamata alla sheda esp tramite mqtt. Dopo aver fatto la chiamata avvia un thread di attesa
+    // che periodicamente controlla se è stato ricevuto il risultato
+    // se il risultato è ricevuto tempina il thread
     private String handleGetJson(int shieldid, String command) {
-
 
         WebduinoRequest webduinoRequest = new WebduinoRequest(shieldid, command);
 
@@ -205,13 +206,14 @@ public class ShieldServlet extends HttpServlet {
 
         // il thread esegue la chiamata alla shield webduinoed aspetta una risposta (join) dal thead per x secondi
         try {
-            thread.join(1000000); // 100000 è il timeout diu attesa fien htread
+            thread.join(1000000); // 100000 è il timeout di attesa fien thread
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
+        // recupera il risulktato della chiamamata che a questo punto è disponibile
+        // forse bisiognerebbe metttere syncronized
         String json = webduinoRequest.getResultJson();
-
         return json;
     }
 
@@ -250,7 +252,6 @@ public class ShieldServlet extends HttpServlet {
                 }
             }
             // aggiornamento ricevuto
-
         }
 
         public String getResultJson() {
@@ -280,5 +281,3 @@ public class ShieldServlet extends HttpServlet {
     }
 
 }
-
-

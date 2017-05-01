@@ -255,14 +255,14 @@ public class Shields {
                     + ",boardname=\"" + shield.boardName + "\""
                     + ";";
 
-            /*Statement stmt = conn.createStatement();
+            Statement stmt = conn.createStatement();
             affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {
                 lastid = rs.getInt(1);
             } else {
                 lastid = -1;
-            }*/
+            }
 
             Statement stmt2 = conn.createStatement();
             String query = "SELECT * FROM shields WHERE macaddress=\"" + shield.MACAddress + "\";";
@@ -275,7 +275,7 @@ public class Shields {
             }
             stmt2.close();
 
-            Statement stmt = conn.createStatement();
+            //Statement stmt = conn.createStatement();
 
             //String pèrova = "hjkk";
             for (SensorBase sensor : shield.sensors) {

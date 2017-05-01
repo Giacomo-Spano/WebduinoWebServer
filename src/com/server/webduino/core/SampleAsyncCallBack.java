@@ -11,14 +11,7 @@ import java.util.logging.Logger;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.sensors.SensorBase;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -235,6 +228,9 @@ public class SampleAsyncCallBack implements MqttCallback {
 			System.exit(1);
 		}
     }
+
+
+
 
     /**
      * Publish / send a message to an MQTT server

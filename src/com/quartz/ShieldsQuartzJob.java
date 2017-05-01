@@ -42,7 +42,7 @@ public class ShieldsQuartzJob implements Job {
         Core core = (Core)servletContext.getAttribute(QuartzListener.CoreClass);
         LOGGER.info("ShieldsQuartzJob:update  start");
 
-        core.mShields.requestShieldsUpdate();
+        core.mShields.requestSensorStatusUpdate();
 
         LOGGER.info("ShieldsQuartzJob:update  end");
     }

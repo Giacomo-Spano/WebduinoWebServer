@@ -31,7 +31,6 @@ public class ShieldServlet extends HttpServlet {
 
         LOGGER.info("SensorServlet:doPost");
 
-
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
         response.setCharacterEncoding("utf-8");
@@ -55,7 +54,7 @@ public class ShieldServlet extends HttpServlet {
 
             boolean res = false;
 
-            if (json.has("event")) {
+            if (json.has("event")) { // DA ELIMINARE FINO A ELSE
                 if (json.getString("event").equals("register")) { // receive status update
                     if (json.has("shield")) {
                         JSONObject jsonShield = json.getJSONObject("shield");
@@ -71,6 +70,10 @@ public class ShieldServlet extends HttpServlet {
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
                 }
+
+            } else if (json.has("command")) {
+                ShieldCommand command = new ShieldCommand(json);
+                Core.postCommand(command.shieldId, command);
             }
 
         } catch (JSONException e) {
@@ -80,7 +83,15 @@ public class ShieldServlet extends HttpServlet {
             return;
         }
 
-        out.print("");
+        JSONObject json = new JSONObject();
+        try {
+            json.put("result", "success");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        // finally output the json string
+        out.print(json.toString());
+        //out.print("");
     }
 
     private JSONObject handleErrorEvent(StringBuffer jb) {
@@ -145,6 +156,7 @@ public class ShieldServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String id = request.getParameter("id");
+        String command = request.getParameter("command");
 
         response.setContentType("application/json");
         response.setCharacterEncoding("utf-8");
@@ -152,11 +164,17 @@ public class ShieldServlet extends HttpServlet {
 
         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
-        if (id != null) {
 
-            /*Actuator actuator = core.getFromShieldId(Integer.valueOf(id), null);
-            JSONObject json = actuator.getJson();
-            out.print(json.toString());*/
+        if (command != null && id != null) {
+
+            String json = "";
+            json = handleGetJson(Integer.parseInt(id), command);
+
+            /*if (command.equals("updatesettingstatusrequest"))
+                json = handleGetJson(request, Integer.parseInt(id));
+            if (command.equals("updatesensorstatusrequest"))
+                json = handleGetSettings(request, Integer.parseInt(id));*/
+            out.print(json.toString());
 
         } else {
 
@@ -173,6 +191,94 @@ public class ShieldServlet extends HttpServlet {
         }
 
     }
+
+    private final String updateSettingStatusRequest = "updatesettingstatusrequest";
+    private final String updateSensorStatusRequest = "updatesensorstatusrequest";
+
+    private String handleGetJson(int shieldid, String command) {
+
+
+        WebduinoRequest webduinoRequest = new WebduinoRequest(shieldid, command);
+
+        Thread thread = new Thread(webduinoRequest, "t1");
+        thread.start();
+
+        // il thread esegue la chiamata alla shield webduinoed aspetta una risposta (join) dal thead per x secondi
+        try {
+            thread.join(1000000); // 100000 è il timeout diu attesa fien htread
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        String json = webduinoRequest.getResultJson();
+
+        return json;
+    }
+
+    class WebduinoRequest implements Runnable {
+
+        private int shieldid;
+        private String command;
+        private volatile boolean execute; // variabile di sincronizzazione
+        private String resultJson = "";
+
+
+        public WebduinoRequest(int shieldid, String command) {
+            this.shieldid = shieldid;
+            this.command = command;
+        }
+
+        @Override
+        public void run() {
+            Thread t = Thread.currentThread();
+            System.out.println("Thread started: " + t.getName());
+
+            if (command.equals(updateSettingStatusRequest)) {
+                Core.requestShieldSettingsUpdate(shieldid);
+            } else if (command.equals(updateSensorStatusRequest)) {
+                Core.requestShieldSensorsUpdate(shieldid);
+            }
+            // il thread si mette in attesa di aggiornamento
+            // AGGIUNGERE TIMEOU
+            this.execute = true;
+            while (this.execute) {
+                try {
+                    checkStatusUpdate();
+                    Thread.sleep((long) 1000);
+                } catch (InterruptedException e) {
+                    this.execute = false;
+                }
+            }
+            // aggiornamento ricevuto
+
+        }
+
+        public String getResultJson() {
+
+            //JSONObject result;
+            if (command.equals(updateSettingStatusRequest)) {
+                JSONObject result = Core.getShieldSettingJson(shieldid);
+                return result.toString();
+            } else if (command.equals(updateSensorStatusRequest)) {
+                JSONObject result = Core.getShieldSensorsJson(shieldid);
+                return result.toString();
+            }
+            return null;
+        }
+
+        public void checkStatusUpdate() {
+
+            String status = "";
+            if (command.equals(updateSettingStatusRequest)) {
+                status = Core.getShieldSettingStatus(shieldid);
+            } else if (command.equals(updateSensorStatusRequest)) {
+                status = Core.getShieldSensorsStatus(shieldid);
+            }
+            if (status == Shield.updateStatus_updated)
+                this.execute = false;
+        }
+    }
+
 }
 
 

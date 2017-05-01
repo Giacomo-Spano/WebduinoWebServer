@@ -2,6 +2,7 @@ package com.server.webduino.core.sensors;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import sun.management.Sensor;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,9 +24,9 @@ public class OnewireSensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public OnewireSensor(int id, String name, String subaddress, int shieldid) {
+    public OnewireSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
         //statusUpdatePath = "/temperaturesensorstatus";
-        super(id, name, subaddress, shieldid);
+        super(id, name, subaddress, shieldid, pin, enabled);
         type = "onewiresensor";
     }
 
@@ -38,21 +39,23 @@ public class OnewireSensor extends SensorBase {
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
+        super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
-        try {
-            lastUpdate = date;
-            online = true;
-            super.setData(shieldid, subaddress, name, date);
+        /*try {
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             LOGGER.info("json error: " + e.toString());
             writeDataLog("updateFromJson error");
-        }
+        }*/
     }
 
-    @Override
+    public void getJSONField() {
+
+    }
+
+    /*@Override
     public JSONObject getJson() {
         JSONObject json = new JSONObject();
         try {
@@ -68,5 +71,5 @@ public class OnewireSensor extends SensorBase {
             e.printStackTrace();
         }
         return json;
-    }
+    }*/
 }

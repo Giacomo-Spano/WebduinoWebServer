@@ -23,8 +23,8 @@ public class HumiditySensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public HumiditySensor(int id, String name, String subaddress, int shieldid) {
-        super(id, name, subaddress, shieldid);
+    public HumiditySensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id, name, subaddress, shieldid, pin, enabled);
         type = "huniditysensor";
     }
 
@@ -57,15 +57,12 @@ public class HumiditySensor extends SensorBase {
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
+        super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
-            lastUpdate = date;
-            online = true;
-            if (json.has("current"))
+            if (json.has("humidity"))
                 setCurrent(json.getInt("humidity"));
-            if (json.has("name"))
-                name = json.getString("name");
-            super.setData(shieldid, subaddress, name, date);
+
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

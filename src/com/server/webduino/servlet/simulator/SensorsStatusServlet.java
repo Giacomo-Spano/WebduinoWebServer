@@ -32,7 +32,7 @@ public class SensorsStatusServlet extends HttpServlet {
         response.setCharacterEncoding("utf-8");
         PrintWriter out = response.getWriter();
 
-        String json = "{\"shieldid\":32,\"sensors\":[{\"enabled\":1,\"type\":\"onewiresensor\",\"name\":\"onewiresensor\",\"pin\":\"D2\",\"temperaturesensors\":[{\"type\":\"temperature\",\"name\":\"sensor0\"},{\"type\":\"temperature\",\"name\":\"sensor1\"}]},{\"type\":\"doorsensor\",\"name\":\"DoorSensor\",\"enabled\":true,\"pin\":\"\"}],\"actuators\":[{\"shieldid\":32,\"heaterenabled\":true,\"heaterpin\":\"D3\",\"remotetemperature\":0.00,\"addr\":\"HeaterActuator-18:fe:34:d4:c6:87\",\"status\":\"idle\",\"type\":\"heater\",\"name\":\"Riscaldamento\",\"relestatus\":\"false\"}]}";
+        String json = "{\"shieldid\":32,\"sensors\":[{\"enabled\":1,\"type\":\"onewiresensor\",\"name\":\"onewiresensor\",\"pin\":\"D2\",\"childsensors\":[{\"type\":\"temperature\",\"name\":\"sensor0\"},{\"type\":\"temperature\",\"name\":\"sensor1\"}]},{\"type\":\"doorsensor\",\"name\":\"DoorSensor\",\"enabled\":true,\"pin\":\"\"}],\"actuators\":[{\"shieldid\":32,\"heaterenabled\":true,\"heaterpin\":\"D3\",\"remotetemperature\":0.00,\"addr\":\"HeaterActuator-18:fe:34:d4:c6:87\",\"status\":\"idle\",\"type\":\"heater\",\"name\":\"Riscaldamento\",\"relestatus\":\"false\"}]}";
         out.print(json);
 
     }

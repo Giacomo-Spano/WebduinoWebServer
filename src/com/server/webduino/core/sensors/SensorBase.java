@@ -1,7 +1,10 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.*;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+//import sun.management.Sensor;
 
 import java.net.*;
 import java.text.SimpleDateFormat;
@@ -28,12 +31,14 @@ public class SensorBase extends httpClient {
     protected String type;
     protected int id;
     protected boolean enabled;
-    protected int pin;
+    protected String pin;
     protected String statusUpdatePath = "/sensorstatus"; // può essere overidden a seconda del tipo
 
     /// schedulatorer programm
     public Programs sensorPrograms = null;
     protected ActiveProgram activeProgram = null;
+
+    protected JSONObject json = null;
 
     public List<SensorBase> childSensors = new ArrayList<SensorBase>();
 
@@ -41,12 +46,14 @@ public class SensorBase extends httpClient {
         childSensors.add(childSensor);
     }
 
-    public SensorBase(int id, String name, String subaddress, int shieldid) {
+    public SensorBase(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
 
         this.id = id;
         this.name = name;
         this.subaddress = subaddress;
         this.shieldid = shieldid;
+        this.pin = pin;
+        this.enabled = enabled;
     }
 
     public ActiveProgram getActiveProgram() {
@@ -99,12 +106,13 @@ public class SensorBase extends httpClient {
         }
     }
 
-    public void setData(int shieldid, String subaddress, String name, Date date) {
+    /*public void setData(int shieldid, String subaddress, String name, Date date) {
         this.shieldid = shieldid;
         this.subaddress = subaddress;
         this.name = name;
         this.lastUpdate = date;
-    }
+
+    }*/
 
     public Date getLastUpdate() {
         return lastUpdate;
@@ -161,7 +169,7 @@ public class SensorBase extends httpClient {
         this.enabled = enabled;
     }
 
-    public int getPin() {
+    public String getPin() {
         return pin;
     }
 
@@ -199,11 +207,65 @@ public class SensorBase extends httpClient {
     }
 
     public void updateFromJson(Date date, JSONObject json) {
+
+        try {
+            lastUpdate = date;
+            online = true;
+
+            if (json.has("name"))
+                name = json.getString("name");
+            if (json.has("shieldid"))
+                shieldid = json.getInt("shieldid");
+            if (json.has("subaddress"))
+                subaddress = json.getString("subaddress");
+            if (json.has("pin"))
+                pin = json.getString("pin");
+            if (json.has("enabled"))
+                enabled = json.getBoolean("enabled");
+
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            LOGGER.info("json error: " + e.toString());
+            writeDataLog("updateFromJson error");
+        }
+    }
+
+    public void getJSONField() {
+
     }
 
     public JSONObject getJson() {
 
-        return null;
+        json = new JSONObject();
+        try {
+            json.put("id", getId());
+            json.put("shieldid", shieldid);
+            json.put("online", online);
+            json.put("subaddress", subaddress);
+            json.put("lastupdate", getStrLastUpdate());
+            json.put("type", type);
+            json.put("name", getName());
+            json.put("enabled", Core.boolToString(enabled));
+            json.put("pin", pin);
+            json.put("addr", subaddress);
+
+            JSONArray children = new JSONArray();
+            for(SensorBase sensor: childSensors) {
+                JSONObject child = sensor.getJson();
+                children.put(child);
+            }
+            json.put("childsensors", children);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        // get custom json field
+        getJSONField();
+
+        return json;
     }
 
     protected Result call(String method, String param, String path) {

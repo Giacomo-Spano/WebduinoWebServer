@@ -16,16 +16,16 @@ public abstract class Actuator extends SensorBase {
 
     private String status = "";
 
-    public Actuator(int id, String name, String subaddress, int shieldid) {
-        super(id,name,subaddress,shieldid);
+    public Actuator(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id,name,subaddress,shieldid,pin,enabled);
     }
 
-    public void SetData(int id, int shieldid, String subaddress, String name, Date lastupdate) {
+    /*public void SetData(int id, int shieldid, String subaddress, String name, Date lastupdate) {
         super.setData(shieldid, subaddress, name, lastUpdate);
 
         this.id = id;
         listeners = new ArrayList<ActuatorListener>();
-    }
+    }*/
 
     public abstract ActuatorCommand getCommandFromJson(JSONObject json);
 

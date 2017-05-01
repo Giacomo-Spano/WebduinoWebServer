@@ -23,8 +23,8 @@ public class DoorSensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public DoorSensor(int id, String name, String subaddress, int shieldid) {
-        super(id, name, subaddress, shieldid);
+    public DoorSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id, name, subaddress, shieldid, pin, enabled);
         type = "doorsensor";
     }
 
@@ -57,15 +57,12 @@ public class DoorSensor extends SensorBase {
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
+        super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
-            lastUpdate = date;
-            online = true;
             if (json.has("open"))
                 setStatus(json.getBoolean("open"));
-            if (json.has("name"))
-                name = json.getString("name");
-            super.setData(shieldid, subaddress, name, date);
+
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -74,7 +71,7 @@ public class DoorSensor extends SensorBase {
         }
     }
 
-    @Override
+    /*@Override
     public JSONObject getJson() {
         JSONObject json = new JSONObject();
         try {
@@ -91,5 +88,14 @@ public class DoorSensor extends SensorBase {
             e.printStackTrace();
         }
         return json;
+    }*/
+    @Override
+    public void getJSONField() {
+        try {
+            json.put("status", open);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

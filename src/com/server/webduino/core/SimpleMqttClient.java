@@ -3,24 +3,38 @@ package com.server.webduino.core;
 /**
  * Created by giaco on 25/04/2017.
  */
+
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleMqttClient implements MqttCallback {
 
     MqttClient myClient;
     MqttConnectOptions connOpt;
 
-    static final String BROKER_URL = "tcp://192.168.1.3:1883";
-    static final String M2MIO_DOMAIN = "clientidnamexx";
-    static final String M2MIO_STUFF = "things";
-    static final String M2MIO_THING = "deviceID";
+    static final String BROKER_URL = "tcp://192.168.1.41:1883";
+    private String clientId = "WebserverClient";
     static final String M2MIO_USERNAME = "";
     static final String M2MIO_PASSWORD_MD5 = "";
 
-    // the following two flags control whether this example is a publisher, a subscriber or both
-    static final Boolean subscriber = true;
-    static final Boolean publisher = true;
+    public SimpleMqttClient(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public interface SimpleMqttClientListener {
+
+        void messageReceived(String topic, String message);
+    }
+
+    protected List<SimpleMqttClientListener> listeners = new ArrayList<>();
+
+    public void addListener(SimpleMqttClientListener toAdd) {
+        listeners.add(toAdd);
+    }
+
 
     @Override
     public void connectionLost(Throwable t) {
@@ -33,12 +47,16 @@ public class SimpleMqttClient implements MqttCallback {
     }
 
     @Override
-    public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
+    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+        String payloadMessage = new String(mqttMessage.getPayload());
+        for (SimpleMqttClientListener listener : listeners) {
+            listener.messageReceived(topic, payloadMessage);
+        }
     }
 
-    public void runClient(String myTopic, String pubMsg) {
+    public void runClient() {
         // setup MQTT Client
-        String clientID = M2MIO_THING;
+        String clientID = clientId;//M2MIO_THING;
         connOpt = new MqttConnectOptions();
         connOpt.setCleanSession(true);
         connOpt.setKeepAliveInterval(30);
@@ -47,10 +65,22 @@ public class SimpleMqttClient implements MqttCallback {
 
         // Connect to Broker
         try {
-            String tmpDir = ("c:\\scratch");
+            //String tmpDir = ("c:\\scratch");
+            String tmpDir = System.getProperty("java.io.tmpdir");
+
+            // questo fa schifo. Da cambiare
+            // in base al valore della var java.io.tmpdir capisce se è su linux o su windows e cambia il path del file temp
+            if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp"))
+                tmpDir = System.getenv("tmp");
+            else
+                tmpDir = System.getProperty("java.io.tmpdir");
+            //String tmpDir = System.getenv("tmp");
+            //System.out.println("GIACOMO --xx-- tmpDir = " + tmpDir);
             MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);
 
-            myClient = new MqttClient(BROKER_URL, clientID,dataStore);
+
+
+            myClient = new MqttClient(BROKER_URL, clientID, dataStore);
             myClient.setCallback(this);
             myClient.connect(connOpt);
         } catch (MqttException e) {
@@ -59,6 +89,12 @@ public class SimpleMqttClient implements MqttCallback {
         }
 
         System.out.println("Connected to " + BROKER_URL);
+
+
+    }
+
+
+    public boolean publish(String myTopic, String pubMsg) {
 
         MqttTopic topic = myClient.getTopic(myTopic);
 
@@ -72,18 +108,60 @@ public class SimpleMqttClient implements MqttCallback {
         MqttDeliveryToken token = null;
         try {
             // publish message to broker
+            /*if(!myClient.isConnected())
+                myClient.connect();*/
             token = topic.publish(message);
             // Wait until the message has been delivered to the broker
-            token.waitForCompletion();
-            Thread.sleep(100);
+            //token.waitForCompletion();
+            //Thread.sleep(100);
         } catch (Exception e) {
             e.printStackTrace();
+            connect();
+            return false;
         }
 
+        return true;
+    }
+
+    public boolean subscribe(String myTopic) {
+
+        // subscribe to topic if subscriber
         try {
+            int subQoS = 0;
+            myClient.subscribe(myTopic, subQoS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            connect();
+            return false;
+        }
+        return true;
+    }
+
+    public void disconnect() {
+        // disconnect
+        try {
+            // wait to ensure subscribed messages are delivered
+            //if (subscriber) {
+            //Thread.sleep(5000);
+            //}
             myClient.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    public boolean isConnected() {
+        // disconnect
+        return myClient.isConnected();
+    }
+
+    public void connect() {
+        // disconnect
+        try {
+            myClient.connect();
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

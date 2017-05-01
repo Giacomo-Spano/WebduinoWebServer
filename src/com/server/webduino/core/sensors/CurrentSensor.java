@@ -23,8 +23,8 @@ public class CurrentSensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public CurrentSensor(int id, String name, String subaddress, int shieldid) {
-        super(id, name, subaddress, shieldid);
+    public CurrentSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id, name, subaddress, shieldid, pin, enabled);
         type = "currentsensor";
     }
 
@@ -57,15 +57,12 @@ public class CurrentSensor extends SensorBase {
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
+        super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
-            lastUpdate = date;
-            online = true;
             if (json.has("current"))
                 setCurrent(json.getDouble("current"));
-            if (json.has("name"))
-                name = json.getString("name");
-            super.setData(shieldid, subaddress, name, date);
+
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -73,6 +70,7 @@ public class CurrentSensor extends SensorBase {
             writeDataLog("updateFromJson error");
         }
     }
+
 
     @Override
     public JSONObject getJson() {

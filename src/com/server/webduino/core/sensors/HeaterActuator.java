@@ -44,8 +44,8 @@ public class HeaterActuator extends Actuator implements TemperatureSensor.Temper
     //protected ActiveProgram activeProgram;
     protected double activeSensorTemperature;
 
-    public HeaterActuator(int id, String name, String subaddress, int shieldid) {
-        super(id,name,subaddress,shieldid);
+    public HeaterActuator(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id,name,subaddress,shieldid, pin, enabled);
         type = "heatersensor";
         //startPrograms();
     }
@@ -250,6 +250,8 @@ public class HeaterActuator extends Actuator implements TemperatureSensor.Temper
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
+        super.updateFromJson(date,json);
+
         boolean oldReleStatus = this.releStatus;
         int oldProgramId = activeProgramID;
         int oldTimerangeId = activeTimeRangeID;
@@ -317,7 +319,6 @@ public class HeaterActuator extends Actuator implements TemperatureSensor.Temper
 
         writeDataLog("update");
         LOGGER.info("updateFromJson HeaterActuator old=" + oldRemoteTemperature + "new " + getRemoteTemperature());
-
     }
 
     @Override

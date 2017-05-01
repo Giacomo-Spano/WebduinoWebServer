@@ -34,6 +34,16 @@ public class Shields {
         return jarray;
     }
 
+    public JSONObject getShieldSettingJson(int shieldid) {
+        Shield shield = fromId(shieldid);
+        return shield.getShieldSettingJson();
+    }
+
+    public JSONObject getShieldSensorsJson(int shieldid) {
+        Shield shield = fromId(shieldid);
+        return shield.getShieldSensorsJson();
+    }
+
     interface ShieldsListener {
 
         void addedSensor(SensorBase sensor);
@@ -61,7 +71,7 @@ public class Shields {
 
         read();
 
-        //requestShieldsUpdate();
+        requestSensorStatusUpdate();
         initPrograms();
 
         //mSensors.initPrograms(); // non può esserre chiamata dentro costruttore sensors perchà usa mSensor
@@ -91,6 +101,29 @@ public class Shields {
 
     }
 
+    public String getSettingStatus(int shieldid) {
+        Shield shield = fromId(shieldid);
+        return shield.getSettingStatus();
+    }
+
+    public String getSensorStatus(int shieldid) {
+        Shield shield = fromId(shieldid);
+        return shield.getSensorStatus();
+    }
+
+    boolean updateSettings(int shieldid, JSONObject json) {
+
+        Shield shield = fromId(shieldid);
+
+        return shield.updateSettings(json);
+    }
+
+    boolean updateShieldSensors(int shieldid, JSONArray jsonArray) {
+        Shield shield = fromId(shieldid);
+        return shield.updateSensors(jsonArray);
+    }
+
+    // DA ELIMINARE
     boolean updateSensors(int shieldid, JSONArray jsonArray) {
 
         Date date = Core.getDate();
@@ -123,9 +156,13 @@ public class Shields {
                 e.printStackTrace();
             }
         }
+
+
+
         return true;
     }
 
+    // DA ELIMINARE
     public SensorBase getFromShieldIdandSubaddress(int shieldid, String subaddress) {
 
         for (Shield shield : list) {
@@ -139,29 +176,48 @@ public class Shields {
         return null;
     }
 
-    public void requestShieldsUpdate() {
+    public Shield fromId(int id) {
+        for (Shield shield : getShields()) {
+            if (shield.id == id) {
+                return shield;
+            }
+        }
+        return  null;
+    }
+
+    public boolean postCommand(int shieldid, Command command) {
+        Shield shield = fromId(shieldid);
+        if (shield != null) {
+            return shield.postCommand(command);
+        }
+        return false;
+    }
+
+    public boolean requestShieldSettingStatusUpdate(int shieldid) {
+        Shield shield = fromId(shieldid);
+        if (shield != null) {
+            boolean res = shield.requestSettingUpdate();
+            return res;
+        }
+        return false;
+    }
+
+    public boolean requestShieldSensorsStatusUpdate(int shieldid) {
+        Shield shield = fromId(shieldid);
+        if (shield != null) {
+            boolean res = shield.requestSensorStatusUpdate();
+            return res;
+        }
+        return false;
+    }
+
+    public void requestSensorStatusUpdate() {
 
         for (Shield shield : getShields()) {
-            String res = shield.requestStatusUpdate();
-            if (res == null) {
+            boolean res = shield.requestSensorStatusUpdate();
+            if (res == false) {
                 LOGGER.severe("sensors " + shield.id + " OFFLINE");
                 Core.sendPushNotification(SendPushMessages.notification_error, "errore", "SHIELD " + shield.id + " OFFLINE", "0", shield.id);
-            } else {
-                LOGGER.info(res);
-                try {
-                    JSONObject json = new JSONObject(res);
-
-                    if (json.has("shieldid")) {
-                        int shieldid = json.getInt("shieldid");
-                        if (json.has("sensors")) {
-                            JSONArray jsonArray = json.getJSONArray("sensors");
-                            //Date lastupdate = Core.getDate();
-                            updateSensors(shieldid, jsonArray);
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }
@@ -173,6 +229,7 @@ public class Shields {
     public int register(Shield shield) {
 
         int lastid = -1;
+        int shieldid = 0;
         String sql;
         Integer affectedRows = 0;
         try {
@@ -198,54 +255,84 @@ public class Shields {
                     + ",boardname=\"" + shield.boardName + "\""
                     + ";";
 
-            Statement stmt = conn.createStatement();
+            /*Statement stmt = conn.createStatement();
             affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {
                 lastid = rs.getInt(1);
             } else {
                 lastid = -1;
+            }*/
+
+            Statement stmt2 = conn.createStatement();
+            String query = "SELECT * FROM shields WHERE macaddress=\"" + shield.MACAddress + "\";";
+            ResultSet rs2 = stmt2.executeQuery(query);
+
+            if (rs2.next()) {
+                shieldid = rs2.getInt(1);
+            } else {
+                shieldid = lastid;
             }
+            stmt2.close();
+
+            Statement stmt = conn.createStatement();
 
             //String pèrova = "hjkk";
             for (SensorBase sensor : shield.sensors) {
 
-                sql = "INSERT INTO sensors (shieldid, type, subaddress, name, enabled, pin)" +
+                sql = "INSERT INTO sensors (shieldid, parentid, type, subaddress, name, enabled, pin)" +
                         " VALUES ("
-                        + "\"" + lastid + "\","
+                        + "\"" + shieldid + "\","
+                        + "\"" + 0 + "\","
                         + "\"" + sensor.getType() + "\","
                         + "\"" + sensor.getSubaddress() + "\","
                         + "\"" + sensor.getName() + "\"," +
                         Core.boolToString(sensor.getEnabled()) + ","
-                        + sensor.getPin() + ") " +
+                        + "\"" + sensor.getPin() + "\") " +
                         "ON DUPLICATE KEY UPDATE "
-                        + "shieldid=\"" + lastid + "\","
+                        + "shieldid=\"" + shieldid + "\","
+                        + "parentid=\"" + 0 + "\","
                         + "type=\"" + sensor.getType() + "\","
                         + "subaddress=\"" + sensor.getSubaddress() + "\","
                         + "name=\"" + sensor.getName() + "\","
                         + "enabled=" + Core.boolToString(sensor.getEnabled()) + ","
-                        + "pin=" + sensor.getPin()
+                        + "pin=\"" + sensor.getPin() + "\""
                         + ";";
                 stmt.executeUpdate(sql);
+                int affectedRows2 = stmt.executeUpdate(sql);
+
+
+                /*Statement */stmt2 = conn.createStatement();
+                /*String */query = "SELECT * FROM sensors WHERE shieldid=" + shieldid + " AND subaddress=\"" + sensor.getSubaddress() + "\";";
+                /*ResultSet*/ rs2 = stmt2.executeQuery(query);
+                int sensorid = 0;
+                if (rs2.next()) {
+                    sensorid = rs2.getInt(1);
+                } else {
+                    sensorid = 0;
+                }
+                stmt2.close();
 
                 for (int i = 0; i < sensor.childSensors.size(); i++) {
                     SensorBase tempSensor = sensor.childSensors.get(i);
                     String subaddress = sensor.getSubaddress() + "." + tempSensor.getId();
-                    sql = "INSERT INTO sensors (shieldid, type, subaddress, name, enabled, pin)" +
+                    sql = "INSERT INTO sensors (shieldid, parentid, type, subaddress, name, enabled, pin)" +
                             " VALUES ("
-                            + "\"" + lastid + "\","
+                            + "\"" + shieldid + "\","
+                            + "\"" + sensorid + "\","
                             + "\"" + "temperature" + "\","
                             + "\"" + subaddress + "\","
                             + "\"" + sensor.getName() + "\"," +
                             Core.boolToString(sensor.getEnabled()) + ","
-                            + sensor.getPin() + ")" +
+                            + "\"" + sensor.getPin() + "\") " +
                             "ON DUPLICATE KEY UPDATE "
-                            + "shieldid=\"" + lastid + "\","
+                            + "shieldid=\"" + shieldid + "\","
+                            + "parentid=\"" + sensorid + "\","
                             + "type=\"" + "temperature" + "\","
                             + "subaddress=\"" + subaddress + "\","
                             + "name=\"" + sensor.getName() + "\","
                             + "enabled=" + Core.boolToString(sensor.getEnabled()) + ","
-                            + "pin=" + sensor.getPin()
+                            + "pin=\"" + sensor.getPin() + "\""
                             + ";";
                     stmt.executeUpdate(sql);
                 }
@@ -266,8 +353,11 @@ public class Shields {
             return 0;
         }
 
-        if (lastid != -1 && shield != null) {
-            shield.id = lastid;
+
+
+
+        if (shieldid != 0 && shield != null) {
+            shield.id = shieldid;
             for (SensorBase sensor : shield.sensors) {
                 sensor.setShieldId(shield.id);
                 for (SensorBase child : sensor.childSensors) {
@@ -289,7 +379,7 @@ public class Shields {
 
         }
 
-        return lastid;
+        return shieldid;
     }
 
     public static SensorBase getSensorFromId(int id) {
@@ -334,7 +424,7 @@ public class Shields {
 
                 Statement stmt2 = conn.createStatement();
                 String sql2 = "SELECT * FROM sensors " +
-                        "WHERE shieldid = " + shield.id;
+                        "WHERE shieldid = " + shield.id + " AND parentid=0";
 
                 ResultSet sensorRs = stmt2.executeQuery(sql2);
                 while (sensorRs.next()) {
@@ -343,6 +433,8 @@ public class Shields {
                     int id = 0;
                     int shieldid = 0;
                     String subaddress = "";
+                    String pin = "";
+                    boolean enabled;
                     if (sensorRs.getString("type") != null)
                         type = sensorRs.getString("type");
                     id = sensorRs.getInt("id");
@@ -351,11 +443,41 @@ public class Shields {
                         subaddress = sensorRs.getString("subaddress");
                     if (sensorRs.getString("name") != null)
                         name = sensorRs.getString("name");
+                    if (sensorRs.getString("pin") != null)
+                        pin = sensorRs.getString("pin");
+                    enabled = sensorRs.getBoolean("enabled");
 
                     SensorBase sensor;
-                    sensor = SensorFactory.createSensor(type, name, subaddress, id, shieldid);
+                    sensor = SensorFactory.createSensor(type, name, subaddress, id, shieldid,pin,enabled);
                     if (sensor == null)
                         continue;
+
+                    // add child sensors
+                    Statement stmt3 = conn.createStatement();
+                    String sql3 = "SELECT * FROM sensors " +
+                            "WHERE shieldid = " + shield.id + " AND parentid="+id;
+                    ResultSet sensorRs3 = stmt3.executeQuery(sql3);
+                    while (sensorRs3.next()) {
+
+                        if (sensorRs3.getString("type") != null)
+                            type = sensorRs3.getString("type");
+                        id = sensorRs3.getInt("id");
+                        shieldid = sensorRs3.getInt("shieldid");
+                        if (sensorRs3.getString("subaddress") != null)
+                            subaddress = sensorRs3.getString("subaddress");
+                        if (sensorRs3.getString("name") != null)
+                            name = sensorRs3.getString("name");
+                        if (sensorRs3.getString("enabled") != null)
+                            enabled = sensorRs.getBoolean("enabled");
+
+                        SensorBase child;
+                        child = SensorFactory.createSensor(type, name, subaddress, id, shieldid,"",enabled);
+                        if (sensor == null)
+                            continue;
+                        sensor.childSensors.add(child);
+                    }
+                    stmt3.close();
+
 
                     shield.sensors.add(sensor);
                 }

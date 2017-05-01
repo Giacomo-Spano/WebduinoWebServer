@@ -4,6 +4,8 @@ var temperatureDiv;
 var doorDiv;
 var genericSensorDiv;
 
+var shieldId = 0;
+
 var refreshFunction = function refresh(json) {
 
     listDiv.innerHTML = '';
@@ -28,7 +30,9 @@ var refreshFunction = function refresh(json) {
 
 function load() {
 
-    sensorDiv = document.getElementById('sensors');
+    shieldId = getUrlVars()["id"];
+
+    sensorDiv = document.getElementById('sensor');
 
     genericSensorDiv = document.getElementById('genericsensor');
     temperatureDiv = document.getElementById('onewiresensor');
@@ -37,7 +41,7 @@ function load() {
     listDiv = document.getElementById('sensorList');
 
 
-    getJson(sensorsStatusPath, refreshFunction);
+    getJson(sensorsStatusPath+"&id="+shieldId, refreshFunction);
 }
 
 function addSensor(sensor) {
@@ -135,15 +139,16 @@ function save() {
     list = listDiv.getElementsByClassName('box');
     var sensorsJson = {
         'command': 'updatesensorlist',
+        'shieldid': shieldId,
         sensors: []
     };
     for (i = 0; i < list.length; i++) {
 
         var item = list[i];
-        type = item.getElementsByTagName('select')['sensortype'].value;
-        pin = item.getElementsByTagName('select')['pin'].value;
-        name = item.getElementsByTagName('input')['name'].value;
-        enabled = item.getElementsByTagName('input')['enabled'].checked;
+        var type = item.getElementsByTagName('select')['sensortype'].value;
+        var pin = item.getElementsByTagName('select')['pin'].value;
+        var name = item.getElementsByTagName('input')['name'].value;
+        var enabled = item.getElementsByTagName('input')['enabled'].checked;
 
         var properties = {};
         if (type == 'onewiresensor') {
@@ -154,16 +159,12 @@ function save() {
             var str = '';
             for(k = 0; k < subsensorlist.length;k++) {
 
-                var name = subsensorlist[k].getElementsByTagName('input')['name'].value;
-                //temperaturesensor = {};
-                //temperaturesensor ['name'] = subsensorlist[k].getElementsByTagName('input')['name'].value;
+                var childname = subsensorlist[k].getElementsByTagName('input')['name'].value;
 
                 if (k > 0)
                     str += ',';
 
-                str += '{' + "\"name\":\"" + name + "\"}";
-
-                //str += JSON.stringify(temperaturesensor);
+                str += '{' + "\"name\":\"" + childname + "\"}";
             }
             properties ['childsensors'] = '[' + str + ']';
 
@@ -190,5 +191,5 @@ function save() {
 
 function commandResponse(json) {
     document.getElementById('command').innerHTML += 'command result' + JSON.stringify(json);
-    getJson(sensorsStatusPath, refreshFunction);
+    getJson(sensorsStatusPath+"&id="+shieldId, refreshFunction);
 }

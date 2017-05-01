@@ -45,6 +45,50 @@ function sendActuatorCommand(actuatorId, command, duration, sensorId, remote, ta
         "}");
 }
 
+function addNewSensorLine(newtr, elem) {
+
+    // id
+    newtr.find('td[name="id"]').text(elem.id);
+    // shieldid
+    newtr.find('td[name="shieldid"]').text(elem.shieldid);
+    if (elem.online)
+        newtr.find('td[name="onlinestatus"]').text("Online");
+    else
+        newtr.find('td[name="onlinestatus"]').text("Offline");
+    // last upodate
+    newtr.find('td[name="date"]').text(elem.lastupdate);
+    // type
+    newtr.find('td[name="type"]').text(elem.type);
+    // status
+    if (elem.type == "temperature") {
+        text = "temp:" + elem.temperature + "°C" + " av.temp:" + elem.avtemperature + "°C";
+        newtr.find('td[name="status"]').text(text);
+    } else if (elem.type == "doorsensor") {
+        text = "door ";
+        if (elem.status == true)
+            text += "open";
+        else
+            text += "closed";
+        newtr.find('td[name="status"]').text(text);
+    } else if (elem.type == "heatersensor") {
+        text = "status " + elem.status
+            + "</br>" + "rele " + elem.relestatus
+            + "</br>" + "target " + elem.target
+            + "</br>" + "temperature " + elem.temperature
+            + "</br>" + "sensor " + elem.sensorIDname + "(" + elem.sensorid + ")"
+            + "</br>" + "progam " + elem.program + "." + elem.timerange + " " + elem.programname;
+
+        newtr.find('td[name="status"]').text(text);
+    } else {
+        newtr.find('td[name="status"]').text("undefined");
+    }
+    //name
+    newtr.find('td[name="name"]').text(elem.name);
+    // subaddress
+    newtr.find('td[name="subaddress"]').text(elem.subaddress);
+
+}
+
 function loadSensors() {
     $.getJSON(sensorServletPath, function (data) {
         console.log("success");
@@ -58,49 +102,14 @@ function loadSensors() {
         $.each(a, function (idx, elem) {
 
             tr = $mSensorPanel.find('tr[name="sensor"]');
-            newtr = $mSensorRow.clone();
-            // id
-            newtr.find('td[name="id"]').text(elem.id);
-            // shieldid
-            newtr.find('td[name="shieldid"]').text(elem.shieldid);
-            if (elem.online)
-                newtr.find('td[name="onlinestatus"]').text("Online");
-            else
-                newtr.find('td[name="onlinestatus"]').text("Offline");
-            // last upodate
-            newtr.find('td[name="date"]').text(elem.lastupdate);
-            // type
-            newtr.find('td[name="type"]').text(elem.type);
-            // status
-            if (elem.type == "temperature") {
-                text = "temp:" + elem.temperature + "°C" + " av.temp:" + elem.avtemperature + "°C";
-                newtr.find('td[name="status"]').text(text);
-            } else if (elem.type == "doorsensor") {
-                text = "door ";
-                if (elem.status == true)
-                    text += "open";
-                else
-                    text += "closed";
-                newtr.find('td[name="status"]').text(text);
-            } else if (elem.type == "heatersensor") {
-                text = "status " + elem.status
-                + "</br>" + "rele " + elem.relestatus
-                + "</br>" + "target " + elem.target
-                + "</br>" + "temperature " + elem.temperature
-                + "</br>" + "sensor " + elem.sensorIDname + "(" + elem.sensorid + ")"
-                + "</br>" + "progam " + elem.program + "." + elem.timerange + " " + elem.programname;
+            var newtr = $mSensorRow.clone();
+            addNewSensorLine(newtr, elem);
 
-
-
-                newtr.find('td[name="status"]').text(text);
-            } else {
-                newtr.find('td[name="status"]').text("undefined");
-            }
-
-            //name
-            newtr.find('td[name="name"]').text(elem.name);
-            // subaddress
-            newtr.find('td[name="subaddress"]').text(elem.subaddress);
+            $.each(elem.childsensors, function (idx, elem) {
+                var newtr = $mSensorRow.clone();
+                addNewSensorLine(newtr, elem);
+                tr.last().after(newtr);
+            });
 
             tr.last().after(newtr);
         });
@@ -108,7 +117,7 @@ function loadSensors() {
         .done(function () {
             console.log("succes");
         })
-        .fail(function(jqXHR, textStatus, errorThrown) {
+        .fail(function (jqXHR, textStatus, errorThrown) {
             alert('getJSON request failed! ' + textStatus);
         })
         .always(function () {

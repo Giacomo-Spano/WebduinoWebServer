@@ -93,6 +93,8 @@ public class QuartzListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent servletContext) {
         System.out.println("Context Destroyed");
+
+        core.mqttDisconnect();
         try
         {
             scheduler.shutdown();

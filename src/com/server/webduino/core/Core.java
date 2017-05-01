@@ -1,13 +1,10 @@
 package com.server.webduino.core;
 
-import com.quartz.QuartzListener;
 import com.server.webduino.core.sensors.SensorBase;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.servlet.http.HttpServletResponse;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,7 +16,7 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
-public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
+public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, SimpleMqttClient.SimpleMqttClientListener {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
 
@@ -39,11 +36,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
 
     public static Devices mDevices = new Devices();
 
-    private MQTTThread mqttThreadReceive;
-    private MQTTThread mqttThreadSend;
+    //private MQTTThread mqttThreadReceive;
+    static SimpleMqttClient smc;
 
     public Core() {
-
         production_envVar = System.getenv("PRODUCTION");
         appDNS_envVar = System.getenv("OPENSHIFT_APP_DNS");
         mysqlDBHost_envVar = System.getenv("OPENSHIFT_MYSQL_DB_HOST");
@@ -51,7 +47,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
         tmpDir_envVar = System.getenv("OPENSHIFT_TMP_DIR");
         dataDir_envVar = System.getenv("OPENSHIFT_DATA_DIR");
     }
-
 
     public static String getUser() {
         if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFT))
@@ -91,15 +86,34 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
 
         LOGGER.info("init");
 
+
+        //File scratchFile = new File(System.getProperty("java.io.tmpdir") + "WCCTempFile.tmp");
+        /*String dir = System.getenv("tmp");
+        String file = dir + "prova.txt";
+        File scratchFile = new File(file);
+        if (!scratchFile.exists())
+            try {
+                scratchFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }*/
+        smc = new SimpleMqttClient("CoreClient");
+        smc.runClient();
+        smc.subscribe("toServer/#");
+        smc.addListener(this);
+
         mShields = new Shields();
         mShields.init();
 
+        // DA ELIMINARE, non più usato
         Settings settings = new Settings();
 
         mDevices.read();
 
-        mqttThreadReceive = new MQTTThread(this, true);
-        mqttThreadReceive.start();
+
+
+        //mqttThreadReceive = new MQTTThread(this, "CoreClientReceive", "toServer/#");
+        //mqttThreadReceive.start();
 
         //mqttThreadSend = new MQTTThread(this,false);
         //mqttThreadSend.start();
@@ -121,12 +135,38 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
     }
 
     boolean updateSensors(int shieldid, JSONArray jsonArray) {
-        return mShields.updateSensors(shieldid, jsonArray);
+        //return mShields.updateSensors(shieldid, jsonArray);
+        return mShields.updateShieldSensors(shieldid, jsonArray);
+    }
+
+    boolean updateSettings(int shieldid, JSONObject json) {
+        return mShields.updateSettings(shieldid, json);
+    }
+
+    static public String getShieldSettingStatus(int shieldid) {
+        return mShields.getSettingStatus(shieldid);
+    }
+
+    static public String getShieldSensorsStatus(int shieldid) {
+        return mShields.getSensorStatus(shieldid);
     }
 
     public static SensorBase getFromShieldId(int shieldid, String subaddress) {
         return mShields.getFromShieldIdandSubaddress(shieldid, subaddress);
     }
+
+    public static Shield getShieldFromId(int shieldid) {
+        return mShields.fromId(shieldid);
+    }
+
+    public static boolean requestShieldSettingsUpdate(int shieldid) {
+        return mShields.requestShieldSettingStatusUpdate(shieldid);
+    }
+
+    public static boolean requestShieldSensorsUpdate(int shieldid) {
+        return mShields.requestShieldSensorsStatusUpdate(shieldid);
+    }
+
 
     public ArrayList<Program> getPrograms() {
         return mPrograms.getProgramList();
@@ -179,6 +219,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
 
         final String dateInString = df.format(date);
 
+
+
+
         Date newDate = null;
         try {
 
@@ -202,28 +245,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
 
         parseTopic(topic, message);
 
-        /*try {
-            JSONObject jsonObj = new JSONObject(message);
-            if (jsonObj.has("shieldid")) {
-                int shieldid = 0;
-
-                shieldid = jsonObj.getInt("shieldid");
-
-                if (jsonObj.has("sensors")) {
-                    JSONArray jsonArray = jsonObj.getJSONArray("sensors");
-                    //updateSensors(shieldid, lastupdate, jsonArray);
-
-                    //Core core = (Core) context.getAttribute(QuartzListener.CoreClass);
-                    //core.updateSensors(shieldid, jsonArray);
-
-                    //updateSensors(shieldid, jsonArray);
-                    parseTopic(topic,message);
-
-                }
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
     }
 
 
@@ -254,8 +275,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
         }
     }
 
-    public void callCommand(String command, int shieldid, String json) {
-        if (command.equals("update")) {
+    public boolean callCommand(String command, int shieldid, String json) {
+        if (command.equals("sensorsupdate")) {
             try {
                 JSONObject jsonObj = new JSONObject(json);
 
@@ -263,6 +284,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
                     JSONArray jsonArray = jsonObj.getJSONArray("sensors");
                     updateSensors(shieldid, jsonArray);
                 }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if (command.equals("settingsupdate")) {
+            try {
+                JSONObject jsonObj = new JSONObject(json);
+                updateSettings(shieldid, jsonObj);
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -275,15 +304,42 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener {
                     Shield shield = new Shield();
                     shield.FromJson(shieldJson);
                     int id = registerShield(shield);
-                    SimpleMqttClient smc = new SimpleMqttClient();
-                    smc.runClient("fromServer/shield/5c:cf:7f:86:3e:46/registerresponse", ""+id);
+                    //SimpleMqttClient smc = new SimpleMqttClient();
+                    return smc.publish("fromServer/shield/" + shield.MACAddress + "/registerresponse", ""+id);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else {
-            SimpleMqttClient smc = new SimpleMqttClient();
-            smc.runClient("fromServer", "prova");
+            //SimpleMqttClient smc = new SimpleMqttClient();
+            return smc.publish("fromServer", "prova");
         }
+        return false;
     }
+
+    static public boolean publish(String topic, String message) {
+
+        if (smc != null)
+            return smc.publish(topic, message);
+
+        return false;
+    }
+
+    public void mqttDisconnect() {
+        smc.disconnect();
+    }
+
+    public static JSONObject getShieldSettingJson(int shieldid) {
+        return mShields.getShieldSettingJson(shieldid);
+    }
+
+    public static JSONObject getShieldSensorsJson(int shieldid) {
+        return mShields.getShieldSensorsJson(shieldid);
+    }
+
+    public static boolean postCommand(int shieldid, ShieldCommand command) {
+        return mShields.postCommand(shieldid,command);
+    }
+
+
 }

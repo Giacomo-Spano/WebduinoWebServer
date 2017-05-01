@@ -1,11 +1,7 @@
 package com.server.webduino.core;
 
-import com.quartz.QuartzListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.json.JSONArray;
 
-import javax.servlet.ServletContext;
-import java.util.Date;
 import java.util.logging.Logger;
 
 /**
@@ -15,17 +11,14 @@ public class MQTTThread extends Thread {
 
     private static final Logger LOGGER = Logger.getLogger(MQTTThread.class.getName());
 
-    private Core coreref;
-    private boolean receive;
+    private SampleAsyncCallBack.SampleAsyncCallBackListener coreref;
 
     private boolean quietMode = false;
-    private String sendtopic = "toServer/#";
-    private String message = "Message from async callback Paho MQTTv3 Java client sample";
+    private String topic = "toServer/#";
     private int qos = 2;
     private String broker = "192.168.1.3";
     private int port = 1883;
     private String clientIdReceive = "WebduinoclientReceive";
-    private String clientIdSend = "WebduinoclientSend";
     private boolean cleanSession = true; // Non durable subscriptions
     private boolean ssl = false;
     private String password = null;
@@ -34,10 +27,11 @@ public class MQTTThread extends Thread {
 
     private SampleAsyncCallBack sampleClient;
 
-    public MQTTThread(Core core, boolean receive) {
+    public MQTTThread(SampleAsyncCallBack.SampleAsyncCallBackListener core, String clientId, String topic) {
         super("str");
         this.coreref = core;
-        this.receive = receive;
+        this.clientIdReceive = clientId;
+        this.topic = topic;
     }
 
     public void run() {
@@ -82,7 +76,7 @@ public class MQTTThread extends Thread {
 
             //sampleClient.addListener(coreref);
             //sampleClient.publish(receivetopic, qos, message.getBytes());
-            sampleClient.subscribe(sendtopic, qos);
+            sampleClient.subscribe(topic, qos);
 
         } catch (MqttException me) {
             // Display full details of any exception that occurs

@@ -37,9 +37,9 @@ public class TemperatureSensor extends SensorBase {
 
 
 
-    public TemperatureSensor(int id, String name, String subaddress, int shieldid) {
+    public TemperatureSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
 
-        super(id, name, subaddress, shieldid);
+        super(id, name, subaddress, shieldid, pin, enabled);
         type = "temperature";
     }
 
@@ -98,24 +98,13 @@ public class TemperatureSensor extends SensorBase {
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
+        super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
-            lastUpdate = date;
-            online = true;
             if (json.has("avtemperature"))
                 setAvTemperature(json.getDouble("avtemperature"));
             if (json.has("temperature"))
                 setTemperature(json.getDouble("temperature"));
-
-            if (json.has("name"))
-                name = json.getString("name");
-            //setData(shieldid, subaddress, name, date, temperature, avTemperature);
-            // ma questo a cosa serve??? Aggiorna solo la data e il nome, non gli altri campi.
-            // Forse per la gestione dell'offline??
-            super.setData(shieldid, subaddress, name, date);
-
-            //TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
-            //dl.writelog("updateFromJson",this);
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -126,22 +115,13 @@ public class TemperatureSensor extends SensorBase {
     }
 
     @Override
-    public JSONObject getJson() {
-        JSONObject json = new JSONObject();
+    public void getJSONField() {
         try {
-            json.put("id", getId());
-            json.put("shieldid", shieldid);
-            json.put("online", online);
-            json.put("subaddress", subaddress);
             json.put("temperature", getTemperature());
             json.put("avtemperature", getAvTemperature());
-            json.put("name", getName());
-            json.put("lastupdate", getStrLastUpdate());
-            json.put("type", type);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return json;
     }
 }

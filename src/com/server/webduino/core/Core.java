@@ -1,5 +1,7 @@
 package com.server.webduino.core;
 
+import com.server.webduino.core.securitysystem.SecuritySystem;
+import com.server.webduino.core.securitysystem.SecurityZone;
 import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,7 +18,7 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
-public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, SimpleMqttClient.SimpleMqttClientListener {
+public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, SimpleMqttClient.SimpleMqttClientListener,Shields.ShieldsListener {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
 
@@ -31,6 +33,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static String APP_DNS_OPENSHIFT = "webduinocenter.rhcloud.com";
     public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
 
+    private static SecuritySystem securitySystem = new SecuritySystem();
     public static Shields mShields;
     public static Programs mPrograms;
 
@@ -82,21 +85,19 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         //return "jdbc:mysql://127.0.0.1:3307/jbossews"; // production
     }
 
+    public static boolean isProduction() {
+
+        String tmpDir = System.getProperty("java.io.tmpdir");
+        if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp"))
+            return false;
+        else
+            return true;
+    }
+
     public void init() {
 
         LOGGER.info("init");
 
-
-        //File scratchFile = new File(System.getProperty("java.io.tmpdir") + "WCCTempFile.tmp");
-        /*String dir = System.getenv("tmp");
-        String file = dir + "prova.txt";
-        File scratchFile = new File(file);
-        if (!scratchFile.exists())
-            try {
-                scratchFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }*/
         smc = new SimpleMqttClient("CoreClient");
         smc.runClient();
         smc.subscribe("toServer/#");
@@ -105,18 +106,16 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         mShields = new Shields();
         mShields.init();
 
+        // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
+        securitySystem.init();
+        securitySystem.addZoneSensorListeners();
+
+        mShields.addListener(this);
+
         // DA ELIMINARE, non più usato
         Settings settings = new Settings();
 
         mDevices.read();
-
-
-
-        //mqttThreadReceive = new MQTTThread(this, "CoreClientReceive", "toServer/#");
-        //mqttThreadReceive.start();
-
-        //mqttThreadSend = new MQTTThread(this,false);
-        //mqttThreadSend.start();
     }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
@@ -342,4 +341,36 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
 
+    public static JSONObject loadShieldSettings(String macAddress) {
+        return mShields.loadShieldSettings(macAddress);
+    }
+
+    public static boolean saveShieldSettings(JSONObject json) {
+        return mShields.saveShieldSettings(json);
+    }
+
+    @Override
+    public void addedSensor(SensorBase sensor) {
+
+    }
+
+    @Override
+    public void addedShield(Shield shield) {
+
+    }
+
+    @Override
+    public void updatedSensor(SensorBase sensor) {
+
+    }
+
+    @Override
+    public void updatedShields() {
+        // se cambiano i sensori riregistra i listener
+        securitySystem.clearZoneSensorListeners();
+
+
+
+        securitySystem.addZoneSensorListeners();
+    }
 }

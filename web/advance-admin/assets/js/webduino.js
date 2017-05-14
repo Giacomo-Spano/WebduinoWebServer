@@ -1,10 +1,13 @@
-var serverPath = '.';
+var serverPath = '..';
 
 var heaterStatusPath = serverPath+'/heaterstatus';
 
-var sensorsStatusPath = serverPath+'/sensorstatus';
-var commandPath = serverPath+'/command';
-var settingsPath = serverPath+'/settings';
+
+var commandPath = serverPath+'/shield?command=savesettings';//+//'/command';
+
+var settingsPath = serverPath+'/shield?command=settings';
+var sensorsStatusPath = serverPath+'/shield?command=sensors';
+var shieldPath = serverPath+'/shield';
 
 
 //var sensorsStatusPath = serverPath+'/shield?command=updatesensorstat\usrequest';
@@ -121,7 +124,7 @@ function formInputToJSON(form) {
 function sendCommand(data, callback) {
 
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', commandPath, true);
+    xhr.open('POST', shieldPath, true);
     xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
     xhr.send(JSON.stringify(data));
 

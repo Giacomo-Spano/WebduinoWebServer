@@ -12,10 +12,18 @@ import java.util.List;
 
 public class SimpleMqttClient implements MqttCallback {
 
+
+    public SimpleMqttClient() {
+
+
+    }
+
     MqttClient myClient;
     MqttConnectOptions connOpt;
 
-    static final String BROKER_URL = "tcp://192.168.1.41:1883";
+    String BROKER_URL = "";//tcp://192.168.1.41:1883";
+    //String BROKER_URL_TEST = "tcp://192.168.1.3:1883";
+
     private String clientId = "WebserverClient";
     static final String M2MIO_USERNAME = "";
     static final String M2MIO_PASSWORD_MD5 = "";
@@ -48,10 +56,15 @@ public class SimpleMqttClient implements MqttCallback {
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-        String payloadMessage = new String(mqttMessage.getPayload());
-        for (SimpleMqttClientListener listener : listeners) {
-            listener.messageReceived(topic, payloadMessage);
+    public void messageArrived(String topic, MqttMessage mqttMessage) /*throws Exception*/ {
+
+        try {
+            String payloadMessage = new String(mqttMessage.getPayload());
+            for (SimpleMqttClientListener listener : listeners) {
+                listener.messageReceived(topic, payloadMessage);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -71,7 +84,8 @@ public class SimpleMqttClient implements MqttCallback {
 
             // questo fa schifo. Da cambiare
             // in base al valore della var java.io.tmpdir capisce se è su linux o su windows e cambia il path del file temp
-            if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp"))
+            //if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp"))
+            if(!Core.isProduction())
                 tmpDir = System.getenv("tmp");
             else
                 tmpDir = System.getProperty("java.io.tmpdir");
@@ -80,8 +94,12 @@ public class SimpleMqttClient implements MqttCallback {
             MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);
 
 
+            if(!Core.isProduction())
+                myClient = new MqttClient("tcp://192.168.1.3:1883", clientID, dataStore);
+            else
+                myClient = new MqttClient("tcp://192.168.1.41:1883", clientID, dataStore);
+            //myClient = new MqttClient(BROKER_URL, clientID, dataStore);
 
-            myClient = new MqttClient(BROKER_URL, clientID, dataStore);
             myClient.setCallback(this);
             myClient.connect(connOpt);
         } catch (MqttException e) {

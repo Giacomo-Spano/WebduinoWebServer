@@ -10,7 +10,7 @@ public class SensorFactory {
     static public SensorBase createSensor(String type, String name, String subaddress, int id, int shieldid, String pin, boolean enabled) {
 
         SensorBase sensor;
-        if (type.equals("temperature")) {
+        if (type.equals("temperaturesensor")) {
             sensor = (SensorBase) new TemperatureSensor(id,name,subaddress,shieldid,pin,enabled);
         } else if (type.equals("onewiresensor")) {
             sensor = (SensorBase) new OnewireSensor(id,name,subaddress,shieldid,pin,enabled);

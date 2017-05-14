@@ -1,6 +1,7 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.*;
+import com.server.webduino.core.securitysystem.SecurityZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -63,13 +64,26 @@ public class SensorBase extends httpClient {
 
     public interface SensorListener {
         static public String SensorEvents = "sensor event";
+
+        void changeTemperature(int sensorId, double temperature);
+
+        void changeAvTemperature(int sensorId, double avTemperature);
+
         void changeOnlineStatus(boolean online);
+
+        void changeOnlineStatus(int sensorId, boolean online);
+
+        void changeDoorStatus(int sensorId, boolean open);
     }
 
     protected List<SensorListener> listeners = new ArrayList<SensorListener>();
 
     public void addListener(SensorListener toAdd) {
         listeners.add(toAdd);
+    }
+
+    public void deleteListener(SensorListener toRemove) {
+        listeners.remove(toRemove);
     }
 
     public boolean receiveEvent(String eventtype) {
@@ -161,6 +175,10 @@ public class SensorBase extends httpClient {
         return type;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public boolean getEnabled() {
         return enabled;
     }
@@ -171,6 +189,10 @@ public class SensorBase extends httpClient {
 
     public String getPin() {
         return pin;
+    }
+
+    public void setPin(String pin) {
+        this.pin = pin;
     }
 
     public void setLastUpdate(Date date) {

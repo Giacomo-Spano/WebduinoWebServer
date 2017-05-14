@@ -8,6 +8,11 @@ var $actuators;
 var $shieldss;
 var $activeProgram;
 
+var $shieldrow;
+//var $shieldTable;
+
+
+
 
 function commanCallback(element, actuator) {
     //element.find('td[name="status"]').text(actuator.status + 'modificato');
@@ -183,9 +188,12 @@ function setActuatorElement(element, actuator) {
 
 function setShieldElement(element, shield) {
 
-    element.find('td[name="id"]').text(shield.id);
-    element.find('td[name="boardname"]').text(shield.boardname);
-    element.find('td[name="url"]').text(shield.url);
+    var idelem = element.find('a[name="shieldlink"]')[0];
+    idelem.href = "../advance-admin/webduino_settings.html?id=" + shield.shieldid;
+    idelem.text = shield.shieldid;
+
+    element.find('td[name="boardname"]').text(shield.shieldname);
+    //element.find('td[name="url"]').text(shield.url);
     element.find('td[name="MACAddress"]').text(shield.macaddres);
 
 }
@@ -225,19 +233,32 @@ function loadShields() {
     $.getJSON(shieldServletPath, function (data) {
         console.log("success");
 
+
+
         a = data;
         $.each(a, function (idx, elem) {
 
-            var newtr;
-            tr = $shields.find('tr[name="shield"]');
+            var newtr = $shieldrow.clone();
+            var tbody = $shields.find('tbody[name="shieldlist"]');
+            setShieldElement(newtr, elem);
+            tbody.append(newtr);
+
+
+            //var table = $shields.find('tbody[name="shieldtable"]')
+
+            //tbo.find('tbody').append(newtr);
+            //tr.last().after(newtr);
+            //table.insertRow();
+            /*tr = $shields.find('tr[name="shield"]');
             if (idx > 0) {
                 newtr = tr.clone();
             } else {
                 newtr = tr;
             }
-            setShieldElement(newtr, elem);
+            setShieldElement(newtr, elem);*/
 
-            tr.last().after(newtr);
+            //tr.last().after(newtr);
+            //tr.appendChild(newtr);
         });
 
     })
@@ -333,7 +354,8 @@ function load() {
     $activeProgram = $(this).find('div[id="activeprogrampanel"]');
 
     loadSensors();
-    //loadActuators();
-    //loadShields();
-    //loadActiveProgramList();
+
+    $shieldrow = $shields.find('tr[name="shield"]').clone();
+    $shields.find('tbody[name="shieldlist"]')[0].innerHTML = "";
+    loadShields();
 }

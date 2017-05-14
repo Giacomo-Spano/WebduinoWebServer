@@ -3,10 +3,10 @@ package com.server.webduino.core.sensors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
+
+//import static com.server.webduino.core.sensors.DoorSensor.DoorSensorListener.DoorEvents;
 
 public class DoorSensor extends SensorBase {
 
@@ -14,14 +14,16 @@ public class DoorSensor extends SensorBase {
 
     private boolean open;
 
-    public interface CurrentSensorListener {
-        void changeStatus(int sensorId, boolean open);
-    }
+    /*public interface DoorSensorListener extends SensorBase.SensorListener {
+        public String DoorEvents = "door event";
+        void changeDoorStatus(int sensorId, boolean open);
+    }**/
 
-    private List<CurrentSensorListener> listeners = new ArrayList<CurrentSensorListener>();
-    public void addListener(CurrentSensorListener toAdd) {
-        listeners.add(toAdd);
-    }
+    /*public boolean sendEvent(String eventtype) {
+        if (super.sendEvent(eventtype) || eventtype == DoorEvents)
+            return true;
+        return false;
+    }*/
 
     public DoorSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, subaddress, shieldid, pin, enabled);
@@ -29,18 +31,17 @@ public class DoorSensor extends SensorBase {
     }
 
     public void setStatus(boolean open) {
-
         LOGGER.info("setStatus");
 
         boolean oldOpen = this.open;
         this.open = open;
-
         if (open != oldOpen) {
-            CurrentSensorDataLog dl = new CurrentSensorDataLog();
+            DoorSensorDataLog dl = new DoorSensorDataLog();
             dl.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
-            for (CurrentSensorListener hl : listeners)
-                hl.changeStatus(id, open);
+            for (SensorListener listener : listeners) {
+                listener.changeDoorStatus(id, open);
+            }
         }
     }
 
@@ -71,24 +72,6 @@ public class DoorSensor extends SensorBase {
         }
     }
 
-    /*@Override
-    public JSONObject getJson() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("id", getId());
-            json.put("shieldid", shieldid);
-            json.put("online", online);
-            json.put("subaddress", subaddress);
-            json.put("status", open);
-            json.put("name", getName());
-            json.put("lastupdate", getStrLastUpdate());
-            json.put("type", type);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
-    }*/
     @Override
     public void getJSONField() {
         try {

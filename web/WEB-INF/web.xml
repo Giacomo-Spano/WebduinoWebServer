@@ -24,12 +24,21 @@
     </listener>-->
 
     <servlet>
-        <servlet-name>Servlet</servlet-name>
-        <servlet-class>com.server.webduino.Servlet</servlet-class>
+        <servlet-name>OTAServlet</servlet-name>
+        <servlet-class>com.server.webduino.servlet.OTAServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>Servlet</servlet-name>
-        <url-pattern>/prova</url-pattern>
+        <servlet-name>OTAServlet</servlet-name>
+        <url-pattern>/ota</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FileUploadServlet</servlet-name>
+        <servlet-class>com.server.webduino.servlet.FileUploadServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FileUploadServlet</servlet-name>
+        <url-pattern>/FileUploadServlet</url-pattern>
     </servlet-mapping>
 
     <servlet>

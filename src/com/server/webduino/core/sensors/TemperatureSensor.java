@@ -16,18 +16,11 @@ public class TemperatureSensor extends SensorBase {
     private double temperature;
     private double avTemperature;
 
-
     public interface TemperatureSensorListener extends SensorBase.SensorListener {
         public String TemperatureEvents = "temperature event";
         void changeTemperature(int sensorId, double temperature);
         void changeAvTemperature(int sensorId, double avTemperature);
     }
-
-    //private List<TemperatureSensorListener> listeners = new ArrayList<TemperatureSensorListener>();
-
-    /*public void addListener(TemperatureSensorListener toAdd) {
-        listeners.add(toAdd);
-    }*/
 
     public boolean sendEvent(String eventtype) {
         if (super.sendEvent(eventtype) || eventtype == TemperatureEvents)
@@ -35,12 +28,10 @@ public class TemperatureSensor extends SensorBase {
         return false;
     }
 
-
-
     public TemperatureSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
 
         super(id, name, subaddress, shieldid, pin, enabled);
-        type = "temperature";
+        type = "temperaturesensor";
     }
 
     public void setTemperature(double temperature) {

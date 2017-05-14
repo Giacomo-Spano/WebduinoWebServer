@@ -1,0 +1,389 @@
+﻿﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Responsive Bootstrap Advance Admin Template</title>
+
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet"/>
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet"/>
+    <!--CUSTOM BASIC STYLES-->
+    <link href="assets/css/basic.css" rel="stylesheet"/>
+    <!--CUSTOM MAIN STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet"/>
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'/>
+
+
+</head>
+<body>
+
+<!-- The Modal -->
+<div id="modalPopup" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="modalText">Some text in the Modal..</div>
+        <input type="button" id="okButton" value="Ok">
+        <input type="button" id="cancelButton" value="Annulla">
+    </div>
+</div>
+
+<div id="wrapper">
+    <nav class="navbar navbar-default navbar-cls-top " role="navigation" style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="webduino_home.html">WEBDUINO HOME</a>
+        </div>
+
+        <div class="header-right">
+
+            <!-- <button type="button" id="addprogram" class="btn btn-sm btn-primary">Aggiungi Programma</button> -->
+
+
+        </div>
+    </nav>
+    <!-- /. NAV TOP  -->
+    <nav class="navbar-default navbar-side" role="navigation">
+        <div class="sidebar-collapse">
+            <ul class="nav" id="main-menu">
+                <li>
+                    <div class="user-img-div">
+                        <img src="assets/img/user.png" class="img-thumbnail"/>
+
+                        <div class="inner-text">
+                            Jhon Deo Alex
+                            <br/>
+                            <small>Last Login : 2 Weeks Ago</small>
+                        </div>
+                    </div>
+
+                </li>
+
+                <li>
+                    <a class="active-menu" href="webduino_home.html"><i class="fa fa-dashboard "></i>Dashboard</a>
+                </li>
+                <li>
+                    <a class="active-menu" href="webduino_dashboard.html"><i class="fa fa-dashboard "></i>Dashboard</a>
+                </li>
+                <li>
+                    <a href="webduino_programs.html"><i class="fa fa-flash "></i>Programmi </a>
+                </li>
+                <li>
+                    <a href="#"><i class="fa fa-desktop "></i>UI Elements <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        <li>
+                            <a href="panel-tabs.html"><i class="fa fa-toggle-on"></i>Tabs & Panels</a>
+                        </li>
+                        <li>
+                            <a href="notification.html"><i class="fa fa-bell "></i>Notifications</a>
+                        </li>
+                        <li>
+                            <a href="progress.html"><i class="fa fa-circle-o "></i>Progressbars</a>
+                        </li>
+                        <li>
+                            <a href="buttons.html"><i class="fa fa-code "></i>Buttons</a>
+                        </li>
+                        <li>
+                            <a href="icons.html"><i class="fa fa-bug "></i>Icons</a>
+                        </li>
+                        <li>
+                            <a href="wizard.html"><i class="fa fa-bug "></i>Wizard</a>
+                        </li>
+                        <li>
+                            <a href="typography.html"><i class="fa fa-edit "></i>Typography</a>
+                        </li>
+                        <li>
+                            <a href="grid.html"><i class="fa fa-eyedropper "></i>Grid</a>
+                        </li>
+
+
+                    </ul>
+                </li>
+                <li>
+                    <a href="#"><i class="fa fa-yelp "></i>Extra Pages <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        <li>
+                            <a href="invoice.html"><i class="fa fa-coffee"></i>Invoice</a>
+                        </li>
+                        <li>
+                            <a href="pricing.html"><i class="fa fa-flash "></i>Pricing</a>
+                        </li>
+                        <li>
+                            <a href="component.html"><i class="fa fa-key "></i>Components</a>
+                        </li>
+                        <li>
+                            <a href="social.html"><i class="fa fa-send "></i>Social</a>
+                        </li>
+
+                        <li>
+                            <a href="message-task.html"><i class="fa fa-recycle "></i>Messages & Tasks</a>
+                        </li>
+
+
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="#"><i class="fa fa-bicycle "></i>Forms <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+
+                        <li>
+                            <a href="form.html"><i class="fa fa-desktop "></i>Basic </a>
+                        </li>
+                        <li>
+                            <a href="form-advance.html"><i class="fa fa-code "></i>Advance</a>
+                        </li>
+
+
+                    </ul>
+                </li>
+                <li>
+                    <a href="gallery.html"><i class="fa fa-anchor "></i>Gallery</a>
+                </li>
+                <li>
+                    <a href="error.html"><i class="fa fa-bug "></i>Error Page</a>
+                </li>
+                <li>
+                    <a href="login.html"><i class="fa fa-sign-in "></i>Login Page</a>
+                </li>
+                <li>
+                    <a href="#"><i class="fa fa-sitemap "></i>Multilevel Link <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        <li>
+                            <a href="#"><i class="fa fa-bicycle "></i>Second Level Link</a>
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-flask "></i>Second Level Link</a>
+                        </li>
+                        <li>
+                            <a href="#">Second Level Link<span class="fa arrow"></span></a>
+                            <ul class="nav nav-third-level">
+                                <li>
+                                    <a href="#"><i class="fa fa-plus "></i>Third Level Link</a>
+                                </li>
+                                <li>
+                                    <a href="#"><i class="fa fa-comments-o "></i>Third Level Link</a>
+                                </li>
+
+                            </ul>
+
+                        </li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="blank.html"><i class="fa fa-square-o "></i>Blank Page</a>
+                </li>
+            </ul>
+        </div>
+
+    </nav>
+    <!-- /. NAV SIDE  -->
+    <div id="page-wrapper">
+        <div id="page-inner">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="page-head-line">Dashboard</h1>
+
+                    <h1 class="page-subhead-line">This is dummy text , you can replace it with your original text. </h1>
+
+                </div>
+            </div>
+
+
+            <!-- /. ROW SETTINGS -->
+            <!--  Settings -->
+            <form action='/command' method='POST' id='shield'>
+                <div id="settingspanel" class="row">
+                    <div class="col-md-12">
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Impostazioni</div>
+                            <div class="panel-body">
+
+                                <p>
+                                    <strong>ShieldID: </strong><input type='number' id='shieldid' name='shieldid'
+                                                                      value='0' min='1' max='9999' disabled><BR>
+                                    <strong>Local Port: </strong><input type='number' id='localport'
+                                                                        name='localport' value='80' step='1' min='1'
+                                                                        max='9999'><BR>
+                                    <strong>Shield name: </strong><input type='text' id='shieldname'
+                                                                         name='shieldname' value='shieldname'
+                                                                         size='29' maxlength='29'><BR>
+                                    <!--<strong>SSID: </strong><input type='text' id='ssid' name='ssid' value='SSID'
+                                                                  size='32' maxlength='32'><BR>
+                                    <strong>password: </strong><input type='text' id='password' name='password'
+                                                                      value='password' size='96' maxlength='96'><BR>-->
+                                    <strong>Server name: </strong><input type='text' id='server'
+                                                                         name='server' value='Server name'
+                                                                         size='29' maxlength='29'><BR>
+                                    <strong>Server Port: </strong><input type='number' id='serverport'
+                                                                         name='serverport' value='8080' step='1'
+                                                                         min='1' max='9999'><BR>
+                                    <strong>MQTT Server: </strong><input type='text' id='mqttserver'
+                                                                         name='mqttserver' value='mqttserver'
+                                                                         size='29' maxlength='29'><BR>
+                                    <strong>MQTT Port: </strong><input type='number' id='mqttport'
+                                                                       name='mqttport' value='8080' step='1'
+                                                                       min='1' max='9999'><BR>
+
+
+                                </p>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type='hidden' name='command' value='saveshieldsettings'>
+                <input type='submit' value="save" onclick='whichPressed=this'>
+            </form>
+            <!-- End  Settings -->
+            <!-- /. ROW SETTINGS  -->
+
+            <h1 class="page-subhead-line">Sensori </h1>
+
+            <!-- /. ROW SETTINGS -->
+            <div id="sensorpanel" class="row">
+                <div class="col-md-12">
+                    <!--   Stato sensori -->
+
+                    <!-- inizio sensore -->
+                    <div class="panel panel-default" id="sensor" name='sensortemplate'>
+                        <div class="panel-heading" id="sensorTitle">Sensore n#</div>
+                        <div class="panel-body">
+                            <strong>id: </strong><input type='text' name='sensorid' disabled>
+                            <strong>Abilitato : </strong><label class="input-toggle"><input type="checkbox"
+                                                                                            id="sensorEnabledCheckBox"
+                                                                                            name="enabled"
+                                                                                            checked="true"><span></span></label><br>
+                            <strong>nome sensore: </strong><input type='text' name='name'>
+                            <br>
+                            <strong>pin : </strong>
+                            <select id="pin" name="pin">
+                                <option value="D0">D0</option>
+                                <option value="D1">D1</option>
+                                <option value="D2">D2</option>
+                                <option value="D3">D3</option>
+                                <option value="D4">D4</option>
+                                <option value="D5">D5</option>
+                                <option value="D6">D6</option>
+                                <option value="D7">D7</option>
+                                <option value="D8">D8</option>
+                                <option value="D9">D9</option>
+                                <option value="D10">D10</option>
+                                <option value="A0">A0</option>
+                            </select>
+                            <br>
+                            <strong>tipo sensore : </strong>
+                            <select id="sensorTypeSelect" name="sensortype">
+                                <option value="onewiresensor">Sensore OneWire</option>
+                                <option value="doorsensor">Sensore porta</option>
+                                <option value="currentsensor">Sensore corrente</option>
+                                <option value="humiditysensor">Sensore di umidit&agrave;</option>
+                                <option value="pressuresensor">Sensore di pressione</option>
+                                <option value="pirsensor">Sensore di presenza</option>
+                                <option value="heatersensor">Riscaldamento</option>
+                                <option value="relesensor">Rel&egrave;</option>
+                            </select>
+                            <br>
+                            <div class="subsensorbox" id="sensorproperties" name='sensorproperties'>
+                                <strong>genric: </strong><input type="number" name="subSensorNumber" min="1" max="10"
+                                                                step="1">
+                            </div>
+                            <br>
+                            <input type="button" id="deleteButton" value="Elimina sensore">
+
+                            <br>
+                        </div>
+                    </div>
+                    <!--fine sensore -->
+
+                    <!-- sensors custom properties - questi sono i template delle proprietà custom dei sensori-->
+                    <div id="genericsensor" name='genericsensor'>
+                        <strong>no custom properties</strong>
+                    </div>
+                    <div id="onewiresensor" name='onewiresensor'>
+                        <strong>numero sensori: </strong><input type="number" name="temperatureSensorNumber" min="1"
+                                                                max="10"
+                                                                step="1" value="1">
+                        <div name='subsensorlist'>
+                            <div class="subsensorbox" name='subsensor'>
+                                <input type='hidden' name='addr' value='0'>
+                                <strong>#: </strong><input type='text' name='name' value="prova"><br>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="doorsensor" name='doorsensor'>
+                        <strong>door: </strong><input type="number" name="subSensorNumber" min="1" max="10" step="1">
+                    </div>
+
+                    <!--sensorsnsor custom properties end-->
+
+                    <div id="sensorList">
+                    </div>
+                    <input type="button" id="addSensorButton" value="Aggiungi sensore">
+                    <input type="button" id="saveButton" value="Salva configurazione">
+
+
+                </div>
+            </div>
+            <!-- /. ROW SETTINGS  -->
+
+
+        </div>
+
+
+    </div>
+    <!-- /. PAGE INNER  -->
+</div>
+<!-- /. PAGE WRAPPER  -->
+</div>
+</div>
+<!-- /. WRAPPER  -->
+<div id="footer-sec">
+    &copy; 2014 YourCompany | Design By : <a href="http://www.binarytheme.com/" target="_blank">BinaryTheme.com</a>
+</div>
+
+<label id="summary">summary</label><br>
+<label id="command">command</label><br>
+<label id="timer">timer</label>
+
+<!-- /. FOOTER  -->
+<!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
+<!-- JQUERY SCRIPTS -->
+<script src="assets/js/jquery-1.10.2.js"></script>
+<!-- BOOTSTRAP SCRIPTS -->
+<script src="assets/js/bootstrap.js"></script>
+<!-- METISMENU SCRIPTS -->
+<script src="assets/js/jquery.metisMenu.js"></script>
+<!-- CUSTOM SCRIPTS -->
+<script src="assets/js/custom.js"></script>
+
+<!--<script src="assets/js/dashboard.js"></script>-->
+
+<!-- build:js script.js -->
+<script src="assets/js/webduino.js"></script>
+<script src="assets/js/settings.js"></script>
+
+
+<!-- endbuild -->
+
+<script>
+
+    $(document).ready(load);
+
+
+</script>
+
+
+</body>
+</html>

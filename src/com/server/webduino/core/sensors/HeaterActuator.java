@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
-public class HeaterActuator extends Actuator implements TemperatureSensor.TemperatureSensorListener, Programs.ProgramsListener {
+public class HeaterActuator extends Actuator implements SensorBase.SensorListener, Programs.ProgramsListener {
 
     public static final int local_sensor = 0;
     public static final String STATUS_IDLE = "idle";
@@ -58,9 +58,10 @@ public class HeaterActuator extends Actuator implements TemperatureSensor.Temper
     }
 
     public boolean receiveEvent(String eventtype) {
-        if (super.receiveEvent(eventtype) || eventtype == TemperatureEvents)
+       /* if (super.receiveEvent(eventtype) || eventtype == TemperatureEvents)
             return true;
-        return false;
+        return false;*/
+       return true;
     }
 
     public int getDuration() {
@@ -475,6 +476,16 @@ public class HeaterActuator extends Actuator implements TemperatureSensor.Temper
         }
 
 
+
+    }
+
+    @Override
+    public void changeOnlineStatus(int sensorId, boolean online) {
+
+    }
+
+    @Override
+    public void changeDoorStatus(int sensorId, boolean open) {
 
     }
 }

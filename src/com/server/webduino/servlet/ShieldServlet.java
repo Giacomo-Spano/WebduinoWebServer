@@ -59,11 +59,16 @@ public class ShieldServlet extends HttpServlet {
                 if (json.getString("event").equals("register")) { // receive status update
                     if (json.has("shield")) {
                         JSONObject jsonShield = json.getJSONObject("shield");
-
                         jsonResponse = handleRegisterEvent(jsonShield);
                         out.print(jsonResponse.toString());
                         response.setStatus(HttpServletResponse.SC_OK);
                     }
+                    return;
+                } else if (json.getString("event").equals("loadsettings")) { // receive status update
+                    String MACAddress = json.getString("MAC");
+                    jsonResponse = handleLoadSettingEvent(MACAddress);
+                    out.print(jsonResponse.toString());
+                    response.setStatus(HttpServletResponse.SC_OK);
                     return;
                 } else if (json.getString("event").equals("restart")) { // receive status update
                     jsonResponse = handleRestartEvent();
@@ -73,8 +78,16 @@ public class ShieldServlet extends HttpServlet {
                 }
 
             } else if (json.has("command")) {
-                ShieldCommand command = new ShieldCommand(json);
-                Core.postCommand(command.shieldId, command);
+
+                if (json.getString("command").equals("saveshieldsettings")) {
+                    handleSaveSettingEvent(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    return;
+                } else {
+
+                    ShieldCommand command = new ShieldCommand(json);
+                    Core.postCommand(command.shieldId, command);
+                }
             }
 
         } catch (JSONException e) {
@@ -154,6 +167,60 @@ public class ShieldServlet extends HttpServlet {
         return shieldid;
     }
 
+    private JSONObject handleLoadSettingEvent(String MACAddress) {
+
+        JSONObject jsonResponse;//create Json Response Object
+
+
+        try {
+            LOGGER.info("SensorServlet:doPost" + MACAddress);
+
+            if (MACAddress == null || MACAddress.equals("")) {
+                jsonResponse = new JSONObject();
+                jsonResponse.put("result", "error");
+                return jsonResponse;
+            }
+
+            jsonResponse = loadShieldSettings(MACAddress);
+            // put some value pairs into the JSON object .
+            /*try {
+                jsonResponse.put("result", "success");
+                //date
+                Date date = Core.getDate();
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                jsonResponse.put("date", df.format(date));
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(date);
+                int tzOffsetSec = (cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET)) / (1000);
+                jsonResponse.put("timesec", date.getTime() / 1000 + tzOffsetSec);
+                // settings
+                jsonResponse.put("settings",settings);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }*/
+
+        } catch (JSONException e) {
+            return null;
+        }
+        return jsonResponse;
+    }
+
+    private boolean handleSaveSettingEvent(JSONObject json) {
+
+        return saveShieldSettings(json);
+    }
+
+    private JSONObject loadShieldSettings(String MACAddress) {
+
+        return Core.loadShieldSettings(MACAddress);
+    }
+
+    private boolean saveShieldSettings(JSONObject json) {
+
+        return Core.saveShieldSettings(json);
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         String id = request.getParameter("id");
@@ -165,7 +232,17 @@ public class ShieldServlet extends HttpServlet {
 
         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
-        if (command != null && id != null) {
+        if (id!=null && command.equals("settings")) {
+            int shieldId = Integer.parseInt(id);
+            JSONObject json = Core.getShieldFromId(shieldId).getJson();
+            out.print(json.toString());
+
+        } /*else if (id!=null && command.equals("sensors")) {
+            int shieldId = Integer.parseInt(id);
+            JSONObject json = Core.getShieldFromId(shieldId).get();
+            out.print(json.toString());
+
+        } */else if (command != null && id != null) {
 
             String json = "";
             json = handleGetJson(Integer.parseInt(id), command);
@@ -184,7 +261,7 @@ public class ShieldServlet extends HttpServlet {
             Iterator<Shield> iterator = list.iterator();
             while (iterator.hasNext()) {
                 Shield shield = iterator.next();
-                JSONObject json = shield.toJson();
+                JSONObject json = shield.getJson();
                 jsonarray.put(json);
             }
             out.print(jsonarray.toString());

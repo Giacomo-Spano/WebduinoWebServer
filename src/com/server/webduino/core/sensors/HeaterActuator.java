@@ -15,9 +15,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
-public class HeaterActuator extends Actuator implements SensorBase.SensorListener, Programs.ProgramsListener {
+public class HeaterActuator extends Actuator implements SensorBase.SensorListener, Schedule.ProgramsListener {
 
-    public static final int local_sensor = 0;
     public static final String STATUS_IDLE = "idle";
     public static final String STATUS_AUTOPROGRAM = "program";
     //static final String STATUS_MANUALPROGRAM = "manualprogram";
@@ -26,35 +25,28 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public static final String STATUS_DISABLED = "disabled";
 
     private static final Logger LOGGER = Logger.getLogger(HeaterActuator.class.getName());
+
     protected boolean releStatus;
-    public double avTemperature;
     protected double temperature;
     protected int duration;
     protected int remaining;
-    protected boolean localSensor;
     protected double targetTemperature;
-
     // valori letti dal sensore (ricevutri da updatefromJson
     // possono potenzialemte essere diversi da quelli salvati ActiveProgram
-    public int activeProgramID;
-    public int activeTimeRangeID;
-    protected int activeSensorID; //  questo valore non è letto dal sensore ma rimane solo sul server
-    private double remoteTemperature;
-
-    //protected ActiveProgram activeProgram;
-    protected double activeSensorTemperature;
+    public int scenario;
+    public int timeInterval;
+    protected int zone; //  questo valore non è letto dal sensore ma rimane solo sul server
 
     public HeaterActuator(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id,name,subaddress,shieldid, pin, enabled);
         type = "heatersensor";
-        //startPrograms();
     }
 
     public void init() {
         startPrograms();
-        sensorPrograms.addListener(this);
-        sensorPrograms.setHeaterStatus(getStatus());
-        sensorPrograms.checkProgram();
+        sensorSchedule.addListener(this);
+        sensorSchedule.setHeaterStatus(getStatus());
+        sensorSchedule.checkProgram();
     }
 
     public boolean receiveEvent(String eventtype) {
@@ -91,18 +83,22 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         this.remaining = remaining;
     }
 
-    public boolean isLocalSensor() {
-        return localSensor;
+    public int getScenarioId() { return scenario; }
+
+    protected void setScenarioId(int scenaarioId) { //  questo valore non è letto dal sensore ma rimane solo sul server
+        this.scenario = scenaarioId;
     }
 
-    protected void setLocalSensor(boolean localSensor) {
-        this.localSensor = localSensor;
+    public int getTimeIntervalId() { return timeInterval; }
+
+    protected void setTimeIntervalId(int timeIntervalId) { //  questo valore non è letto dal sensore ma rimane solo sul server
+        this.timeInterval = timeIntervalId;
     }
 
-    public int getActiveSensorID() { return getActiveSensorID(); }
+    public int getZoneId() { return zone; }
 
-    protected void setActiveSensorID(int activeSensorID) { //  questo valore non è letto dal sensore ma rimane solo sul server
-        this.activeSensorID = activeSensorID;
+    protected void setZoneId(int zoneId) { //  questo valore non è letto dal sensore ma rimane solo sul server
+        this.zone = zoneId;
     }
 
     public double getTargetTemperature() {
@@ -113,59 +109,19 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         this.targetTemperature = targetTemperature;
     }
 
-    public int getActiveProgramID() {
-        return activeProgramID;
-    }
-
-    protected void setActiveProgramID(int activeProgramID) {
-        this.activeProgramID = activeProgramID;
-    }
-
-    public double getRemoteTemperature() {
-        return remoteTemperature;
-    }
-
-    protected void setRemoteTemperature(double remoteTemperature) {
-        LOGGER.info("SetRemoteTemperature old:" + this.remoteTemperature + " new " + remoteTemperature);
-        this.remoteTemperature = remoteTemperature;
-    }
-
-    public int getActiveTimeRangeID() {
-        return activeTimeRangeID;
-    }
-
-    protected void setActiveTimeRangeID(int activeTimeRangeID) {
-        this.activeTimeRangeID = activeTimeRangeID;
-    }
-
     public boolean getReleStatus() {
         return releStatus;
     }
 
     protected void setReleStatus(boolean releStatus) {
 
-        //boolean oldReleStatus = this.releStatus;
         this.releStatus = releStatus;
-
-        /*if (releStatus != oldReleStatus) {
-            // Notify everybody that may be interested.
-            for (ActuatorListener hl : listeners)
-                hl.changedReleStatus(releStatus, oldReleStatus);
-        }*/
     }
 
     @Override
     public void writeDataLog(String event) {
         HeaterDataLog dl = new HeaterDataLog();
         dl.writelog(event, this);
-    }
-
-    public double getAvTemperature() {
-        return avTemperature;
-    }
-
-    protected void setAvTemperature(double temperature) {
-        this.avTemperature = temperature;
     }
 
     public double getTemperature() {
@@ -176,33 +132,33 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         this.temperature = temperature;
     }
 
-    public Boolean sendCommand(String command, long duration, double targetTemperature, boolean localSensor, int activeProgramID, int activeTimeRangeID, int activeSensorID, double activeSensorTemperature) {
+    public Boolean sendCommand(String command, long duration, double targetTemperature, int scenario, int timeInterval, int zone, double temperature) {
 
-        HeaterActuatorCommand cmd = new HeaterActuatorCommand();
+       /* HeaterActuatorCommand cmd = new HeaterActuatorCommand();
         cmd.command = command;
         cmd.duration = duration;
         cmd.targetTemperature = targetTemperature;
-        cmd.remoteSensor = !localSensor;
-        cmd.activeProgramID = activeProgramID;
-        cmd.activeTimeRangeID = activeTimeRangeID;
-        cmd.activeSensorID = activeSensorID;
-        cmd.activeSensorTemperature = remoteTemperature;
-        return sendCommand(cmd);
+        cmd.scenario = scenario;
+        cmd.timeInterval = timeInterval;
+        cmd.zone = zone;
+        cmd.temperature = temperature;
+        return sendCommand(cmd);*/
+       return false;
     }
 
     @Override
     public ActuatorCommand getCommandFromJson(JSONObject json) {
-        HeaterActuatorCommand command = new HeaterActuatorCommand();
+        /*HeaterActuatorCommand command = new HeaterActuatorCommand();
         if (command.fromJson(json))
             return command;
-        else
+        else*/
             return null;
     }
 
     @Override
     public Boolean sendCommand(ActuatorCommand cmd) {
         // sendcommand è usata anche da actuatorservlet per mandare i command dalle app
-        HeaterActuatorCommand heaterActuatorCommand = (HeaterActuatorCommand) cmd;
+        /*HeaterActuatorCommand heaterActuatorCommand = (HeaterActuatorCommand) cmd;
 
         LOGGER.info("sendCommand " +
                 "\ncommand = " + heaterActuatorCommand.command +
@@ -235,10 +191,12 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         LOGGER.info("sendCommand command=" + heaterActuatorCommand.command + ",duration=" + heaterActuatorCommand.duration + ",targetTemperature=" + heaterActuatorCommand.targetTemperature + ",remoteSensor=" + heaterActuatorCommand.remoteSensor +
                 ",activeProgramID=" + heaterActuatorCommand.activeProgramID + ",activeTimeRangeID=" + heaterActuatorCommand.activeTimeRangeID + ",activeSensorID=" + heaterActuatorCommand.activeSensorID + "activeSensorTemperature=" + heaterActuatorCommand.activeSensorTemperature);
 
-        return heaterActuatorCommand.send(this);
+        return heaterActuatorCommand.send(this);*/
+
+        return true;
    }
 
-    public boolean noProgramDataChanges(HeaterActuatorCommand heaterActuatorCommand) {
+    /*public boolean noProgramDataChanges(HeaterActuatorCommand heaterActuatorCommand) {
         return heaterActuatorCommand.duration * 60 == duration &&
                 heaterActuatorCommand.targetTemperature == targetTemperature &&
                 heaterActuatorCommand.remoteSensor == !isLocalSensor() &&
@@ -246,7 +204,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
                 heaterActuatorCommand.activeTimeRangeID == activeTimeRangeID &&
                 heaterActuatorCommand.activeSensorID == activeSensorID &&
                 (heaterActuatorCommand.remoteSensor && heaterActuatorCommand.activeSensorTemperature == remoteTemperature);
-    }
+    }*/
 
     @Override
     public void updateFromJson(Date date, JSONObject json) {
@@ -254,28 +212,26 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         super.updateFromJson(date,json);
 
         boolean oldReleStatus = this.releStatus;
-        int oldProgramId = activeProgramID;
-        int oldTimerangeId = activeTimeRangeID;
-        int oldsensorId = activeSensorID;
+        int oldScenario = scenario;
+        int oldTimeInterval = timeInterval;
+        int oldZoneId = zone;
         double oldTargetId = targetTemperature;
         String oldStatus = getStatus();
-        double oldRemoteTemperature = -1;
 
         lastUpdate = date;
         online = true;
         try {
             LOGGER.info("received jsonResultSring=" + json.toString());
 
-            if (json.has("remotetemperature")) {
-                oldRemoteTemperature = getRemoteTemperature();
-                setRemoteTemperature(json.getDouble("remotetemperature"));
+            if (json.has("temperature")) {
+                setTemperature(json.getDouble("remotetemperature"));
             }
             if (json.has("relestatus"))
                 setReleStatus(json.getBoolean("relestatus"));
             if (json.has("status")) {
                 String status = json.getString("status");
                 setStatus(status);
-                sensorPrograms.setHeaterStatus(status);
+                //sensorSchedule.setHeaterStatus(status);
             }
             if (json.has("name"))
                 setName(json.getString("name"));
@@ -285,14 +241,12 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
                 setDuration(duration = json.getInt("duration"));
             if (json.has("remaining"))
                 setRemaining(remaining = json.getInt("remaining"));
-            if (json.has("localsensor"))
-                setLocalSensor(json.getBoolean("localsensor"));
             if (json.has("target"))
                 setTargetTemperature(targetTemperature = json.getDouble("target"));
-            if (json.has("program"))
-                setActiveProgramID(activeProgramID = json.getInt("program"));
+            if (json.has("scenario"))
+                setScenarioId(json.getInt("scenario"));
             if (json.has("timerange"))
-                setActiveTimeRangeID(activeTimeRangeID = json.getInt("timerange"));
+                setTimeIntervalId(json.getInt("timerange"));
         } catch (JSONException e) {
             e.printStackTrace();
             LOGGER.info("json error: " + e.toString());
@@ -305,21 +259,21 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             else
                 Core.sendPushNotification(SendPushMessages.notification_relestatuschange, "titolo", "rele", "spento",getId());
         }
-        if (activeProgramID != oldProgramId || activeTimeRangeID != oldTimerangeId) {
-            sensorPrograms.heaterProgramChange(this, activeProgramID, oldProgramId, activeTimeRangeID, oldTimerangeId);
+        if (scenario != oldScenario || timeInterval != oldTimeInterval) {
+            //sensorSchedule.heaterProgramChange(this, activeProgramID, oldProgramId, activeTimeRangeID, oldTimerangeId);
 
-            String description = "New program " + activeProgramID + " " + activeTimeRangeID + " " + " sensors " + activeSensorID;
+            String description = "New scenario " + scenario + "." + timeInterval + "." + " zone " + zone;
             Core.sendPushNotification(SendPushMessages.notification_programchange, "Program", description, "0", getId());
         }
         if (!getStatus().equals(oldStatus)) {
-            // notifica Programs che è cambiato lo stato ed invia una notifica alle app
-            sensorPrograms.checkProgram();
+            // notifica Schedule che è cambiato lo stato ed invia una notifica alle app
+            sensorSchedule.checkProgram();
             String description = "Status changed from " + oldStatus + " to " + getStatus();
             Core.sendPushNotification(SendPushMessages.notification_statuschange, "Status", description, "0", getId());
         }
 
         writeDataLog("update");
-        LOGGER.info("updateFromJson HeaterActuator old=" + oldRemoteTemperature + "new " + getRemoteTemperature());
+        //LOGGER.info("updateFromJson HeaterActuator old=" + oldRemoteTemperature + "new " + getRemoteTemperature());
     }
 
     @Override
@@ -332,8 +286,6 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             json.put("subaddress", subaddress);
             json.put("type", type);
             json.put("temperature", temperature);
-            json.put("avtemperature", avTemperature);
-            json.put("remotetemperature", remoteTemperature);
             json.put("name", name);
             json.put("status", getStatus());
             json.put("duration", duration);
@@ -342,22 +294,10 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             if (lastUpdate != null)
                 json.put("lastupdate", df.format(lastUpdate));
-            json.put("localsensor", localSensor);
             json.put("target", targetTemperature);
-            json.put("program", activeProgramID);
-            Program program = sensorPrograms.getProgramFromId(activeProgramID);
-            if (program != null) {
-                json.put("programname", program.name);
-                json.put("timerange", activeTimeRangeID);
-                TimeRange timeRange = program.getTimeRangeFromId(activeTimeRangeID);
-                if (timeRange != null)
-                    json.put("timerangename", timeRange.name);
-            }
-            json.put("sensorID", activeSensorID);
-            SensorBase sensor = Core.getSensorFromId(activeSensorID);
-            if (sensor != null)
-                json.put("sensorIDname", sensor.name);
-
+            json.put("scenario", getScenarioId());
+            json.put("timeInterval", getTimeIntervalId());
+            json.put("zone", zone);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -366,25 +306,8 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     }
 
     @Override
-    public void changeTemperature(int sensorId, double temperature) {
-        // chiamata quando cambia la temperatura di un sensore qualsiasi
+    public void onChangeTemperature(int sensorId, double temperature, double oldtemperature) {
 
-        LOGGER.info("changeTemperature sensorId=" + sensorId + ", temperature = " + temperature);
-
-        double roundedTemperature;
-        BigDecimal bd = new BigDecimal(temperature).setScale(1, RoundingMode.HALF_EVEN);
-        roundedTemperature = bd.doubleValue();
-
-        if (activeSensorID == sensorId) {
-            activeSensorTemperature = roundedTemperature;
-            sensorPrograms.setSensorTemperature(roundedTemperature);
-
-            if (getStatus().equals(HeaterActuator.STATUS_MANUAL)) {
-                sendCommand(HeaterActuatorCommand.Command_Send_Temperature, 0, 0.0, false, 0, 0, activeSensorID, activeSensorTemperature);
-            } else {
-                sensorPrograms.checkProgram();
-            }
-        }
     }
 
     @Override
@@ -395,7 +318,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public void changeOnlineStatus(boolean online) {
     }
 
-    @Override
+    /*@Override
     public void programChanged(ActiveProgram newActiveProgram) {
 
         activeProgram = newActiveProgram;
@@ -404,7 +327,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         SensorBase sensor = Core.getSensorFromId(activeProgram.timeRange.sensorId);
         if (sensor != null && sensor instanceof TemperatureSensor) {
             TemperatureSensor temperatureSensor = (TemperatureSensor) sensor;
-            sensorPrograms.setSensorTemperature(temperatureSensor.getAvTemperature());
+            sensorSchedule.setSensorTemperature(temperatureSensor.getAvTemperature());
         } else {
             return;
         }
@@ -475,9 +398,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             sendCommand(HeaterActuatorCommand.Command_Send_Temperature, 0, 0.0, false, 0, 0, activeProgram.timeRange.sensorId, activeSensorTemperature);
         }
 
-
-
-    }
+    }*/
 
     @Override
     public void changeOnlineStatus(int sensorId, boolean online) {
@@ -486,6 +407,11 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
 
     @Override
     public void changeDoorStatus(int sensorId, boolean open) {
+
+    }
+
+    @Override
+    public void programChanged(ActiveProgram newProgram) {
 
     }
 }

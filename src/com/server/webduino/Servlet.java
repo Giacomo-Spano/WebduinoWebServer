@@ -58,10 +58,10 @@ public class Servlet extends javax.servlet.http.HttpServlet {
                 "<h1 align=\"center\">" + title + "</h1>\n");
 
 
-        //Programs prgms = new Programs();
+        //Schedule prgms = new Schedule();
         //prgms.read();
         Core core = (Core)getServletContext().getAttribute(QuartzListener.CoreClass);
-        ArrayList<Program> programs = core.mPrograms.getProgramList();
+        ArrayList<Program> programs = core.mSchedule.getProgramList();
 
         for (int i=0; i < programs.size(); i++) {
 

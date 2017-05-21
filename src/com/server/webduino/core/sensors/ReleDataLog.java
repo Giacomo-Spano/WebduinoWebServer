@@ -26,9 +26,9 @@ public class ReleDataLog extends DataLog {
     public String getSQLInsert(String event, SensorBase sensor) {
 
         HeaterActuator heaterActuator = (HeaterActuator) sensor;
-        String sql;
+        String sql = "";
 
-        sql = "INSERT INTO heaterdatalog (id, date, event, relestatus, status, localtemperature, remotetemperature, targettemperature, activeprogram, activetimerange, activesensor) " +
+        /*sql = "INSERT INTO heaterdatalog (id, date, event, relestatus, status, localtemperature, remotetemperature, targettemperature, activeprogram, activetimerange, activesensor) " +
                 " VALUES (" + heaterActuator.id + ", " +
                 getStrDate() + ",'" +
                 event + "'," +
@@ -40,7 +40,7 @@ public class ReleDataLog extends DataLog {
                 heaterActuator.activeProgramID + "," +
                 heaterActuator.activeTimeRangeID + "," +
                 heaterActuator.activeSensorID + "" +
-                ");";
+                ");";*/
         return sql;
     }
 

@@ -1,4 +1,6 @@
 package com.server.webduino.core;
+import com.server.webduino.core.webduinosystem.programinstruction.ProgramInstructions;
+
 import java.sql.Time;
 
 /**
@@ -11,7 +13,8 @@ public class TimeRange {
     //Time startTime;
     public Time endTime;
     public Double temperature;
-    //public int shieldId;
+
+    public ProgramInstructions programInstructions;
     public int sensorId = 0;
     public int programID;
     public int priority;

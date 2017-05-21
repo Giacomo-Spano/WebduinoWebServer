@@ -18,7 +18,7 @@ public class TemperatureSensor extends SensorBase {
 
     public interface TemperatureSensorListener extends SensorBase.SensorListener {
         public String TemperatureEvents = "temperature event";
-        void changeTemperature(int sensorId, double temperature);
+        void changeTemperature(int sensorId, double temperature, double oldtemperature);
         void changeAvTemperature(int sensorId, double avTemperature);
     }
 
@@ -46,10 +46,8 @@ public class TemperatureSensor extends SensorBase {
             dl.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (SensorListener listener : listeners) {
-                if (listener instanceof TemperatureSensorListener) {
-                    TemperatureSensorListener l = (TemperatureSensorListener) listener;
-                    l.changeTemperature(id, temperature);
-                }
+                //TemperatureSensorListener l = (TemperatureSensorListener) listener;
+                listener.onChangeTemperature(getId(),temperature,oldtemperature);
             }
         }
     }

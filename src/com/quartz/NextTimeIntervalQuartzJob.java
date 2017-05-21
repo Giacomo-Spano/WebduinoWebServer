@@ -12,9 +12,9 @@ import org.quartz.JobExecutionException;
 import java.util.Date;
 import java.util.logging.Logger;
 
-public class NextProgramQuartzJob implements Job {
+public class NextTimeIntervalQuartzJob implements Job {
 
-    private static final Logger LOGGER = Logger.getLogger(NextProgramQuartzJob.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(NextTimeIntervalQuartzJob.class.getName());
 
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
@@ -24,8 +24,8 @@ public class NextProgramQuartzJob implements Job {
             Date date = Core.getDate();
             LOGGER.info("" + date.toString() + " NextProgramQuartzJob");
 
-            Schedule schedule = (Schedule) context.getMergedJobDataMap().get("schedule");
-            schedule.checkProgram();
+            //Schedule schedule = (Schedule) context.getMergedJobDataMap().get("schedule");
+            //schedule.checkProgram();
 
 
             /*ServletContext servletContext = (ServletContext) context.getMergedJobDataMap().get("servletContext");

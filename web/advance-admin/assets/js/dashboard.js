@@ -12,8 +12,6 @@ var $shieldrow;
 //var $shieldTable;
 
 
-
-
 function commanCallback(element, actuator) {
     //element.find('td[name="status"]').text(actuator.status + 'modificato');
     setActuatorElement(element, actuator);
@@ -65,7 +63,7 @@ function addNewSensorLine(newtr, elem) {
     // type
     newtr.find('td[name="type"]').text(elem.type);
     // status
-    if (elem.type == "temperature") {
+    if (elem.type == "temperaturesensor") {
         text = "temp:" + elem.temperature + "°C" + " av.temp:" + elem.avtemperature + "°C";
         newtr.find('td[name="status"]').text(text);
     } else if (elem.type == "doorsensor") {
@@ -76,12 +74,12 @@ function addNewSensorLine(newtr, elem) {
             text += "closed";
         newtr.find('td[name="status"]').text(text);
     } else if (elem.type == "heatersensor") {
-        text = "status " + elem.status
-            + "</br>" + "rele " + elem.relestatus
-            + "</br>" + "target " + elem.target
-            + "</br>" + "temperature " + elem.temperature
-            + "</br>" + "sensor " + elem.sensorIDname + "(" + elem.sensorid + ")"
-            + "</br>" + "progam " + elem.program + "." + elem.timerange + " " + elem.programname;
+        text = "status: " + elem.status
+            + " rele: " + elem.relestatus
+            + " target: " + elem.target
+            + " temperature : " + elem.temperature
+            + " scenario: " + elem.scenario + "." + elem.timeinterval + " "
+            + " zone: " + elem.zone;
 
         newtr.find('td[name="status"]').text(text);
     } else {
@@ -110,11 +108,14 @@ function loadSensors() {
             var newtr = $mSensorRow.clone();
             addNewSensorLine(newtr, elem);
 
-            $.each(elem.childsensors, function (idx, elem) {
-                var newtr = $mSensorRow.clone();
-                addNewSensorLine(newtr, elem);
-                tr.last().after(newtr);
-            });
+            if (elem.childsensors != null) {
+
+                $.each(elem.childsensors, function (idx, elem) {
+                    var newtr = $mSensorRow.clone();
+                    addNewSensorLine(newtr, elem);
+                    tr.last().after(newtr);
+                });
+            }
 
             tr.last().after(newtr);
         });
@@ -230,9 +231,8 @@ function loadActuators() {
         });
 }
 function loadShields() {
-    $.getJSON(shieldServletPath, function (data) {
+    $.getJSON(shieldServletPath + "?command=shields", function (data) {
         console.log("success");
-
 
 
         a = data;
@@ -250,12 +250,12 @@ function loadShields() {
             //tr.last().after(newtr);
             //table.insertRow();
             /*tr = $shields.find('tr[name="shield"]');
-            if (idx > 0) {
-                newtr = tr.clone();
-            } else {
-                newtr = tr;
-            }
-            setShieldElement(newtr, elem);*/
+             if (idx > 0) {
+             newtr = tr.clone();
+             } else {
+             newtr = tr;
+             }
+             setShieldElement(newtr, elem);*/
 
             //tr.last().after(newtr);
             //tr.appendChild(newtr);

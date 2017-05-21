@@ -1,10 +1,7 @@
-package com.server.webduino.core.securitysystem;
+package com.server.webduino.core.webduinosystem;
 
-import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
-import com.server.webduino.core.sensors.SensorBase;
 
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -12,16 +9,16 @@ import java.util.logging.Logger;
 /**
  * Created by giaco on 12/05/2017.
  */
-public abstract class SecurityZoneProgram {
+public abstract class ZoneProgram {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     private int id;
     private String name;
     private String type;
     private int seconds;
-    private List<SecurityZoneSensor> securityZoneSensors = new ArrayList<>();
+    private List<ZoneSensor> securityZoneSensors = new ArrayList<>();
 
-    public SecurityZoneProgram(int id, String name, String type, int seconds) {
+    public ZoneProgram(int id, String name, String type, int seconds) {
         this.id = id;
         this.name = name;
         this.type = type;

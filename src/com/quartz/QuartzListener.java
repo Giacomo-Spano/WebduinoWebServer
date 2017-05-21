@@ -3,21 +3,17 @@ package com.quartz;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.SimpleScheduleBuilder.*;
-
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
 import com.server.webduino.core.Core;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
-
-import java.util.Date;
 import java.util.logging.Logger;
-
 import javax.servlet.ServletContext;
 
+import javax.servlet.annotation.WebListener;
 
+@WebListener
 public class QuartzListener implements ServletContextListener {
 
     private static final Logger LOGGER = Logger.getLogger(QuartzListener.class.getName());
@@ -53,7 +49,7 @@ public class QuartzListener implements ServletContextListener {
                     "CronSensorQuartzJob", "Group")
                     .usingJobData(jobDataMap)
                     .build();
-            // Trigger the job to run now, and then every 40 seconds
+            // WebduinoTrigger the job to run now, and then every 40 seconds
             Trigger sensorTrigger = newTrigger()
                     .withIdentity("SensorTriggerName", "Group")
                     .startNow()
@@ -61,7 +57,7 @@ public class QuartzListener implements ServletContextListener {
                             .withIntervalInSeconds(60*15)   // interroga ogni 15 minuti
                             .repeatForever())
                     .build();
-            // Setup the Job and Trigger with Scheduler & schedule jobs
+            // Setup the Job and WebduinoTrigger with Scheduler & schedule jobs
             scheduler.scheduleJob(sensorJob, sensorTrigger);
 
             // Job di controllo periodico del programma attivo
@@ -72,8 +68,8 @@ public class QuartzListener implements ServletContextListener {
                     "CronProgramQuartzJob", "Group")
                     .usingJobData(jobDataMap)
                     .build();
-            // Trigger the job to run now, and then every 40 seconds
-            Trigger trigger = newTrigger()
+            // WebduinoTrigger the job to run now, and then every 40 seconds
+            WebduinoTrigger trigger = newTrigger()
                     .withIdentity("ProgramTriggerName", "Group")
                     //.startNow()
                     .startAt(new Date(System.currentTimeMillis() + 15000))

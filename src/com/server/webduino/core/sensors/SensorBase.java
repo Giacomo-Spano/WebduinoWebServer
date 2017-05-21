@@ -1,10 +1,10 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.*;
-import com.server.webduino.core.securitysystem.SecurityZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import sun.management.Sensor;
 //import sun.management.Sensor;
 
 import java.net.*;
@@ -16,7 +16,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.server.webduino.core.sensors.SensorBase.SensorListener.SensorEvents;
-import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
 
 public class SensorBase extends httpClient {
 
@@ -36,7 +35,7 @@ public class SensorBase extends httpClient {
     protected String statusUpdatePath = "/sensorstatus"; // può essere overidden a seconda del tipo
 
     /// schedulatorer programm
-    public Programs sensorPrograms = null;
+    public Schedule sensorSchedule = null;
     protected ActiveProgram activeProgram = null;
 
     protected JSONObject json = null;
@@ -62,17 +61,24 @@ public class SensorBase extends httpClient {
         return activeProgram;
     }
 
+    public SensorBase getSensorFromId(int id) {
+        if (this.id == id) {
+            return this;
+        }
+        for (SensorBase child : childSensors) {
+            return child.getSensorFromId(id);
+        }
+        return null;
+    }
+
     public interface SensorListener {
         static public String SensorEvents = "sensor event";
 
-        void changeTemperature(int sensorId, double temperature);
+        void onChangeTemperature(int sensorId, double temperature,double oldtemperature);
 
         void changeAvTemperature(int sensorId, double avTemperature);
-
         void changeOnlineStatus(boolean online);
-
         void changeOnlineStatus(int sensorId, boolean online);
-
         void changeDoorStatus(int sensorId, boolean open);
     }
 
@@ -104,9 +110,9 @@ public class SensorBase extends httpClient {
 
     public void startPrograms() {
 
-        sensorPrograms = new Programs();
-        sensorPrograms.init(this); // passa se stesso per agganciare il listener
-        sensorPrograms.read(id);
+        sensorSchedule = new Schedule();
+        sensorSchedule.init(this); // passa se stesso per agganciare il listener
+        sensorSchedule.read(id);
     }
 
     public boolean isUpdated() {

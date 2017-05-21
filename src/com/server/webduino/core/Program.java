@@ -31,22 +31,13 @@ public class Program {
     public ArrayList<TimeRange> mTimeRanges = new ArrayList<TimeRange>();
     public int priority;
 
-    //private TimeRange mActiveTimeRange = null;
-
-    /*public TimeRange getmActiveTimeRange() {
-        TimeRange tr = new TimeRange(mActiveTimeRange);
-        return tr;
-    }*/
     public TimeRange getTimeRangeFromId(int id) {
 
         Iterator<TimeRange> iterator = mTimeRanges.iterator();
         TimeRange currentTimeRange = null;
         while (iterator.hasNext()) {
-
             currentTimeRange = iterator.next();
-
             if (currentTimeRange.ID == id) {
-
                 return currentTimeRange;
             }
         }
@@ -144,8 +135,6 @@ public class Program {
                     continue;
                 }
             }
-
-
             activeTimeRange = currentTimeRange;
             return activeTimeRange;
         }

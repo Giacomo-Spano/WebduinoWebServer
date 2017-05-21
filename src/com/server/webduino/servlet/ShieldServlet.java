@@ -109,7 +109,6 @@ public class ShieldServlet extends HttpServlet {
     }
 
     private JSONObject handleErrorEvent(StringBuffer jb) {
-
         return null;
     }
 
@@ -182,23 +181,6 @@ public class ShieldServlet extends HttpServlet {
             }
 
             jsonResponse = loadShieldSettings(MACAddress);
-            // put some value pairs into the JSON object .
-            /*try {
-                jsonResponse.put("result", "success");
-                //date
-                Date date = Core.getDate();
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                jsonResponse.put("date", df.format(date));
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(date);
-                int tzOffsetSec = (cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET)) / (1000);
-                jsonResponse.put("timesec", date.getTime() / 1000 + tzOffsetSec);
-                // settings
-                jsonResponse.put("settings",settings);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }*/
 
         } catch (JSONException e) {
             return null;
@@ -232,29 +214,24 @@ public class ShieldServlet extends HttpServlet {
 
         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
-        if (id!=null && command.equals("settings")) {
-            int shieldId = Integer.parseInt(id);
-            JSONObject json = Core.getShieldFromId(shieldId).getJson();
-            out.print(json.toString());
+        if (command.equals("settings")) {
+            if (id != null) {
+                int shieldId = Integer.parseInt(id);
+                JSONObject json = Core.getShieldFromId(shieldId).getJson();
+                out.print(json.toString());
+            }
+        } else if (command.equals("scenarios")) {
 
-        } /*else if (id!=null && command.equals("sensors")) {
-            int shieldId = Integer.parseInt(id);
-            JSONObject json = Core.getShieldFromId(shieldId).get();
-            out.print(json.toString());
+                JSONArray jarray = Core.getScenariosJSONArray();
+                out.print(jarray.toString());
 
-        } */else if (command != null && id != null) {
+        } else if (command != null && id != null) { // CHIAMTA CON ATTESA RITORNO
 
             String json = "";
             json = handleGetJson(Integer.parseInt(id), command);
-
-            /*if (command.equals("updatesettingstatusrequest"))
-                json = handleGetJson(request, Integer.parseInt(id));
-            if (command.equals("updatesensorstatusrequest"))
-                json = handleGetSettings(request, Integer.parseInt(id));*/
             out.print(json.toString());
 
-        } else {
-
+        } else if (command.equals("shields")){
             List<Shield> list = core.getShields();
             //create Json Object
             JSONArray jsonarray = new JSONArray();

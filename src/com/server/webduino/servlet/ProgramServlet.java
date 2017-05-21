@@ -198,6 +198,8 @@ public class ProgramServlet extends HttpServlet {
         String activeParamValue = request.getParameter("active");
         String nextParamValue = request.getParameter("next");
 
+        String systemIdValue = request.getParameter("systemid");
+
 
         Core core = (Core)getServletContext().getAttribute(QuartzListener.CoreClass);
 
@@ -290,22 +292,20 @@ public class ProgramServlet extends HttpServlet {
 
         } else {
 
-            ArrayList<Program> list = core.getPrograms();
-            JSONArray jsonarray = new JSONArray();
-            try {
-                Iterator<Program> iterator = list.iterator();
-                while (iterator.hasNext()) {
-                    Program program = iterator.next();
-                    JSONObject json = getJsonFromProgram(program);
-
-                    jsonarray.put(json);
+            if (systemIdValue != null) {
+                int id = Integer.parseInt(systemIdValue);
+                ArrayList<Program> list = core.getPrograms(id);
+                JSONArray jsonarray = new JSONArray();
+                try {
+                    for(Program program: list) {
+                        JSONObject json = getJsonFromProgram(program);
+                        jsonarray.put(json);
+                    }
+                    out.print(jsonarray.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-                out.print(jsonarray.toString());
-
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
-
         }
     }
 

@@ -1,4 +1,7 @@
-package com.server.webduino.core.securitysystem;
+package com.server.webduino.core.webduinosystem.security;
+
+import com.server.webduino.core.Core;
+import com.server.webduino.core.webduinosystem.ZoneProgram;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -6,10 +9,10 @@ import java.util.TimerTask;
 /**
  * Created by giaco on 12/05/2017.
  */
-public class DelayedSecurityZoneProgram extends SecurityZoneProgram {
+public class DelayedZoneProgram extends ZoneProgram {
 
 
-    public DelayedSecurityZoneProgram(int id, String name, String type,int seconds) {
+    public DelayedZoneProgram(int id, String name, String type, int seconds) {
         super(id,name,type,seconds);
     }
 
@@ -26,6 +29,7 @@ public class DelayedSecurityZoneProgram extends SecurityZoneProgram {
             @Override
             public void run() {
                 // Your database code here
+                Core.sendPushNotification("porta", "aperta", "porta soggiorno aperta", "0", 5);
             }
         }, 5*1000);
     }

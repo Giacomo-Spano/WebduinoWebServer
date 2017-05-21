@@ -1,18 +1,18 @@
 package com.server.webduino.core;
 
-import com.server.webduino.core.securitysystem.SecuritySystem;
-import com.server.webduino.core.securitysystem.SecurityZone;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.*;
+import com.server.webduino.core.webduinosystem.programinstruction.ProgramInstructions;
+import com.server.webduino.core.webduinosystem.programinstruction.ProgramInstructionsFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
 import java.util.logging.Logger;
 
 /**
@@ -33,13 +33,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static String APP_DNS_OPENSHIFT = "webduinocenter.rhcloud.com";
     public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
 
-    private static SecuritySystem securitySystem = new SecuritySystem();
-    public static Shields mShields;
-    public static Programs mPrograms;
+    private static List <WebduinoSystem> webduinoSystems = new ArrayList<>();
+    private static List<Scenario> scenarios = new ArrayList<>();
+    private static List<WebduinoExit> webduinoExits = new ArrayList<>();
+    public static Shields mShields; // rendere private
+    public static Schedule mSchedule;// DA ELIMINARE
 
     public static Devices mDevices = new Devices();
 
-    //private MQTTThread mqttThreadReceive;
     static SimpleMqttClient smc;
 
     public Core() {
@@ -94,6 +95,27 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             return true;
     }
 
+    public static WebduinoZone getZoneFromId(int zoneid) {
+
+        for (WebduinoSystem system : webduinoSystems) {
+
+            for(WebduinoZone zone : system.zones) {
+                if (zoneid == zone.getId()) {
+                    return zone;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static JSONArray getScenariosJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for(Scenario scenario : scenarios) {
+            jsonArray.put(scenario.toJSON());
+        }
+        return jsonArray;
+    }
+
     public void init() {
 
         LOGGER.info("init");
@@ -106,9 +128,19 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         mShields = new Shields();
         mShields.init();
 
+        mSchedule = new Schedule(); // DA ELIMINARE
+
+        readWebduinoSystems();
+        readExitList();
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
-        securitySystem.init();
-        securitySystem.addZoneSensorListeners();
+        for (WebduinoSystem system : webduinoSystems) {
+            system.addZoneSensorListeners();
+        }
+
+        readScenarios();
+        for (Scenario scenario: scenarios) {
+            scenario.init();
+        }
 
         mShields.addListener(this);
 
@@ -116,6 +148,144 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         Settings settings = new Settings();
 
         mDevices.read();
+    }
+
+    private void readWebduinoSystems() {
+        LOGGER.info(" readWebduinoSystems");
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM webduino_systems";
+            ResultSet rs = stmt.executeQuery(sql);
+            // Extract data from result set
+            webduinoSystems = new ArrayList<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String type = rs.getString("type");
+                WebduinoSystemFactory factory = new WebduinoSystemFactory();
+                WebduinoSystem system = factory.createWebduinoSystem(id,name,type);
+                if (system != null)
+                    webduinoSystems.add(system);
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void readExitList() {
+        LOGGER.info(" readWebduinoSystems");
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM webduino_exits";
+            ResultSet rs = stmt.executeQuery(sql);
+            webduinoExits = new ArrayList<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String type = rs.getString("type");
+                int actuatorid = rs.getInt("sensorid");
+                WebduinoExitFactory factory = new WebduinoExitFactory();
+                WebduinoExit webduinoExit = factory.createWebduinoExit(id,name,type,actuatorid);
+                if (webduinoExit != null)
+                    webduinoExits.add(webduinoExit);
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void readScenarios() {
+        LOGGER.info("readScenarios");
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM scenarios" + " ORDER BY priority ASC;";;
+            ResultSet rs = stmt.executeQuery(sql);
+            scenarios = new ArrayList<>();
+            while (rs.next()) {
+                Scenario scenario = new Scenario();
+                scenario.id = rs.getInt("id");
+                scenario.name = rs.getString("name");
+                scenario.calendar.setDateEnabled(rs.getBoolean("dateenabled"));
+                scenario.calendar.setStartDate(rs.getDate("startdate"));
+                scenario.calendar.setStartTime(rs.getTime("starttime"));
+                scenario.calendar.setEndDate(rs.getDate("enddate"));
+                scenario.calendar.setEndTime(rs.getTime("endtime"));
+                scenario.calendar.setSunday(rs.getBoolean("sunday"));
+                scenario.calendar.setMonday(rs.getBoolean("monday"));
+                scenario.calendar.setTuesday(rs.getBoolean("tuesday"));
+                scenario.calendar.setWednesday(rs.getBoolean("wednesday"));
+                scenario.calendar.setThursday(rs.getBoolean("thursday"));
+                scenario.calendar.setFriday(rs.getBoolean("friday"));
+                scenario.calendar.setSaturday(rs.getBoolean("saturday"));
+                scenario.calendar.settpriority(rs.getInt("priority"));
+
+                Statement stmt2 = conn.createStatement();
+                String sql2 = "SELECT * FROM scenarios_timeintervals WHERE scenarioid=" + scenario.id + " ORDER BY priority ASC";
+                ResultSet rs2 = stmt2.executeQuery(sql2);
+                while (rs2.next()) {
+                    ScenarioTimeInterval timeInterval = new ScenarioTimeInterval();
+                    timeInterval.id = rs2.getInt("id");
+                    timeInterval.scenarioId = rs2.getInt("scenarioid");
+                    timeInterval.name = rs2.getString("name");
+                    timeInterval.endTime = rs2.getTime("endtime");
+                    //timeInterval.programInstructions = rs2.getInt("programinstructionsid");
+                    timeInterval.priority = rs2.getInt("priority");
+                    scenario.calendar.addTimeIntervals(timeInterval);
+
+                    Statement stmt3 = conn.createStatement();
+                    String sql3 = "SELECT * FROM program_instructions WHERE scenarioid=" + scenario.id + " ;";
+                    ResultSet rs3 = stmt3.executeQuery(sql3);
+
+                    ProgramInstructionsFactory factory = new ProgramInstructionsFactory();
+                    while (rs3.next()) {
+
+                        int id = rs3.getInt("id");
+                        String type = rs3.getString("type");
+                        int actuatorid = rs3.getInt("actuatorid");
+                        float targetValue = rs3.getFloat("targetvalue");
+                        int zoneId = rs3.getInt("zoneid");
+                        ProgramInstructions programInstructions = factory.createProgramInstructions(id, type, actuatorid, targetValue, zoneId);
+                        if (programInstructions != null) {
+                            timeInterval.programInstructionsList.add(programInstructions);
+                        }
+                    }
+                    rs3.close();
+                    stmt3.close();
+                }
+                rs2.close();
+                stmt2.close();
+
+                scenarios.add(scenario);
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
@@ -134,7 +304,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
     boolean updateSensors(int shieldid, JSONArray jsonArray) {
-        //return mShields.updateSensors(shieldid, jsonArray);
         return mShields.updateShieldSensors(shieldid, jsonArray);
     }
 
@@ -166,9 +335,11 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.requestShieldSensorsStatusUpdate(shieldid);
     }
 
-
-    public ArrayList<Program> getPrograms() {
-        return mPrograms.getProgramList();
+    public ArrayList<Program> getPrograms(int systemId) {
+        Schedule schedule = getWebduinoSystemSchedule(systemId);
+        if (schedule != null)
+            return schedule.getProgramList();
+        return null;
     }
 
     public static int registerShield(Shield shield) {
@@ -176,21 +347,20 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
     public ArrayList<ActiveProgram> getNextActiveProgramlist() {
-        return mPrograms.getActiveProgramList();
+        return mSchedule.getActiveProgramList();
     }
 
     public static Program getProgramFromId(int id) {
-        return mPrograms.getProgramFromId(id);
+        return mSchedule.getProgramFromId(id);
     }
 
     public ActiveProgram getActiveProgram(int id) {
         SensorBase sensor = getSensorFromId(id);
         return sensor.getActiveProgram();
-        //return mPrograms.getActiveProgram(id);
     }
 
     public Date getLastActiveProgramUpdate() {
-        return mPrograms.getLastActiveProgramUpdate();
+        return mSchedule.getLastActiveProgramUpdate();
     }
 
     public static SensorBase getSensorFromId(int id) {
@@ -198,11 +368,11 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
     public int deleteProgram(int id) {
-        return mPrograms.delete(id);
+        return mSchedule.delete(id);
     }
 
     public int updatePrograms(Program program) {
-        return mPrograms.insert(program);
+        return mSchedule.insert(program);
     }
 
     public JSONArray getShieldsJsonArray() {
@@ -336,7 +506,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.getShieldSensorsJson(shieldid);
     }
 
-    public static boolean postCommand(int shieldid, ShieldCommand command) {
+    public static boolean postCommand(int shieldid, Command command) {
         return mShields.postCommand(shieldid,command);
     }
 
@@ -347,6 +517,13 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public static boolean saveShieldSettings(JSONObject json) {
         return mShields.saveShieldSettings(json);
+    }
+
+    public Schedule getWebduinoSystemSchedule(int systemId) {
+        for (WebduinoSystem system : webduinoSystems) {
+            return system.getSchedule();
+        }
+        return null;
     }
 
     @Override
@@ -367,10 +544,15 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     @Override
     public void updatedShields() {
         // se cambiano i sensori riregistra i listener
-        securitySystem.clearZoneSensorListeners();
+        for (WebduinoSystem system : webduinoSystems) {
+            system.clearZoneSensorListeners();
+        }
+        //securitySystem.clearZoneSensorListeners();
 
 
-
-        securitySystem.addZoneSensorListeners();
+        for (WebduinoSystem system : webduinoSystems) {
+            system.addZoneSensorListeners();
+        }
+        //securitySystem.addZoneSensorListeners();
     }
 }

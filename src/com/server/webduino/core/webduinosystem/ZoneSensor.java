@@ -1,9 +1,9 @@
-package com.server.webduino.core.securitysystem;
+package com.server.webduino.core.webduinosystem;
 
 /**
  * Created by giaco on 12/05/2017.
  */
-public class SecurityZoneSensor {
+public class ZoneSensor {
     int id;
     private int sensorId;
 
@@ -11,15 +11,15 @@ public class SecurityZoneSensor {
         return id;
     }
 
-    void setId(int id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    int getSensorId() {
+    public int getSensorId() {
         return sensorId;
     }
 
-    void setSensorId(int id) {
+    public void setSensorId(int id) {
         this.sensorId = id;
     }
 }

@@ -1,8 +1,5 @@
 package com.server.webduino.core;
 
-import com.server.webduino.core.securitysystem.SecurityProgramFactory;
-import com.server.webduino.core.securitysystem.SecurityZoneProgram;
-import com.server.webduino.core.securitysystem.SecurityZoneSensor;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.TemperatureSensor;
 import com.server.webduino.servlet.SendPushMessages;
@@ -109,8 +106,8 @@ public class Shields {
         // perchè altrimenti la lista diu sensori dalvata in core non è ancora inizializzata
         for (Shield shield : list) {
             for (SensorBase sensor : shield.sensors) {
-                if (sensor.sensorPrograms != null)
-                    sensor.sensorPrograms.checkProgram();
+                if (sensor.sensorSchedule != null)
+                    sensor.sensorSchedule.checkProgram();
             }
         }
     }
@@ -546,11 +543,11 @@ public class Shields {
     }
 
     public static SensorBase getSensorFromId(int id) {
-
         for (Shield shield : list) {
             for (SensorBase sensor : shield.sensors) {
-                if (sensor.getId() == id)
-                    return sensor;
+                SensorBase ret = sensor.getSensorFromId(id);
+                if (ret != null)
+                    return ret;
             }
         }
         return null;

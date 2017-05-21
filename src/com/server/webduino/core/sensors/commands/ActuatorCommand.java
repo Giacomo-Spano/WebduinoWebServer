@@ -1,6 +1,8 @@
 package com.server.webduino.core.sensors.commands;
 
+import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.Actuator;
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONObject;
 
 import java.util.logging.Logger;
@@ -21,7 +23,11 @@ public class ActuatorCommand {
         return null;
     }
 
-    public boolean send(Actuator actuator) {
+    public boolean send(SensorBase actuator) {
+
+
+        /*Core.postCommand(actuator.getShieldId(),)
+
 
         JSONObject json = getJSONCommand(actuator.getId(), actuator.getSubaddress());
         if (json != null) {
@@ -37,7 +43,7 @@ public class ActuatorCommand {
                 LOGGER.info("Command=" + command + " failed");
             }
             return res;
-        }
+        }*/
         return false;
     }
 }

@@ -4,11 +4,14 @@ var $mProgramPanel;
 var programservletpath = "../program";
 var sensorServletPath = "../sensors";
 
-
 var $sensors = [];
 
+var systemId = 0;
 
+//ggggg
 function load() {
+
+    systemId = getUrlVars()["systemid"];
 
     $mProgramForm = $(this).find('div[id="programformlist"]');
     $mProgramForm.attr('style', 'display: none');
@@ -17,8 +20,7 @@ function load() {
 
     $(this).find('button#addprogram').click(onAddProgramButtonClick);
 
-    var jqxhr = $.getJSON(programservletpath, function (data) {
-        console.log("success");
+    var jqxhr = $.getJSON(programservletpath + "?systemid=" + systemId, function (data) {
 
         var $lastlistelem = $('.row#programlist');
 
@@ -53,7 +55,7 @@ function load() {
         })
         .fail(function () {
             console.log("error1");
-            alert("error1");
+            alert("error1xx");
         })
         .always(function () {
             console.log("error2");
@@ -177,7 +179,7 @@ function createProgramForm(elem) {
         for (i = 0; i < $sensors.length; i++) {
             sensorCombo.append("<option value='" + $sensors[i].id + "'>" + $sensors[i].name + "</option>");
             /*if (value.sensorid == $sensors[i].id)
-                curval = $sensors[i].id*/
+             curval = $sensors[i].id*/
 
 
         }
@@ -215,20 +217,20 @@ function createProgramForm(elem) {
 /*function setSubAddress(node, id, subaddress) {
 
 
-    sub = node.find('select[name="subaddress"]');
-    sub.val(subaddress);
-    sub.empty();
-    //sub.append("<option value='6'>" + id + "</option>");
+ sub = node.find('select[name="subaddress"]');
+ sub.val(subaddress);
+ sub.empty();
+ //sub.append("<option value='6'>" + id + "</option>");
 
-    for (i = 0; i < $shields.length; i++) {
-        if ($shields[i].id == id) {
-            for (k = 0; k < $shields[i].sensors.length; k++) {
-                sub.append("<option value='" + $shields[i].sensors[k].subaddress + "'>" + $shields[i].sensors[k].subaddress + "</option>");
-            }
-        }
-    }
+ for (i = 0; i < $shields.length; i++) {
+ if ($shields[i].id == id) {
+ for (k = 0; k < $shields[i].sensors.length; k++) {
+ sub.append("<option value='" + $shields[i].sensors[k].subaddress + "'>" + $shields[i].sensors[k].subaddress + "</option>");
+ }
+ }
+ }
 
-}*/
+ }*/
 
 function onChangeButtonClicked() { // clicked 'modifica' button. Enable save button and inpu controls
 

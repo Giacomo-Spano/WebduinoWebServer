@@ -1,10 +1,8 @@
 package com.server.webduino.core;
 
 import com.quartz.NextProgramQuartzJob;
-import com.server.webduino.core.sensors.Actuator;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.TemperatureSensor;
 import com.server.webduino.servlet.SendPushMessages;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -13,7 +11,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Calendar;
@@ -26,12 +23,12 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * Created by Giacomo Span� on 07/11/2015.
  */
-public class Programs {
+public class Schedule {
 
     Scheduler scheduler = null;
     JobDetail mNextProgramJob = null;
 
-    public Programs() {
+    public Schedule() {
         actuatorStatus = "";
     }
 
@@ -39,9 +36,9 @@ public class Programs {
         void programChanged(ActiveProgram newProgram);
     }
 
-    protected List<Programs.ProgramsListener> listeners = new ArrayList<>();
+    protected List<Schedule.ProgramsListener> listeners = new ArrayList<>();
 
-    public void addListener(Programs.ProgramsListener toAdd) {
+    public void addListener(Schedule.ProgramsListener toAdd) {
         listeners.add(toAdd);
     }
 
@@ -50,8 +47,8 @@ public class Programs {
     protected String actuatorStatus;
 
 
-    protected int sensorId;
-    private static final Logger LOGGER = Logger.getLogger(Programs.class.getName());
+    protected int systemid;
+    private static final Logger LOGGER = Logger.getLogger(Schedule.class.getName());
     private ArrayList<Program> mProgramList;
     protected ArrayList<ActiveProgram> mNextProgramList;
     private Date mLastActiveProgramUpdate;
@@ -72,10 +69,10 @@ public class Programs {
         }
     }
 
-    public void read(int sensorid) { // reload all program data from db
+    public void read(int systemid) { // reload all program data from db
 
         mProgramList = new ArrayList<Program>();
-        sensorId = sensorid;
+        this.systemid = systemid;
         String sql;
         try {
             // Register JDBC driver
@@ -86,7 +83,7 @@ public class Programs {
             Statement stmt = conn.createStatement();
 
             //sql = "SELECT id, active, name, dateenabled, starttime, startdate, endtime, enddate, sunday, monday, tuesday, wednesday, thursday, friday, saturday, priority FROM programs ORDER BY priority ASC";
-            sql = "SELECT * FROM programs WHERE sensorid=" + sensorid + " ORDER BY priority ASC" + ";";
+            sql = "SELECT * FROM programs WHERE systemid=" + systemid + " ORDER BY priority ASC" + ";";
             ResultSet rs = stmt.executeQuery(sql);
 
             // Extract data from result set
@@ -465,7 +462,7 @@ public class Programs {
             stmt.close();
             conn.close();
 
-            read(sensorId);
+            read(systemid);
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
@@ -644,7 +641,7 @@ public class Programs {
 
     public void setSensorTemperature(double temperature) {
         // chiamato quando cambia la temperatura delsensore di temperatura attivo
-        LOGGER.info("changeTemperature sensorId=" + sensorId + ", temperature = " + temperature);
+        //LOGGER.info("changeTemperature sensorId=" + sensorId + ", temperature = " + temperature);
 
         double roundedTemperature;
         BigDecimal bd = new BigDecimal(temperature).setScale(1, RoundingMode.HALF_EVEN);

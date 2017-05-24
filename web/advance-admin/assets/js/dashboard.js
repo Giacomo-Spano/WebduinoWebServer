@@ -48,6 +48,30 @@ function sendActuatorCommand(actuatorId, command, duration, sensorId, remote, ta
         "}");
 }
 
+function sendSensorCommand(commandJson, element) {
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.response);
+            /*if (json.answer = 'success') {
+
+                var actuator = JSON.parse(json.actuator);
+                commanCallback(element, actuator);
+            } else {
+                element.find('td[name="commandstatus"]').text("command failed");
+            }*/
+        }
+    };
+
+    xhttp.open("POST", shieldServletPath, true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    var str = JSON.stringify(commandJson);
+    //xhttp.send(commandJson.toString());
+    xhttp.send(str);
+}
+
 function addNewSensorLine(newtr, elem) {
 
     // id
@@ -73,6 +97,23 @@ function addNewSensorLine(newtr, elem) {
         else
             text += "closed";
         newtr.find('td[name="status"]').text(text);
+
+        newtr.find('button[name="commandbutton"]').text("Test open");
+        newtr.find('button[name="commandbutton"]').click(function () {
+            newtr.find('button[name="commandbutton"]').text("sending stop open command");
+            //element.find('button[name="commandbutton"]').style.visibility='hidden';
+
+            var commandJson = {
+                'shieldid': elem.shieldid,
+                'actuatorid': elem.id,
+                'command': 'test',
+                'status': 'open'
+            };
+
+            sendSensorCommand(commandJson, elem)
+        });
+
+
     } else if (elem.type == "heatersensor") {
         text = "status: " + elem.status
             + " rele: " + elem.relestatus

@@ -1,7 +1,6 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors.commands;
 
-import com.server.webduino.core.sensors.commands.ActuatorCommand;
-import com.server.webduino.core.sensors.TemperatureSensor;
+import com.server.webduino.core.Command;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,6 +37,10 @@ public class HeaterActuatorCommand extends Command {
                 return false;
             actuatorid = json.getInt("actuatorid");
 
+            if (!json.has("shieldid"))
+                return false;
+            shieldid = json.getInt("shieldid");
+
             if (json.has("command"))
                 command = json.getString("command");
             if (json.has("duration"))
@@ -67,7 +70,7 @@ public class HeaterActuatorCommand extends Command {
 
         try {
             json.put("actuatorid", actuatorid);
-            //json.put("actuatorid", actuatorId);
+            json.put("uuid",uuid);
             if (command.equals(HeaterActuatorCommand.Command_KeepTemperature)) {
 
                 json.put("command", HeaterActuatorCommand.Command_KeepTemperature);

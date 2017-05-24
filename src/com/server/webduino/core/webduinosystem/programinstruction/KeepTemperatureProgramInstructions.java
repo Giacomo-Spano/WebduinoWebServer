@@ -1,9 +1,8 @@
 package com.server.webduino.core.webduinosystem.programinstruction;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.HeaterActuatorCommand;
+import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.WebduinoTrigger;
-import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.WebduinoZone;
 import org.json.JSONException;
@@ -37,8 +36,13 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
     public void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature) {
 
         try {
+
             JSONObject json = new JSONObject();
             json.put("actuatorid", actuatorid);
+
+            SensorBase sensor = Core.getSensorFromId(actuatorid);
+            if (sensor != null)
+                json.put("shieldid", sensor.getShieldId());
             json.put("command", HeaterActuatorCommand.Command_KeepTemperature);
             json.put("duration", duration);
             json.put("target", targetTemperature);
@@ -49,8 +53,8 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
 
             HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
 
-            SensorBase sensor = Core.getSensorFromId(actuatorid);
-            Core.postCommand(sensor.getShieldId(),cmd);
+
+            Core.postCommand(cmd);
 
             } catch (JSONException e1) {
             e1.printStackTrace();

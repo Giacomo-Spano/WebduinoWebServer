@@ -207,8 +207,8 @@ public class Shields {
         return null;
     }
 
-    public boolean postCommand(int shieldid, Command command) {
-        Shield shield = fromId(shieldid);
+    public boolean postCommand(Command command) {
+        Shield shield = fromId(command.shieldid);
         if (shield != null) {
             return shield.postCommand(command);
         }

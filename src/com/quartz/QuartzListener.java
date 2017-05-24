@@ -21,7 +21,7 @@ public class QuartzListener implements ServletContextListener {
 
     Scheduler scheduler = null;
 
-    static Core core;// = new Core();
+    /*static*/ Core core;// = new Core();
 
     @Override
     public void contextInitialized(ServletContextEvent servletContext) {

@@ -14,8 +14,17 @@ public class ScenarioTimeInterval {
     public int scenarioId = 0;
     boolean active;
     public String name;
-    //Time startTime;
+    public Time startTime;
     public Time endTime;
+
+    public boolean sunday;
+    public boolean monday;
+    public boolean tuesday;
+    public boolean wednesday;
+    public boolean thursday;
+    public boolean friday;
+    public boolean saturday;
+
     public List<ProgramInstructions> programInstructionsList = new ArrayList<>();
 
     public int priority;
@@ -44,4 +53,35 @@ public class ScenarioTimeInterval {
         //this. = tr.sensorId;
         this.active = active;
     }*/
+    public void setSunday(boolean sunday) {
+        this.sunday = sunday;
+    }
+
+    public void setMonday(boolean monday) {
+        this.monday = monday;
+    }
+
+    public void setTuesday(boolean tuesday) {
+        this.tuesday = tuesday;
+    }
+
+    public void setWednesday(boolean wednesday) {
+        this.wednesday = wednesday;
+    }
+
+    public void setThursday(boolean thursday) {
+        this.thursday = thursday;
+    }
+
+    public void setFriday(boolean friday) {
+        this.friday = friday;
+    }
+
+    public void setSaturday(boolean saturday) {
+        this.saturday = saturday;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
 }

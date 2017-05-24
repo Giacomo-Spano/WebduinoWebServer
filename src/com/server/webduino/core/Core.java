@@ -43,6 +43,21 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     static SimpleMqttClient smc;
 
+    public interface CoreListener {
+        void onCommandResponse(String uuid, String response);
+    }
+
+    static protected List<CoreListener> listeners = new ArrayList<CoreListener>();
+
+    static public void addListener(CoreListener toAdd) {
+        listeners.add(toAdd);
+    }
+
+    static public void removeListener(CoreListener toRemove) {
+        listeners.remove(toRemove);
+    }
+
+
     public Core() {
         production_envVar = System.getenv("PRODUCTION");
         appDNS_envVar = System.getenv("OPENSHIFT_APP_DNS");
@@ -123,6 +138,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         smc = new SimpleMqttClient("CoreClient");
         smc.runClient();
         smc.subscribe("toServer/#");
+        smc.subscribe("uuid/#");
         smc.addListener(this);
 
         mShields = new Shields();
@@ -231,14 +247,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 scenario.calendar.setStartTime(rs.getTime("starttime"));
                 scenario.calendar.setEndDate(rs.getDate("enddate"));
                 scenario.calendar.setEndTime(rs.getTime("endtime"));
-                scenario.calendar.setSunday(rs.getBoolean("sunday"));
-                scenario.calendar.setMonday(rs.getBoolean("monday"));
-                scenario.calendar.setTuesday(rs.getBoolean("tuesday"));
-                scenario.calendar.setWednesday(rs.getBoolean("wednesday"));
-                scenario.calendar.setThursday(rs.getBoolean("thursday"));
-                scenario.calendar.setFriday(rs.getBoolean("friday"));
-                scenario.calendar.setSaturday(rs.getBoolean("saturday"));
-                scenario.calendar.settpriority(rs.getInt("priority"));
+
 
                 Statement stmt2 = conn.createStatement();
                 String sql2 = "SELECT * FROM scenarios_timeintervals WHERE scenarioid=" + scenario.id + " ORDER BY priority ASC";
@@ -248,7 +257,18 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     timeInterval.id = rs2.getInt("id");
                     timeInterval.scenarioId = rs2.getInt("scenarioid");
                     timeInterval.name = rs2.getString("name");
+                    timeInterval.startTime = rs2.getTime("starttime");
                     timeInterval.endTime = rs2.getTime("endtime");
+
+                    timeInterval.setSunday(rs.getBoolean("sunday"));
+                    timeInterval.setMonday(rs.getBoolean("monday"));
+                    timeInterval.setTuesday(rs.getBoolean("tuesday"));
+                    timeInterval.setWednesday(rs.getBoolean("wednesday"));
+                    timeInterval.setThursday(rs.getBoolean("thursday"));
+                    timeInterval.setFriday(rs.getBoolean("friday"));
+                    timeInterval.setSaturday(rs.getBoolean("saturday"));
+                    timeInterval.setPriority(rs.getInt("priority"));
+
                     //timeInterval.programInstructions = rs2.getInt("programinstructionsid");
                     timeInterval.priority = rs2.getInt("priority");
                     scenario.calendar.addTimeIntervals(timeInterval);
@@ -437,6 +457,13 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     }
                 } else if (list[1].equals("register")) {
                     callCommand("register", 0, message);
+                } else if (list[1].equals("response")){
+                    if (list.length > 2) {
+                        String uuid = list[2];
+                        for (CoreListener listener: listeners){
+                            listener.onCommandResponse(uuid,message);
+                        }
+                    }
                 }
             }
         } else if (list[0].equals("send")) {
@@ -506,8 +533,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.getShieldSensorsJson(shieldid);
     }
 
-    public static boolean postCommand(int shieldid, Command command) {
-        return mShields.postCommand(shieldid,command);
+    public static boolean postCommand(Command command) {
+        return mShields.postCommand(command);
     }
 
 

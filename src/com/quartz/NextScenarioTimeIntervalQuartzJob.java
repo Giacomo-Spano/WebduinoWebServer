@@ -4,7 +4,7 @@
 package com.quartz;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.Schedule;
+import com.server.webduino.core.webduinosystem.Scenario;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -12,20 +12,20 @@ import org.quartz.JobExecutionException;
 import java.util.Date;
 import java.util.logging.Logger;
 
-public class NextTimeIntervalQuartzJob implements Job {
+public class NextScenarioTimeIntervalQuartzJob implements Job {
 
-    private static final Logger LOGGER = Logger.getLogger(NextTimeIntervalQuartzJob.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(NextScenarioTimeIntervalQuartzJob.class.getName());
 
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
 
         try {
-            LOGGER.info("NextProgramQuartzJob START");
+            LOGGER.info("NextScenarioTimeIntervalQuartzJob START");
             Date date = Core.getDate();
-            LOGGER.info("" + date.toString() + " NextProgramQuartzJob");
+            LOGGER.info("" + date.toString() + " NextScenarioTimeIntervalQuartzJob");
 
-            //Schedule schedule = (Schedule) context.getMergedJobDataMap().get("schedule");
-            //schedule.checkProgram();
+            Scenario scenario = (Scenario) context.getMergedJobDataMap().get("scenario");
+            scenario.triggerNextTimeInterval();
 
 
             /*ServletContext servletContext = (ServletContext) context.getMergedJobDataMap().get("servletContext");
@@ -44,7 +44,7 @@ public class NextTimeIntervalQuartzJob implements Job {
             e2.refireImmediately();
             throw e2;
         }
-        LOGGER.info("NextProgramQuartzJob END");
+        LOGGER.info("NextScenarioTimeIntervalQuartzJob END");
 
     }
 }

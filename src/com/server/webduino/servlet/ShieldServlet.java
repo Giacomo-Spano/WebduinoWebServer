@@ -2,6 +2,9 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
+import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.commands.DoorSensorCommand;
+import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -83,10 +86,17 @@ public class ShieldServlet extends HttpServlet {
                     handleSaveSettingEvent(json);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
-                } else {
+                } else if (json.getString("command").equals("test")) {
 
-                    ShieldCommand command = new ShieldCommand(json);
-                    Core.postCommand(command.shieldId, command);
+                    if (json.has("actuatorid")) {
+                        int id = json.getInt("actuatorid");
+                        SensorBase actuator = Core.getSensorFromId(id);
+
+                        DoorSensorCommand cmd = new DoorSensorCommand(json);
+                        //Core.postCommand(actuator.getShieldId(), cmd);
+                        cmd.send();
+
+                    }
                 }
             }
 
@@ -222,8 +232,8 @@ public class ShieldServlet extends HttpServlet {
             }
         } else if (command.equals("scenarios")) {
 
-                JSONArray jarray = Core.getScenariosJSONArray();
-                out.print(jarray.toString());
+            JSONArray jarray = Core.getScenariosJSONArray();
+            out.print(jarray.toString());
 
         } else if (command != null && id != null) { // CHIAMTA CON ATTESA RITORNO
 
@@ -231,7 +241,7 @@ public class ShieldServlet extends HttpServlet {
             json = handleGetJson(Integer.parseInt(id), command);
             out.print(json.toString());
 
-        } else if (command.equals("shields")){
+        } else if (command.equals("shields")) {
             List<Shield> list = core.getShields();
             //create Json Object
             JSONArray jsonarray = new JSONArray();
@@ -248,7 +258,8 @@ public class ShieldServlet extends HttpServlet {
 
     private final String updateSettingStatusRequest = "updatesettingstatusrequest";
     private final String updateSensorStatusRequest = "updatesensorstatusrequest";
-    // questa classe fa una chiamata alla sheda esp tramite mqtt. Dopo aver fatto la chiamata avvia un thread di attesa
+
+    // questa classe fa una chiamata alla scheda esp tramite mqtt. Dopo aver fatto la chiamata avvia un thread di attesa
     // che periodicamente controlla se è stato ricevuto il risultato
     // se il risultato è ricevuto tempina il thread
     private String handleGetJson(int shieldid, String command) {
@@ -277,7 +288,6 @@ public class ShieldServlet extends HttpServlet {
         private String command;
         private volatile boolean execute; // variabile di sincronizzazione
         private String resultJson = "";
-
 
         public WebduinoRequest(int shieldid, String command) {
             this.shieldid = shieldid;

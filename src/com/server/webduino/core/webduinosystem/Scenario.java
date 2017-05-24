@@ -1,9 +1,7 @@
 package com.server.webduino.core.webduinosystem;
 
-import com.quartz.NextTimeIntervalQuartzJob;
+import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.Program;
-import com.server.webduino.core.TimeRange;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,23 +42,29 @@ public class Scenario {
             e.printStackTrace();
         }
 
+        //triggerNextTimeInterval();
+        Date currentDate = Core.getDate();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(currentDate);
+        cal.add(Calendar.SECOND, 5);
+        Date date = cal.getTime();
+        scheduleNextTimeIntervalJob(date);
+    }
 
+    public void triggerNextTimeInterval() {
         Date currentDate = Core.getDate();
         activeTimeInterval = calendar.getActiveTimeIntervalFromDateTime(currentDate);
         if (activeTimeInterval != null) {
-            Date endDate = activeTimeInterval.endTime;
-
             Calendar cal = Calendar.getInstance();
             cal.setTime(currentDate);
-            cal.add(Calendar.SECOND, 3); //minus number would decrement the days
-            endDate = cal.getTime();
-
-
-            scheduleJob(endDate);
+            cal.set(Calendar.HOUR_OF_DAY, activeTimeInterval.endTime.getHours());
+            cal.set(Calendar.MINUTE, activeTimeInterval.endTime.getMinutes());
+            Date endDate = cal.getTime();
+            scheduleNextTimeIntervalJob(endDate);
         }
     }
 
-    private void scheduleJob(Date date) {
+    private void scheduleNextTimeIntervalJob(Date date) {
 
         try {
             if (nextTimeIntervalJob != null)
@@ -71,9 +75,9 @@ public class Scenario {
 
         //pass the servlet context to the job
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("timeintervals", this);
+        jobDataMap.put("scenario", this);
         // define the job and tie it to our job's class
-        nextTimeIntervalJob = newJob(NextTimeIntervalQuartzJob.class).withIdentity(
+        nextTimeIntervalJob = newJob(NextScenarioTimeIntervalQuartzJob.class).withIdentity(
                 "CronNextTimeIntervalQuartzJob", "Group")
                 .usingJobData(jobDataMap)
                 .build();
@@ -83,9 +87,8 @@ public class Scenario {
                 .startAt(date)
                 .build();
 
-        Date dd;
         try {
-            dd = scheduler.scheduleJob(nextTimeIntervalJob, trigger);
+            Date dd = scheduler.scheduleJob(nextTimeIntervalJob, trigger);
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
@@ -111,118 +114,100 @@ public class Scenario {
         return cal.getTime();
     }
 
-
     public JSONObject toJSON() {
 
         JSONObject json = new JSONObject();
-
         try {
-            json.put("id",id);
-            json.put("name",name);
-            json.put("active",active);
-            json.put("calendar",calendar.toJson());
-            json.put("priority",priority);
+            json.put("id", id);
+            json.put("name", name);
+            json.put("active", active);
+            json.put("calendar", calendar.toJson());
+            json.put("priority", priority);
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
         }
         return json;
-
     }
 
     public class ScenarioCalendar {
         public boolean dateEnabled;
-        private boolean sunday;
-        private boolean monday;
-        private boolean tuesday;
-        private boolean wednesday;
-        private boolean thursday;
-        private boolean friday;
-        private boolean saturday;
+
         public Date startDate;
         public Date endDate;
         public Time startTime;
         public Time endTime;
         public ArrayList<ScenarioTimeInterval> timeIntervals = new ArrayList<>();
-
-        private int tpriority;
+        private int priority;
 
         public ScenarioTimeInterval getActiveTimeIntervalFromDateTime(Date currentDate) {
 
             DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
             String timeStr = timeFormat.format(currentDate);
             Time currentTime = Time.valueOf(timeStr);
-
             Date currentDay = removeTime(currentDate);
 
             if (dateEnabled) {
                 if (currentDay.after(endDate))
                     return null;
-
                 if (currentDay.equals(endDate) && currentTime.after(endTime))
                     return null;
-
                 if (currentDay.before(startDate))
                     return null;
-
                 if (currentDay.equals(startDate) && currentTime.before(startTime))
                     return null;
             }
 
-            Calendar c = Calendar.getInstance();
-            c.setTime(currentDate);
-            int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
-
-            switch (dayOfWeek) {
-                case Calendar.SUNDAY:
-                    if (!sunday) return null;
-                    break;
-                case Calendar.MONDAY:
-                    if (!monday) return null;
-                    break;
-                case Calendar.TUESDAY:
-                    if (!tuesday) return null;
-                    break;
-                case Calendar.WEDNESDAY:
-                    if (!wednesday) return null;
-                    break;
-                case Calendar.THURSDAY:
-                    if (!thursday) return null;
-                    break;
-                case Calendar.FRIDAY:
-                    if (!friday) return null;
-                    break;
-                case Calendar.SATURDAY:
-                    if (!saturday) return null;
-                    break;
-                default:
-                    break;
-            }
 
             Iterator<ScenarioTimeInterval> iterator = timeIntervals.iterator();
-
             ScenarioTimeInterval activeTimeInterval = null;
             Time startTime;
             ScenarioTimeInterval currentTimeInterval = null;
             while (iterator.hasNext()) {
-
                 if (currentTimeInterval == null) { //primo giro
                     startTime = Time.valueOf("00:00:00");
                 } else {
                     startTime = currentTimeInterval.endTime;
                 }
                 currentTimeInterval = iterator.next();
-
                 if (!currentTimeInterval.endTime.equals(Time.valueOf("00:00:00"))) {
 
                     if (currentTime.after(currentTimeInterval.endTime) || currentTime.equals(currentTimeInterval.endTime)) {
                         //startTime = currentTimeRange.endTime;
                         continue;
                     }
-
                     if (currentTime.before(startTime)) {
                         //startTime = currentTimeRange.endTime;
                         continue;
+                    }
+
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(currentDate);
+                    int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+                    switch (dayOfWeek) {
+                        case Calendar.SUNDAY:
+                            if (!currentTimeInterval.sunday) continue;
+                            break;
+                        case Calendar.MONDAY:
+                            if (!currentTimeInterval.monday) continue;
+                            break;
+                        case Calendar.TUESDAY:
+                            if (!currentTimeInterval.tuesday) continue;
+                            break;
+                        case Calendar.WEDNESDAY:
+                            if (!currentTimeInterval.wednesday) continue;
+                            break;
+                        case Calendar.THURSDAY:
+                            if (!currentTimeInterval.thursday) continue;
+                            break;
+                        case Calendar.FRIDAY:
+                            if (!currentTimeInterval.friday) continue;
+                            break;
+                        case Calendar.SATURDAY:
+                            if (!currentTimeInterval.saturday) continue;
+                            break;
+                        default:
+                            break;
                     }
                 }
                 activeTimeInterval = currentTimeInterval;
@@ -251,36 +236,8 @@ public class Scenario {
             this.endTime = endTime;
         }
 
-        public void setSunday(boolean sunday) {
-            this.sunday = sunday;
-        }
-
-        public void setMonday(boolean monday) {
-            this.monday = monday;
-        }
-
-        public void setTuesday(boolean tuesday) {
-            this.tuesday = tuesday;
-        }
-
-        public void setWednesday(boolean wednesday) {
-            this.wednesday = wednesday;
-        }
-
-        public void setThursday(boolean thursday) {
-            this.thursday = thursday;
-        }
-
-        public void setFriday(boolean friday) {
-            this.friday = friday;
-        }
-
-        public void setSaturday(boolean saturday) {
-            this.saturday = saturday;
-        }
-
         public void settpriority(int tpriority) {
-            this.tpriority = tpriority;
+            this.priority = tpriority;
         }
 
         public void addTimeIntervals(ScenarioTimeInterval timeInterval) {
@@ -300,13 +257,7 @@ public class Scenario {
                 json.put("enddate", endDate);
                 if (endTime != null)
                     json.put("endtime", df.format(endTime));
-                json.put("sunday", sunday);
-                json.put("monday", monday);
-                json.put("tuesday", tuesday);
-                json.put("wednesday", wednesday);
-                json.put("thursday", thursday);
-                json.put("friday", friday);
-                json.put("saturday", saturday);
+
                 json.put("priority", priority);
 
                 JSONArray timeIntervalsJArray = new JSONArray();
@@ -317,8 +268,19 @@ public class Scenario {
                     JSONObject JSONInterval = new JSONObject();
                     JSONInterval.put("id", tr.id);
                     JSONInterval.put("name", tr.name);
+                    if (tr.startTime != null)
+                        JSONInterval.put("starttime", df.format(tr.endTime));
                     if (tr.endTime != null)
                         JSONInterval.put("endtime", df.format(tr.endTime));
+
+                    json.put("sunday", tr.sunday);
+                    json.put("monday", tr.monday);
+                    json.put("tuesday", tr.tuesday);
+                    json.put("wednesday", tr.wednesday);
+                    json.put("thursday", tr.thursday);
+                    json.put("friday", tr.friday);
+                    json.put("saturday", tr.saturday);
+
                     JSONInterval.put("priority", tr.priority);
                     timeIntervalsJArray.put(JSONInterval);
                 }

@@ -1,11 +1,9 @@
-package com.server.webduino.core.webduinosystem.security;
-
-import com.server.webduino.core.webduinosystem.WebduinoExit;
+package com.server.webduino.core.webduinosystem.exits;
 
 /**
  * Created by giaco on 12/05/2017.
  */
-public class SecurityExit extends WebduinoExit {
+public class SecurityExit extends Exit {
     int id;
     String type;
     int actuatorid;

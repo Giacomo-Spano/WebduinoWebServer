@@ -3,8 +3,9 @@ package com.server.webduino.core.webduinosystem;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
 import com.server.webduino.core.Schedule;
-import com.server.webduino.core.webduinosystem.security.SecurityKey;
-import com.server.webduino.core.webduinosystem.security.SecurityZone;
+import com.server.webduino.core.webduinosystem.keys.SecurityKey;
+import com.server.webduino.core.webduinosystem.zones.Zone;
+import com.server.webduino.core.webduinosystem.zones.ZoneFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,11 +18,11 @@ import java.util.logging.Logger;
 public class WebduinoSystem {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
-    public List<WebduinoZone> zones = new ArrayList<>();
+    //public List<Zone> zones = new ArrayList<>();
     private List<SecurityKey> keys = new ArrayList<>();
     private int id;
     private String name;
-    private Schedule schedule ;
+    private Schedule schedule;
 
 
     public WebduinoSystem(int id, String name) {
@@ -50,24 +51,13 @@ public class WebduinoSystem {
     }
 
     public void init(int system) {
-        read(system);
+        //readZoneSensors(system);
     }
 
-    public void addZoneSensorListeners() {
-        for(WebduinoZone zone: zones) {
-            zone.addSensorListeners();
-        }
-    }
+/*
+    public void readZoneSensors(int systemid) {
 
-    public void clearZoneSensorListeners() {
-        for(WebduinoZone zone: zones) {
-            zone.clearSensorListeners();
-        }
-    }
-
-    public void read(int systemid) {
-
-        LOGGER.info(" read Security zones");
+        LOGGER.info(" readZoneSensors Security zones");
 
         try {
             // Register JDBC driver
@@ -82,11 +72,11 @@ public class WebduinoSystem {
             // Extract data from result set
             zones.clear();
             while (rs.next()) {
-                WebduinoZoneFactory factory = new WebduinoZoneFactory();
+                ZoneFactory factory = new ZoneFactory();
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String type = rs.getString("type");
-                WebduinoZone zone = factory.createWebduinoZone(id, name, type);
+                Zone zone = factory.createWebduinoZone(id, name, type);
                 if (zone != null)
                     zones.add(zone);
             }
@@ -95,7 +85,7 @@ public class WebduinoSystem {
             stmt.close();
 
             schedule = new Schedule();
-            schedule.read(id);
+            schedule.readZoneSensors(id);
 
             conn.close();
         } catch (SQLException se) {
@@ -106,4 +96,5 @@ public class WebduinoSystem {
             e.printStackTrace();
         }
     }
+*/
 }

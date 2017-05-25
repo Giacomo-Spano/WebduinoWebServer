@@ -2,8 +2,14 @@ package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.*;
-import com.server.webduino.core.webduinosystem.programinstruction.ProgramInstructions;
-import com.server.webduino.core.webduinosystem.programinstruction.ProgramInstructionsFactory;
+import com.server.webduino.core.webduinosystem.exits.Exit;
+import com.server.webduino.core.webduinosystem.exits.ExitFactory;
+import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
+import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructionsFactory;
+import com.server.webduino.core.webduinosystem.scenario.Scenario;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioTimeInterval;
+import com.server.webduino.core.webduinosystem.zones.Zone;
+import com.server.webduino.core.webduinosystem.zones.ZoneFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,8 +40,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
 
     private static List <WebduinoSystem> webduinoSystems = new ArrayList<>();
+    private static List<Zone> zones = new ArrayList<>();
     private static List<Scenario> scenarios = new ArrayList<>();
-    private static List<WebduinoExit> webduinoExits = new ArrayList<>();
+    private static List<Exit> exits = new ArrayList<>();
     public static Shields mShields; // rendere private
     public static Schedule mSchedule;// DA ELIMINARE
 
@@ -110,15 +117,12 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             return true;
     }
 
-    public static WebduinoZone getZoneFromId(int zoneid) {
+    public static Zone getZoneFromId(int zoneid) {
 
-        for (WebduinoSystem system : webduinoSystems) {
-
-            for(WebduinoZone zone : system.zones) {
+        for(Zone zone : zones) {
                 if (zoneid == zone.getId()) {
                     return zone;
                 }
-            }
         }
         return null;
     }
@@ -147,11 +151,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         mSchedule = new Schedule(); // DA ELIMINARE
 
         readWebduinoSystems();
+        readZones();
         readExitList();
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
-        for (WebduinoSystem system : webduinoSystems) {
-            system.addZoneSensorListeners();
-        }
+        addZoneSensorListeners();
 
         readScenarios();
         for (Scenario scenario: scenarios) {
@@ -164,6 +167,60 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         Settings settings = new Settings();
 
         mDevices.read();
+    }
+
+    public void addZoneSensorListeners() {
+        for(Zone zone: zones) {
+            zone.addSensorListeners();
+        }
+    }
+
+    public void clearZoneSensorListeners() {
+        for(Zone zone: zones) {
+            zone.clearSensorListeners();
+        }
+    }
+
+    public void readZones() {
+
+        LOGGER.info(" readZoneSensors Security zones");
+
+        try {
+            // Register JDBC driver
+            Class.forName("com.mysql.jdbc.Driver");
+            // Open a connection
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            // Execute SQL query
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM zones";//" WHERE systemid=" + systemid;
+            ResultSet rs = stmt.executeQuery(sql);
+            // Extract data from result set
+            zones.clear();
+            while (rs.next()) {
+                ZoneFactory factory = new ZoneFactory();
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String type = rs.getString("type");
+                Zone zone = factory.createWebduinoZone(id, name, type);
+                if (zone != null)
+                    zones.add(zone);
+            }
+            // Clean-up environment
+            rs.close();
+            stmt.close();
+
+            //schedule = new Schedule();
+            //schedule.readZoneSensors(id);
+
+            conn.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }
     }
 
     private void readWebduinoSystems() {
@@ -207,16 +264,16 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             String sql;
             sql = "SELECT * FROM webduino_exits";
             ResultSet rs = stmt.executeQuery(sql);
-            webduinoExits = new ArrayList<>();
+            exits = new ArrayList<>();
             while (rs.next()) {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String type = rs.getString("type");
                 int actuatorid = rs.getInt("sensorid");
-                WebduinoExitFactory factory = new WebduinoExitFactory();
-                WebduinoExit webduinoExit = factory.createWebduinoExit(id,name,type,actuatorid);
-                if (webduinoExit != null)
-                    webduinoExits.add(webduinoExit);
+                ExitFactory factory = new ExitFactory();
+                Exit exit = factory.createWebduinoExit(id,name,type,actuatorid);
+                if (exit != null)
+                    exits.add(exit);
             }
             rs.close();
             stmt.close();
@@ -260,14 +317,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     timeInterval.startTime = rs2.getTime("starttime");
                     timeInterval.endTime = rs2.getTime("endtime");
 
-                    timeInterval.setSunday(rs.getBoolean("sunday"));
-                    timeInterval.setMonday(rs.getBoolean("monday"));
-                    timeInterval.setTuesday(rs.getBoolean("tuesday"));
-                    timeInterval.setWednesday(rs.getBoolean("wednesday"));
-                    timeInterval.setThursday(rs.getBoolean("thursday"));
-                    timeInterval.setFriday(rs.getBoolean("friday"));
-                    timeInterval.setSaturday(rs.getBoolean("saturday"));
-                    timeInterval.setPriority(rs.getInt("priority"));
+                    timeInterval.setSunday(rs2.getBoolean("sunday"));
+                    timeInterval.setMonday(rs2.getBoolean("monday"));
+                    timeInterval.setTuesday(rs2.getBoolean("tuesday"));
+                    timeInterval.setWednesday(rs2.getBoolean("wednesday"));
+                    timeInterval.setThursday(rs2.getBoolean("thursday"));
+                    timeInterval.setFriday(rs2.getBoolean("friday"));
+                    timeInterval.setSaturday(rs2.getBoolean("saturday"));
+                    timeInterval.setPriority(rs2.getInt("priority"));
 
                     //timeInterval.programInstructions = rs2.getInt("programinstructionsid");
                     timeInterval.priority = rs2.getInt("priority");
@@ -285,7 +342,16 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                         int actuatorid = rs3.getInt("actuatorid");
                         float targetValue = rs3.getFloat("targetvalue");
                         int zoneId = rs3.getInt("zoneid");
-                        ProgramInstructions programInstructions = factory.createProgramInstructions(id, type, actuatorid, targetValue, zoneId);
+
+                        int seconds = 0;
+                        Time time = rs3.getTime("time");
+                        if (time != null) {
+                            Calendar cal = Calendar.getInstance();
+                            cal.setTime(time);
+                            seconds = cal.get(Calendar.SECOND);
+                        }
+                        //ZoneProgram zoneProgram = factory.createZoneProgram(programId,programName,type,cal.get(Calendar.SECOND));
+                        ProgramInstructions programInstructions = factory.createProgramInstructions(id, type, actuatorid, targetValue, zoneId, seconds);
                         if (programInstructions != null) {
                             timeInterval.programInstructionsList.add(programInstructions);
                         }
@@ -571,15 +637,11 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     @Override
     public void updatedShields() {
         // se cambiano i sensori riregistra i listener
-        for (WebduinoSystem system : webduinoSystems) {
-            system.clearZoneSensorListeners();
-        }
+        clearZoneSensorListeners();
         //securitySystem.clearZoneSensorListeners();
 
 
-        for (WebduinoSystem system : webduinoSystems) {
-            system.addZoneSensorListeners();
-        }
+        addZoneSensorListeners();
         //securitySystem.addZoneSensorListeners();
     }
 }

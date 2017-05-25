@@ -406,7 +406,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     }
 
     @Override
-    public void changeDoorStatus(int sensorId, boolean open) {
+    public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
 
     }
 

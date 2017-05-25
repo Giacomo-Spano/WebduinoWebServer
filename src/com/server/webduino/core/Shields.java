@@ -67,7 +67,6 @@ public class Shields {
             }
 
         }
-
         return false;
     }
 
@@ -79,11 +78,9 @@ public class Shields {
     }
 
     private static final Logger LOGGER = Logger.getLogger(Shields.class.getName());
-
     public void addListener(ShieldsListener toAdd) {
         listeners.add(toAdd);
     }
-
     protected List<ShieldsListener> listeners = new ArrayList<>();
     private static List<TemperatureSensor> mTemperatureSensorList = new ArrayList<TemperatureSensor>();
 
@@ -93,23 +90,7 @@ public class Shields {
     public void init() {
 
         read();
-
         requestSensorStatusUpdate();
-        initPrograms();
-
-        //mSensors.initPrograms(); // non può esserre chiamata dentro costruttore sensors perchà usa mSensor
-        //addListener(mSensors);
-    }
-
-    public void initPrograms() {
-        // questa funzione non può essere chiamata dentro il costruttore
-        // perchè altrimenti la lista diu sensori dalvata in core non è ancora inizializzata
-        for (Shield shield : list) {
-            for (SensorBase sensor : shield.sensors) {
-                if (sensor.sensorSchedule != null)
-                    sensor.sensorSchedule.checkProgram();
-            }
-        }
     }
 
     public List<SensorBase> getLastSensorData() {
@@ -144,44 +125,6 @@ public class Shields {
     boolean updateShieldSensors(int shieldid, JSONArray jsonArray) {
         Shield shield = fromId(shieldid);
         return shield.updateSensors(jsonArray);
-    }
-
-    // DA ELIMINARE
-    boolean updateSensors(int shieldid, JSONArray jsonArray) {
-
-        Date date = Core.getDate();
-        for (int i = 0; i < jsonArray.length(); i++) {
-
-            try {
-                JSONObject json = jsonArray.getJSONObject(i);
-                String subaddress = "";
-                if (json.has("addr")) {
-                    subaddress = json.getString("addr");
-                }
-                SensorBase sensor = getFromShieldIdandSubaddress(shieldid, subaddress);
-                if (sensor != null) {
-                    sensor.updateFromJson(date, json);
-
-                    if (json.has("childsensors")) {
-                        JSONArray jsonChildSensorArray = json.getJSONArray("childsensors");
-                        for (int k = 0; k < jsonChildSensorArray.length(); k++) {
-                            JSONObject childSensor = jsonChildSensorArray.getJSONObject(k);
-                            if (childSensor.has("addr")) {
-                                subaddress = childSensor.getString("addr");
-                                SensorBase child = getFromShieldIdandSubaddress(shieldid, subaddress);
-                                if (child != null)
-                                    child.updateFromJson(date, childSensor);
-                            }
-                        }
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        return true;
     }
 
     // DA ELIMINARE
@@ -242,10 +185,6 @@ public class Shields {
                 Core.sendPushNotification(SendPushMessages.notification_error, "errore", "SHIELD " + shield.id + " OFFLINE", "0", shield.id);
             }
         }
-    }
-
-    public List<TemperatureSensor> getSensorList() {
-        return mTemperatureSensorList;
     }
 
     public JSONObject loadShieldSettings(String MACAddress) {

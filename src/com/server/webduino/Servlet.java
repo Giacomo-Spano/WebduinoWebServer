@@ -59,7 +59,7 @@ public class Servlet extends javax.servlet.http.HttpServlet {
 
 
         //Schedule prgms = new Schedule();
-        //prgms.read();
+        //prgms.readZoneSensors();
         Core core = (Core)getServletContext().getAttribute(QuartzListener.CoreClass);
         ArrayList<Program> programs = core.mSchedule.getProgramList();
 

@@ -1,4 +1,4 @@
-package com.server.webduino.core.webduinosystem;
+package com.server.webduino.core.webduinosystem.zones;
 
 /**
  * Created by giaco on 12/05/2017.

@@ -1,9 +1,9 @@
-package com.server.webduino.core.webduinosystem;
+package com.server.webduino.core.webduinosystem.exits;
 
 /**
  * Created by giaco on 12/05/2017.
  */
-public class WebduinoExit {
+public class Exit {
     public void init(int id) {
 
     }

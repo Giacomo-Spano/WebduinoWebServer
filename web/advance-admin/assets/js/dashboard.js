@@ -91,6 +91,7 @@ function addNewSensorLine(newtr, elem) {
         text = "temp:" + elem.temperature + "°C" + " av.temp:" + elem.avtemperature + "°C";
         newtr.find('td[name="status"]').text(text);
     } else if (elem.type == "doorsensor") {
+
         text = "door ";
         if (elem.status == true)
             text += "open";
@@ -98,18 +99,44 @@ function addNewSensorLine(newtr, elem) {
             text += "closed";
         newtr.find('td[name="status"]').text(text);
 
-        newtr.find('button[name="commandbutton"]').text("Test open");
-        newtr.find('button[name="commandbutton"]').click(function () {
-            newtr.find('button[name="commandbutton"]').text("sending stop open command");
-            //element.find('button[name="commandbutton"]').style.visibility='hidden';
-
+        // testmode button
+        var label = "test mode";
+        if (elem.testmode)
+            var label = "end test mode";
+        var testButton = newtr.find('button[name="testbutton"]');
+        testButton.text(label);
+        testButton.click(function () {
+            var command = 'teststart'
+            if (elem.testmode) {
+                command = 'teststop';
+            }
+            statusButton.text("sending" + command + " command...");
             var commandJson = {
                 'shieldid': elem.shieldid,
                 'actuatorid': elem.id,
-                'command': 'test',
-                'status': 'open'
+                'command': command
             };
+            sendSensorCommand(commandJson, elem)
+        });
 
+        // test open/close button
+        label = "close";
+        if (elem.status)
+            label = "open";
+        var statusButton = newtr.find('button[name="statusbutton"]');
+        statusButton.text(label);
+        statusButton.click(function () {
+
+            var command = 'testclose'
+            if (elem.status) {
+                command = 'testopen';
+            }
+            statusButton.text("sending" + command + " command...");
+            var commandJson = {
+                'shieldid': elem.shieldid,
+                'actuatorid': elem.id,
+                'command': command,
+            };
             sendSensorCommand(commandJson, elem)
         });
 

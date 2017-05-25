@@ -4,7 +4,7 @@
 package com.quartz;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.Scenario;
+import com.server.webduino.core.webduinosystem.scenario.Scenario;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;

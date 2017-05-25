@@ -1,25 +1,24 @@
-package com.server.webduino.core.webduinosystem;
+package com.server.webduino.core.webduinosystem.zones;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
-import com.server.webduino.core.WebduinoTrigger;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.WebduinoTrigger;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Logger;
 
 /**
  * Created by giaco on 12/05/2017.
  */
-public class WebduinoZone implements SensorBase.SensorListener {
+public class Zone implements SensorBase.SensorListener {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     public interface WebduinoZoneListener {
-        void onTrigger(WebduinoTrigger trigger);
         void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature);
+        void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus);
     }
     protected List<WebduinoZoneListener> listeners = new ArrayList<WebduinoZoneListener>();
     public void addListener(WebduinoZoneListener toAdd) {
@@ -29,14 +28,13 @@ public class WebduinoZone implements SensorBase.SensorListener {
     private int id;
     private String name;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
-    protected List<ZoneProgram> zonePrograms = new ArrayList<>();
 
     private double temperature = 0.0;
 
-    public WebduinoZone(int id, String name) {
+    public Zone(int id, String name) {
         this.id = id;
         this.name = name;
-        read(id);
+        readZoneSensors(id);
     }
 
     public int getId() {
@@ -49,12 +47,6 @@ public class WebduinoZone implements SensorBase.SensorListener {
 
     public String getName() {
         return name;
-    }
-
-    protected ZoneProgram getActiveProgram() {
-        if (zonePrograms != null && zonePrograms.size() > 0)
-            return zonePrograms.get(0);
-        return null;
     }
 
     public void addSensorListeners() {
@@ -95,31 +87,26 @@ public class WebduinoZone implements SensorBase.SensorListener {
     }
 
     @Override
-    public void changeDoorStatus(int sensorId, boolean open) {
+    public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
 
-        ZoneProgram program = getActiveProgram();
-
-        if (program != null)
-            program.triggerAlarm();
+        for(WebduinoZoneListener listener: listeners) {
+            listener.onDoorStatusChange(id,open,oldOpen);
+        }
+        this.temperature = temperature;
     }
 
-    public void read(int zoneid) {
+    public void readZoneSensors(int zoneid) {
 
-        LOGGER.info(" read Security Zone Sensors");
+        LOGGER.info(" readZoneSensors Security Zone Sensors");
 
         try {
-            // Register JDBC driver
             Class.forName("com.mysql.jdbc.Driver");
-            // Open a connection
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-            // Execute SQL query
-
-            // read zone sensors
+            // readZoneSensors zone sensors
             Statement stmt = conn.createStatement();
             String sql;
             sql = "SELECT * FROM zonesensors WHERE zoneid=" + zoneid;
             ResultSet rs = stmt.executeQuery(sql);
-            // Extract data from result set
             zoneSensors.clear();
             while (rs.next()) {
                 ZoneSensor zoneSensor = new ZoneSensor();
@@ -127,32 +114,10 @@ public class WebduinoZone implements SensorBase.SensorListener {
                 zoneSensor.setSensorId(rs.getInt("sensorid"));
                 zoneSensors.add(zoneSensor);
             }
-            // Clean-up environment
             rs.close();
             stmt.close();
-
-            // read zone programs
-            stmt = conn.createStatement();
-            sql = "SELECT * FROM zoneprograms WHERE id=" + zoneid;
-            rs = stmt.executeQuery(sql);
-            // Extract data from result set
-            zonePrograms.clear();
-            while (rs.next()) {
-                String type = rs.getString("type");
-                WebduinoZoneProgramFactory factory = new WebduinoZoneProgramFactory();
-                int programId = rs.getInt("id");
-                String programName = rs.getString("name");
-                Time time = rs.getTime("time");
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(time);
-                ZoneProgram zoneProgram = factory.createZoneProgram(programId,programName,type,cal.get(Calendar.SECOND));
-
-                zonePrograms.add(zoneProgram);
-            }
-            // Clean-up environment
             rs.close();
             stmt.close();
-
             conn.close();
         } catch (SQLException se) {
             //Handle errors for JDBC
@@ -163,7 +128,6 @@ public class WebduinoZone implements SensorBase.SensorListener {
         }
     }
 
-    public void init(int id) {
-
+    public void init() {
     }
 }

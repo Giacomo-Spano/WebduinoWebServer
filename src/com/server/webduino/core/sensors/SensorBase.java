@@ -32,6 +32,7 @@ public class SensorBase extends httpClient {
     protected int id;
     protected boolean enabled;
     protected String pin;
+    protected boolean testMode;
     protected String statusUpdatePath = "/sensorstatus"; // può essere overidden a seconda del tipo
 
     /// schedulatorer programm
@@ -73,13 +74,11 @@ public class SensorBase extends httpClient {
 
     public interface SensorListener {
         static public String SensorEvents = "sensor event";
-
         void onChangeTemperature(int sensorId, double temperature,double oldtemperature);
-
         void changeAvTemperature(int sensorId, double avTemperature);
         void changeOnlineStatus(boolean online);
         void changeOnlineStatus(int sensorId, boolean online);
-        void changeDoorStatus(int sensorId, boolean open);
+        void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
     }
 
     protected List<SensorListener> listeners = new ArrayList<SensorListener>();
@@ -125,14 +124,6 @@ public class SensorBase extends httpClient {
             return true;
         }
     }
-
-    /*public void setData(int shieldid, String subaddress, String name, Date date) {
-        this.shieldid = shieldid;
-        this.subaddress = subaddress;
-        this.name = name;
-        this.lastUpdate = date;
-
-    }*/
 
     public Date getLastUpdate() {
         return lastUpdate;
@@ -250,6 +241,8 @@ public class SensorBase extends httpClient {
                 pin = json.getString("pin");
             if (json.has("enabled"))
                 enabled = json.getBoolean("enabled");
+            if (json.has("testmode"))
+                testMode = json.getBoolean("testmode");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -277,6 +270,7 @@ public class SensorBase extends httpClient {
             json.put("enabled", Core.boolToString(enabled));
             json.put("pin", pin);
             json.put("addr", subaddress);
+            json.put("testmode", testMode);
 
             JSONArray children = new JSONArray();
             for(SensorBase sensor: childSensors) {

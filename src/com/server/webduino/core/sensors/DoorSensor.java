@@ -40,7 +40,7 @@ public class DoorSensor extends SensorBase {
             dl.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (SensorListener listener : listeners) {
-                listener.changeDoorStatus(id, open);
+                listener.changeDoorStatus(id, open, oldOpen);
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.server.webduino.core.webduinosystem.heater;
+package com.server.webduino.core.webduinosystem;
 
 /**
  * Created by giaco on 12/05/2017.

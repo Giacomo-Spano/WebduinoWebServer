@@ -1,10 +1,10 @@
-package com.server.webduino.core.webduinosystem.programinstruction;
+package com.server.webduino.core.webduinosystem.programinstructions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
-import com.server.webduino.core.WebduinoTrigger;
+import com.server.webduino.core.webduinosystem.WebduinoTrigger;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.webduinosystem.WebduinoZone;
+import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,16 +20,12 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
     private double temperature;
 
     public KeepTemperatureProgramInstructions(int id, String type, int actuatorid, double targetValue, int zoneId) {
-        super(id, type, actuatorid, targetValue, zoneId);
+        super(id, type, actuatorid, targetValue, zoneId,0);
 
         targetTemperature = targetValue;
 
-        WebduinoZone zone = Core.getZoneFromId(zoneId);
+        Zone zone = Core.getZoneFromId(zoneId);
         zone.addListener(this);
-    }
-
-    @Override
-    public void onTrigger(WebduinoTrigger trigger) {
     }
 
     @Override
@@ -52,7 +48,6 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
             json.put("temperature", temperature);
 
             HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
-
 
             Core.postCommand(cmd);
 

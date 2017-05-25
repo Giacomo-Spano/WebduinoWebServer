@@ -18,8 +18,16 @@ public class Command {
     public String command;
     protected String uuid;
     public int shieldid;
+    public int actuatorid;
 
     String jsonResult = "";
+
+    public Command(String command, int shieldid, int actuatorid) {
+        this.command = command;
+        this.shieldid = shieldid;
+        this.actuatorid = actuatorid;
+        uuid = UUID.randomUUID().toString();
+    }
 
     public Command(JSONObject json) {
         fromJson(json);

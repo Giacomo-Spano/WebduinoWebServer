@@ -2,6 +2,7 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
+import com.server.webduino.core.sensors.DoorSensor;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
@@ -86,15 +87,18 @@ public class ShieldServlet extends HttpServlet {
                     handleSaveSettingEvent(json);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
-                } else if (json.getString("command").equals("test")) {
+                } else if (json.getString("command").equals("teststart") || json.getString("command").equals("teststop")
+                            || json.getString("command").equals("testopen") || json.getString("command").equals("testclose")) {
 
                     if (json.has("actuatorid")) {
                         int id = json.getInt("actuatorid");
                         SensorBase actuator = Core.getSensorFromId(id);
 
-                        DoorSensorCommand cmd = new DoorSensorCommand(json);
-                        //Core.postCommand(actuator.getShieldId(), cmd);
-                        cmd.send();
+                        //DoorSensorCommand cmd = new DoorSensorCommand(json);
+                        DoorSensorCommand cmd = new DoorSensorCommand(json.getString("command"),actuator.getShieldId(),id,"close");
+                        String result = cmd.send();
+                        //cmd = new DoorSensorCommand("test",actuator.getShieldId(),id,"open");
+                        //result = cmd.send();
 
                     }
                 }

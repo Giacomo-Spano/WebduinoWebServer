@@ -17,9 +17,13 @@ public class DoorSensorCommand extends Command {
     //public static final String Command_Off = "Off";
     //public static final String Command_SendTemperature = "sendtemperature"; // "sendtemperature";
 
-    public int actuatorid;
 
     public String status;
+
+    public DoorSensorCommand(String command, int shieldid, int actuatorid, String status) {
+        super(command,shieldid,actuatorid);
+        this.status = status;
+    }
 
     public DoorSensorCommand(JSONObject json) {
         super(json);
@@ -58,11 +62,12 @@ public class DoorSensorCommand extends Command {
         try {
             json.put("uuid",uuid);
             json.put("actuatorid", actuatorid);
-            if (command.equals(DoorSensorCommand.Command_Test)) {
+            json.put("command", command);
+            /*if (command.equals(DoorSensorCommand.Command_Test)) {
 
                 json.put("command", DoorSensorCommand.Command_Test);
                 json.put("status", status);
-            }
+            }*/
         } catch (JSONException e) {
             e.printStackTrace();
             return null;

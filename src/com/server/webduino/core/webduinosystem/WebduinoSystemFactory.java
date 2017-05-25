@@ -1,9 +1,5 @@
 package com.server.webduino.core.webduinosystem;
 
-import com.server.webduino.core.webduinosystem.heater.HeaterSystem;
-import com.server.webduino.core.webduinosystem.security.DelayedZoneProgram;
-import com.server.webduino.core.webduinosystem.security.SecuritySystem;
-
 /**
  * Created by giaco on 12/05/2017.
  */

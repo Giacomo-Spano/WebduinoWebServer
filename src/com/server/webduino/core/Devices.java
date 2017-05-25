@@ -36,7 +36,7 @@ public class Devices {
 
     public void read() {
 
-        LOGGER.info(" read devices");
+        LOGGER.info(" readZoneSensors devices");
 
         try {
             // Register JDBC driver

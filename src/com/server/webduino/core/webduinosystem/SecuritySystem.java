@@ -1,4 +1,4 @@
-package com.server.webduino.core.webduinosystem.security;
+package com.server.webduino.core.webduinosystem;
 
 import com.server.webduino.core.webduinosystem.WebduinoSystem;
 import com.server.webduino.core.Core;
@@ -19,10 +19,10 @@ public class SecuritySystem extends com.server.webduino.core.webduinosystem.Webd
         super(id, name);
     }
 
-    @Override
-    public void read(int systemid) {
-        super.read(systemid);
-    }
+    /*@Override
+    public void readZoneSensors(int systemid) {
+        super.readZoneSensors(systemid);
+    }*/
 
 
 }

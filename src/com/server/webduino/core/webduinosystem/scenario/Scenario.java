@@ -1,7 +1,8 @@
-package com.server.webduino.core.webduinosystem;
+package com.server.webduino.core.webduinosystem.scenario;
 
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioTimeInterval;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

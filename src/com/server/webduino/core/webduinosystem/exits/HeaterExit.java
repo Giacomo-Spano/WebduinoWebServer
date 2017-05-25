@@ -1,11 +1,9 @@
-package com.server.webduino.core.webduinosystem.heater;
-
-import com.server.webduino.core.webduinosystem.WebduinoExit;
+package com.server.webduino.core.webduinosystem.exits;
 
 /**
  * Created by giaco on 12/05/2017.
  */
-public class HeaterExit extends WebduinoExit {
+public class HeaterExit extends Exit {
     int id;
     String type;
     int actuatorid;

@@ -17,7 +17,7 @@ public class ExitFactory {
             exit = new HeaterExit(id,type,actuatorid,name);
         }
         if (exit != null) {
-            exit.init(id);
+            exit.init();
         }
         return exit;
     }

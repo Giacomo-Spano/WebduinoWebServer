@@ -4,6 +4,8 @@ import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.exits.Exit;
 import com.server.webduino.core.webduinosystem.exits.ExitFactory;
+import com.server.webduino.core.webduinosystem.keys.Key;
+import com.server.webduino.core.webduinosystem.keys.KeyFactory;
 import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
 import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructionsFactory;
 import com.server.webduino.core.webduinosystem.scenario.Scenario;
@@ -43,6 +45,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     private static List<Zone> zones = new ArrayList<>();
     private static List<Scenario> scenarios = new ArrayList<>();
     private static List<Exit> exits = new ArrayList<>();
+    private static List<Key> keys = new ArrayList<>();
     public static Shields mShields; // rendere private
     public static Schedule mSchedule;// DA ELIMINARE
 
@@ -152,7 +155,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
         readWebduinoSystems();
         readZones();
-        readExitList();
+        readExits();
+        readKeys();
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
         addZoneSensorListeners();
 
@@ -254,7 +258,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         }
     }
 
-    private void readExitList() {
+    private void readExits() {
         LOGGER.info(" readWebduinoSystems");
 
         try {
@@ -262,7 +266,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             Statement stmt = conn.createStatement();
             String sql;
-            sql = "SELECT * FROM webduino_exits";
+            sql = "SELECT * FROM exits";
             ResultSet rs = stmt.executeQuery(sql);
             exits = new ArrayList<>();
             while (rs.next()) {
@@ -284,6 +288,38 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             e.printStackTrace();
         }
     }
+
+    private void readKeys() {
+        LOGGER.info(" readWebduinoSystems");
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM keys";
+            ResultSet rs = stmt.executeQuery(sql);
+            keys = new ArrayList<>();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String type = rs.getString("type");
+                int actuatorid = rs.getInt("sensorid");
+                KeyFactory factory = new KeyFactory();
+                Key key = factory.createWebduinoKey(id,name,type,actuatorid);
+                if (key != null)
+                    keys.add(key);
+            }
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void readScenarios() {
         LOGGER.info("readScenarios");
         try {

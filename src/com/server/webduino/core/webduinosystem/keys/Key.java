@@ -1,15 +1,15 @@
-package com.server.webduino.core.webduinosystem.exits;
+package com.server.webduino.core.webduinosystem.keys;
 
 /**
  * Created by giaco on 12/05/2017.
  */
-public class Exit {
+public class Key {
     int id;
     String type;
     int actuatorid;
     String name;
 
-    public Exit(int id, String type, int actuatorid, String name) {
+    public Key(int id, String type, int actuatorid, String name) {
         this.id = id;
         this.type = type;
         this.actuatorid = actuatorid;

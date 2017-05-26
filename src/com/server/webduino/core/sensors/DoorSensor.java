@@ -14,17 +14,6 @@ public class DoorSensor extends SensorBase {
 
     private boolean open;
 
-    /*public interface DoorSensorListener extends SensorBase.SensorListener {
-        public String DoorEvents = "door event";
-        void changeDoorStatus(int sensorId, boolean open);
-    }**/
-
-    /*public boolean sendEvent(String eventtype) {
-        if (super.sendEvent(eventtype) || eventtype == DoorEvents)
-            return true;
-        return false;
-    }*/
-
     public DoorSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, subaddress, shieldid, pin, enabled);
         type = "doorsensor";
@@ -75,7 +64,7 @@ public class DoorSensor extends SensorBase {
     @Override
     public void getJSONField() {
         try {
-            json.put("status", open);
+            json.put("openstatus", open);
 
         } catch (JSONException e) {
             e.printStackTrace();

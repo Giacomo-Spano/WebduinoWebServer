@@ -93,7 +93,7 @@ function addNewSensorLine(newtr, elem) {
     } else if (elem.type == "doorsensor") {
 
         text = "door ";
-        if (elem.status == true)
+        if (elem.openstatus == true)
             text += "open";
         else
             text += "closed";
@@ -121,15 +121,15 @@ function addNewSensorLine(newtr, elem) {
 
         // test open/close button
         label = "close";
-        if (elem.status)
+        if (!elem.openstatus)
             label = "open";
         var statusButton = newtr.find('button[name="statusbutton"]');
         statusButton.text(label);
         statusButton.click(function () {
 
-            var command = 'testclose'
-            if (elem.status) {
-                command = 'testopen';
+            var command = 'testopen'
+            if (!elem.openstatus) {
+                command = 'testclose';
             }
             statusButton.text("sending" + command + " command...");
             var commandJson = {

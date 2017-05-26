@@ -19,8 +19,8 @@ public class TemperatureSensorDataLog extends DataLog {
 
         TemperatureSensor temperatureSensor = (TemperatureSensor) sensor;
         String sql;
-        sql = "INSERT INTO " + tableName + " (id, subaddress, date, temperature, avtemperature) VALUES ("
-                + temperatureSensor.id + ",'" + temperatureSensor.subaddress + "',"  + getStrDate() + "," + temperatureSensor.getTemperature() + "," + temperatureSensor.getAvTemperature() + ");";
+        sql = "INSERT INTO " + tableName + " (id, sensorid, date, temperature, avtemperature) VALUES ("
+                + temperatureSensor.id + "," + temperatureSensor.getId() + ","  + getStrDate() + "," + temperatureSensor.getTemperature() + "," + temperatureSensor.getAvTemperature() + ");";
         return sql;
     }
 

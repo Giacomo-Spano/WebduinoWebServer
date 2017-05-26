@@ -11,15 +11,15 @@ import java.util.Date;
 public class DoorSensorDataLog extends DataLog {
 
     public boolean open = false;
-    public String tableName = "currentdatalog";
+    public String tableName = "doordatalog";
 
     @Override
     public String getSQLInsert(String event, SensorBase sensor) {
 
         DoorSensor doorSensor = (DoorSensor) sensor;
         String sql;
-        sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
-                + doorSensor.id + ",'" + doorSensor.subaddress + "',"  + getStrDate() + "," + doorSensor.getStatus() + ");";
+        sql = "INSERT INTO " + tableName + " (id, sensorid, date, open) VALUES ("
+                + doorSensor.id + "," + doorSensor.getId() + ","  + getStrDate() + "," + doorSensor.getStatus() + ");";
         return sql;
     }
 

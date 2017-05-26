@@ -11,12 +11,11 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class HeaterDataLog extends DataLog {
-    //public Date date = new Date();
-    //public Date time = new Date();
+
     protected String status = "";
     protected double localTemperature;
-    protected int activeProgram;
-    protected int activeTimerange;
+    protected int activeScenario;
+    protected int activeTimeIntervals;
     protected boolean releStatus;
     protected double remoteTemperature;
     protected double targetTemperature;
@@ -28,17 +27,16 @@ public class HeaterDataLog extends DataLog {
         HeaterActuator heaterActuator = (HeaterActuator) sensor;
         String sql;
 
-        sql = "INSERT INTO heaterdatalog (id, date, event, relestatus, status, temperature, targettemperature, scenario, timeinterval, zone) " +
-                " VALUES (" + heaterActuator.id + ", " +
+        sql = "INSERT INTO heaterdatalog (date, sensorid, relestatus, status, temperature, targettemperature, scenario, timeinterval) " +
+                " VALUES (" +
                 getStrDate() + ",'" +
-                event + "'," +
+                heaterActuator.getId() + "'," +
                 heaterActuator.releStatus + ",'" +
                 heaterActuator.getStatus() + "'," +
                 heaterActuator.getTemperature() + "," +
                 heaterActuator.targetTemperature + "," +
                 heaterActuator.scenario + "," +
-                heaterActuator.timeInterval + "," +
-                heaterActuator.zone + "" +
+                heaterActuator.timeInterval +
                 ");";
         return sql;
     }
@@ -55,8 +53,8 @@ public class HeaterDataLog extends DataLog {
                 json.put("targettemperature", targetTemperature);
                 json.put("relestatus", releStatus);
                 //json.put("status", status);
-                json.put("program", activeProgram);
-                json.put("timerange", activeTimerange);
+                json.put("program", activeScenario);
+                json.put("timerange", activeTimeIntervals);
                 return json;
             }
         } catch (JSONException e) {
@@ -95,8 +93,8 @@ public class HeaterDataLog extends DataLog {
                 data.localTemperature = rs.getDouble("localtemperature");
                 data.remoteTemperature = rs.getDouble("remotetemperature");
                 data.targetTemperature = rs.getDouble("targettemperature");
-                data.activeProgram = rs.getInt("activeprogram");
-                data.activeTimerange = rs.getInt("activetimerange");
+                data.activeScenario = rs.getInt("activeprogram");
+                data.activeTimeIntervals = rs.getInt("activetimerange");
                 list.add(data);
             }
             // Clean-up environment

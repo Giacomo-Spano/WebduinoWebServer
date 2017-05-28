@@ -11,8 +11,8 @@ import java.util.TimerTask;
  * Created by giaco on 17/05/2017.
  */
 public class DelayAlarmProgramInstructions extends ProgramInstructions {
-    public DelayAlarmProgramInstructions(int id, String type, int actuatorid, double targetValue, int zoneId, int seconds) {
-        super(id, type, actuatorid, targetValue, zoneId, seconds);
+    public DelayAlarmProgramInstructions(int id, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds) {
+        super(id, name, type, actuatorid, targetValue, zoneId, seconds);
 
         Zone zone = Core.getZoneFromId(zoneId);
         zone.addListener(this);

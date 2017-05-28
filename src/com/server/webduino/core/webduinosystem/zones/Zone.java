@@ -4,6 +4,9 @@ import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.WebduinoTrigger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -129,5 +132,29 @@ public class Zone implements SensorBase.SensorListener {
     }
 
     public void init() {
+    }
+
+    public JSONObject toJSON() {
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("id", id);
+            json.put("name", name);
+            JSONArray jsonArray = new JSONArray();
+            for(ZoneSensor zonesensor: zoneSensors) {
+                JSONObject jsonObject = new JSONObject();
+                SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
+                jsonObject.put("id",zonesensor.getId());
+                jsonObject.put("name",sensor.getName());
+                //jsonObject.put("name",sensor.getS);
+                jsonArray.put(jsonObject);
+            }
+            json.put("zonesensors", jsonArray);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return json;
     }
 }

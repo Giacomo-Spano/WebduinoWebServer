@@ -178,45 +178,35 @@
         <div id="page-inner">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 class="page-head-line">Scenario</h1>
+                    <h1 class="page-head-line">Scenari</h1>
                     <h1 class="page-subhead-line">This is dummy text , you can replace it with your original text. </h1>
                 </div>
             </div>
 
-            <!-- /. ROW  SCENARIO-->
-            <div id="scenariopanel" class="row">
+            <!-- /. ROW  SCENARIOS-->
+            <div id="scenariospanel" class="row">
                 <div class="col-md-12">
                     <!--   Stato sensori -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            Scenario
+                            Scenari
                         </div>
                         <div class="panel-body">
-                            <h4 id="name">name</h4>
-                            <b>Id: </b><span id="id">ddd</span><BR>
-                            <b>Stato: </b><span id="status">stato</span><BR>
-                            <b>Data inizio: </b><span id="startdate">startdate</span><BR>
-                            <b>Data fine: </b><span id="enddate">enddate<BR>
-                            <h4>Fasce orarie</h4>
                             <div class="table-responsive">
                                 <table id="tbl" class="table table-striped table-bordered table-hover">
                                     <thead>
                                     <tr name="header">
                                         <th>id</th>
                                         <th>Nome</th>
-                                        <th>Giorni</th>
-                                        <th>Ora inizio</th>
-                                        <th>Ora fine</th>
+                                        <th>Stato</th>
                                         <th>Comandi</th>
                                     </tr>
                                     </thead>
-                                    <tbody name="timeintervallist">
-                                    <tr name="timeinterval">
+                                    <tbody name="scenariolist">
+                                    <tr name="scenario">
                                         <td name="id"><a href="." name="link"></a></td>
                                         <td name="name">#</td>
-                                        <td name="days">#</td>
-                                        <td name="starttime">#</td>
-                                        <td name="endtime">#</td>
+                                        <td name="status">#</td>
                                         <td name="command">
                                             <button type="button" name="statusbutton" class="btn btn-sm btn-primary">
                                                 attiva
@@ -234,7 +224,7 @@
 
                 </div>
             </div>
-            <!-- /. ROW  SCENARIO-->
+            <!-- /. ROW  SCENARIOS-->
 
         </div>
         <!-- /. PAGE INNER  -->
@@ -258,8 +248,7 @@
 <!-- CUSTOM SCRIPTS -->
 <script src="assets/js/custom.js"></script>
 
-<script src="assets/js/webduino.js"></script>
-<script src="assets/js/scenario.js"></script>
+<script src="assets/js/scenarios.js"></script>
 
 <script>
     $(document).ready(load);

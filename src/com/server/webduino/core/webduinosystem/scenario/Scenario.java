@@ -2,6 +2,7 @@ package com.server.webduino.core.webduinosystem.scenario;
 
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
 import com.server.webduino.core.webduinosystem.scenario.ScenarioTimeInterval;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,14 +36,12 @@ public class Scenario {
     private Scheduler scheduler = null;
 
     public void init() {
-
         try {
             scheduler = new StdSchedulerFactory().getScheduler();
             //scheduler.start();
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
-
         //triggerNextTimeInterval();
         Date currentDate = Core.getDate();
         Calendar cal = Calendar.getInstance();
@@ -124,6 +123,15 @@ public class Scenario {
             json.put("active", active);
             json.put("calendar", calendar.toJson());
             json.put("priority", priority);
+
+            JSONArray jsonArray = new JSONArray();
+            for (ScenarioTimeInterval timeInterval: calendar.timeIntervals) {
+                for (ProgramInstructions instruction : timeInterval.programInstructionsList) {
+                    jsonArray.put(instruction);
+                }
+            }
+            json.put("programinstructions", jsonArray);
+
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -136,8 +144,6 @@ public class Scenario {
 
         public Date startDate;
         public Date endDate;
-        public Time startTime;
-        public Time endTime;
         public ArrayList<ScenarioTimeInterval> timeIntervals = new ArrayList<>();
         private int priority;
 
@@ -149,16 +155,11 @@ public class Scenario {
             Date currentDay = removeTime(currentDate);
 
             if (dateEnabled) {
-                if (currentDay.after(endDate))
+                if (currentDate.after(endDate))
                     return null;
-                if (currentDay.equals(endDate) && currentTime.after(endTime))
-                    return null;
-                if (currentDay.before(startDate))
-                    return null;
-                if (currentDay.equals(startDate) && currentTime.before(startTime))
+                if (currentDate.before(startDate))
                     return null;
             }
-
 
             Iterator<ScenarioTimeInterval> iterator = timeIntervals.iterator();
             ScenarioTimeInterval activeTimeInterval = null;
@@ -225,19 +226,11 @@ public class Scenario {
             this.startDate = startDate;
         }
 
-        public void setStartTime(Time startTime) {
-            this.startTime = startTime;
-        }
-
         public void setEndDate(Date endDate) {
             this.endDate = endDate;
         }
 
-        public void setEndTime(Time endTime) {
-            this.endTime = endTime;
-        }
-
-        public void settpriority(int tpriority) {
+        public void setPriorityriority(int tpriority) {
             this.priority = tpriority;
         }
 
@@ -251,38 +244,30 @@ public class Scenario {
             SimpleDateFormat df = new SimpleDateFormat("HH:mm");
             try {
                 json.put("dateenabled", dateEnabled);
-
                 json.put("startdate", startDate);
-                if (startTime != null)
-                    json.put("starttime", df.format(startTime));
                 json.put("enddate", endDate);
-                if (endTime != null)
-                    json.put("endtime", df.format(endTime));
-
                 json.put("priority", priority);
 
                 JSONArray timeIntervalsJArray = new JSONArray();
-                Iterator<ScenarioTimeInterval> timeiterator = this.timeIntervals.iterator();
-                while (timeiterator.hasNext()) {
-                    ScenarioTimeInterval tr = timeiterator.next();
+                for (ScenarioTimeInterval timeInterval:timeIntervals) {
 
                     JSONObject JSONInterval = new JSONObject();
-                    JSONInterval.put("id", tr.id);
-                    JSONInterval.put("name", tr.name);
-                    if (tr.startTime != null)
-                        JSONInterval.put("starttime", df.format(tr.endTime));
-                    if (tr.endTime != null)
-                        JSONInterval.put("endtime", df.format(tr.endTime));
+                    JSONInterval.put("id", timeInterval.id);
+                    JSONInterval.put("name", timeInterval.name);
+                    if (timeInterval.startTime != null)
+                        JSONInterval.put("starttime", df.format(timeInterval.startTime));
+                    if (timeInterval.endTime != null)
+                        JSONInterval.put("endtime", df.format(timeInterval.endTime));
 
-                    json.put("sunday", tr.sunday);
-                    json.put("monday", tr.monday);
-                    json.put("tuesday", tr.tuesday);
-                    json.put("wednesday", tr.wednesday);
-                    json.put("thursday", tr.thursday);
-                    json.put("friday", tr.friday);
-                    json.put("saturday", tr.saturday);
+                    JSONInterval.put("sunday", timeInterval.sunday);
+                    JSONInterval.put("monday", timeInterval.monday);
+                    JSONInterval.put("tuesday", timeInterval.tuesday);
+                    JSONInterval.put("wednesday", timeInterval.wednesday);
+                    JSONInterval.put("thursday", timeInterval.thursday);
+                    JSONInterval.put("friday", timeInterval.friday);
+                    JSONInterval.put("saturday", timeInterval.saturday);
 
-                    JSONInterval.put("priority", tr.priority);
+                    JSONInterval.put("priority", timeInterval.priority);
                     timeIntervalsJArray.put(JSONInterval);
                 }
                 json.put("timeintervals", timeIntervalsJArray);

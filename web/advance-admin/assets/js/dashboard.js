@@ -8,44 +8,19 @@ var $actuators;
 var $shieldss;
 var $activeProgram;
 
+
+var systemServletPath = "../system";
 var $shieldrow;
 //var $shieldTable;
+
+
+var $zonesPanel;
+var $zonesRow;
 
 
 function commanCallback(element, actuator) {
     //element.find('td[name="status"]').text(actuator.status + 'modificato');
     setActuatorElement(element, actuator);
-}
-
-function sendActuatorCommand(actuatorId, command, duration, sensorId, remote, target, element) {
-
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-
-            var json = JSON.parse(this.response);
-            if (json.answer = 'success') {
-
-                var actuator = JSON.parse(json.actuator);
-                commanCallback(element, actuator);
-            } else {
-                element.find('td[name="commandstatus"]').text("command failed");
-            }
-        }
-    };
-
-    xhttp.open("POST", actuatorServletPath, true);
-    xhttp.setRequestHeader("Content-type", "application/json");
-    xhttp.send("{ \"status\" : 1" +
-        ",\"id\" : " + actuatorId +
-        ",\"command\" : " + command +
-        ",\"duration\" : " + duration +
-        ",\"target\" : " + target +
-        ",\"sensorid\" : " + sensorId +
-        ",\"remote\" : " + remote +
-        ",\"program\" : 0" +
-        ",\"timerange\" : 0" +
-        "}");
 }
 
 function sendSensorCommand(commandJson, element) {
@@ -198,66 +173,10 @@ function loadSensors() {
             //console.log("get Sensor Error");
         });
 }
-function setActuatorElement(element, actuator) {
-
-    element.find('td[name="id"]').text(actuator.id);
-    element.find('td[name="shieldid"]').text(actuator.shieldid);
-    //element.find('td[name="onlinestatus"]').text(actuator.onlinestatus);
-    if (actuator.online)
-        element.find('td[name="onlinestatus"]').text("Online");
-    else
-        element.find('td[name="onlinestatus"]').text("Offline");
-    element.find('td[name="type"]').text(actuator.type);
-    element.find('td[name="date"]').text(actuator.lastupdate);
-    element.find('td[name="temperature"]').text(actuator.temperature + "°C");
-    element.find('td[name="avtemperature"]').text(actuator.avtemperature + "°C");
-
-    element.find('td[name="remote"]').text(actuator.remotetemperature + "°C");
-    element.find('input[name="target"]').val(actuator.target);
-    if (actuator.localsensor)
-        element.find('td[name="sensors"]').text("Locale");
-    else
-        element.find('td[name="sensors"]').text("Remoto: " + actuator.sensorID);
-
-    element.find('td[name="url"]').text(actuator.url);
-    element.find('td[name="name"]').text(actuator.name);
-    if (actuator.relestatus)
-        element.find('td[name="relestatus"]').text("Acceso");
-    else
-        element.find('td[name="relestatus"]').text("Spento");
-
-    var statusElement = element;//.find('td[name="status"]');
-    if (actuator.status == "program")
-        element.find('td[name="status"]').text(actuator.status + " " + actuator.program + "." + actuator.timerange);
-    else
-        element.find('td[name="status"]').text(actuator.status);
-
-    element.find('td[name="duration"]').text(actuator.duration);
-    element.find('td[name="remaining"]').text(actuator.remaining);
-
-    element.find('td[name="commandstatus"]').text("");
-    //element.find('button[name="commandbutton"]').style.visibility='visible';
-
-    if (actuator.status == 'manual') { // Manual
-        element.find('button[name="commandbutton"]').text("stop manual");
-        element.find('button[name="commandbutton"]').click(function () {
-            element.find('td[name="commandstatus"]').text("sending stop manual command");
-            //element.find('button[name="commandbutton"]').style.visibility='hidden';
-            sendActuatorCommand(actuator.id, 'stop', 30, 0, true, 23.0, element)
-        });
-    } else if (actuator.status == 'idle' || actuator.status == 'program') { // Manual{
-        element.find('button[name="commandbutton"]').text("start manual");
-        element.find('button[name="commandbutton"]').click(function () {
-            element.find('td[name="commandstatus"]').text("sending start manual command");
-            //element.find('button[name="commandbutton"]').style.visibility='hidden';
-            sendActuatorCommand(actuator.id, 'start', 30, 0, true, 23.0, element)
-        });
-    }
-}
 
 function setShieldElement(element, shield) {
 
-    var idelem = element.find('a[name="shieldlink"]')[0];
+    var idelem = element.find('a[name="link"]')[0];
     idelem.href = "../advance-admin/webduino_settings.html?id=" + shield.shieldid;
     idelem.text = shield.shieldid;
 
@@ -267,37 +186,6 @@ function setShieldElement(element, shield) {
 
 }
 
-function loadActuators() {
-    $.getJSON(actuatorServletPath, function (data) {
-        console.log("success");
-
-        a = data;
-        $.each(a, function (idx, elem) {
-
-            var newtr;
-            tr = $actuators.find('tr[name="actuator"]');
-            if (idx > 0) {
-                newtr = tr.clone();
-            } else {
-                newtr = tr;
-            }
-            setActuatorElement(newtr, elem);
-
-            tr.last().after(newtr);
-        });
-
-    })
-        .done(function () {
-            //console.log("succes");
-        })
-        .fail(function () {
-            //console.log("error1");
-            alert("cannot load actuator");
-        })
-        .always(function () {
-            //console.log("error2");
-        });
-}
 function loadShields() {
     $.getJSON(shieldServletPath + "?command=shields", function (data) {
         console.log("success");
@@ -310,107 +198,53 @@ function loadShields() {
             var tbody = $shields.find('tbody[name="shieldlist"]');
             setShieldElement(newtr, elem);
             tbody.append(newtr);
-
-
-            //var table = $shields.find('tbody[name="shieldtable"]')
-
-            //tbo.find('tbody').append(newtr);
-            //tr.last().after(newtr);
-            //table.insertRow();
-            /*tr = $shields.find('tr[name="shield"]');
-             if (idx > 0) {
-             newtr = tr.clone();
-             } else {
-             newtr = tr;
-             }
-             setShieldElement(newtr, elem);*/
-
-            //tr.last().after(newtr);
-            //tr.appendChild(newtr);
         });
 
+    })
+        .done(function () {
+        })
+        .fail(function () {
+            alert("cannot load shield");
+        })
+        .always(function () {
+        });
+}
+
+
+function loadZone() {
+
+    var tbody = $zonesPanel.find('tbody[name="zonelist"]');
+
+
+    $.getJSON(systemServletPath + "?requestcommand=zones", function (data) {
+        tbody[0].innerHTML = "";
+
+        $.each(data, function (idx, elem) {
+            var newtr = $zoneRow.clone();
+            setZoneElement(newtr, elem);
+            tbody.append(newtr);
+        });
     })
         .done(function () {
             //console.log("succes");
         })
         .fail(function () {
-            //console.log("error1");
-            alert("cannot load shield");
+            alert("cannot load zones");
         })
         .always(function () {
             //console.log("error2");
         });
 }
-function loadActiveProgramList() {
 
-    loadActiveProgram();
+function setZoneElement(element, scenario) {
 
-    $.getJSON(programServletPath + '?next=true', function (data) {
-        console.log("success");
-
-        tr = $activeProgram.find('tr[name="activeprogram"]');
-        a = data;
-        $.each(a, function (idx, elem) {
-
-
-            //newtr = tr.clone();
-            if (idx > 0) {
-                last = newtr;
-                newtr = tr.clone();
-                last.last().after(newtr);
-            } else {
-                newtr = tr;
-                //tr.last().before(newtr);
-            }
-
-            newtr.find('td[name="lastupdate"]').text(idx);
-
-            newtr.find('td[name="id"]').text(elem.id);
-            newtr.find('td[name="name"]').text(elem.name);
-            newtr.find('td[name="timerange"]').text(elem.timerangeid + " " + elem.timerangename);
-            newtr.find('td[name="start"]').text(elem.startdate);
-            newtr.find('td[name="end"]').text(elem.enddate);
-            newtr.find('td[name="temperature"]').text(elem.temperature);
-            newtr.find('td[name="sensors"]').text("#" + elem.sensor);
-            //newtr.find('td[name="sensors"]').text("#" + elem.sensors + " " + elem.sensorname + " (" + elem.sensortemperature + "°C)");
-            //newtr.find('td[name="endtime"]').text(elem.startdate);
-            //newtr.find('td[name="temperature"]').text(elem.temperature);
-            //newtr.find('td[name="sensors"]').text("#" + elem.sensors + " " + elem.sensorname + " (" + elem.sensortemperature + "°C)");
-
-            //tr.last().before(newtr);
-        });
-    })
-        .done(function () {
-            console.log("succes");
-        })
-        .fail(function () {
-            console.log("Nessun programma attivo");
-            alert("error1");
-        })
-        .always(function () {
-            console.log("error2");
-        });
+    element.find('td[name="id"]').text(scenario.id);
+    element.find('td[name="name"]').text(scenario.name);
+    var text = "non attivo";
+    if (scenario.active)
+        var text = "non attivo";
+    element.find('td[name="status"]').text(scenario.ac);
 }
-
-function loadActiveProgram() {
-    $.getJSON(programServletPath + '?active=true', function (data) {
-        console.log("success");
-
-        tr = $("#lastprogramupdate");
-        tr.text(data.lastupdate);
-
-    })
-        .done(function () {
-            console.log("succes");
-        })
-        .fail(function () {
-            console.log("load active program error");
-        })
-        .always(function () {
-            console.log("cannot load active program");
-        });
-}
-
 
 function load() {
 
@@ -426,4 +260,10 @@ function load() {
     $shieldrow = $shields.find('tr[name="shield"]').clone();
     $shields.find('tbody[name="shieldlist"]')[0].innerHTML = "";
     loadShields();
+
+    $zonesPanel = $(this).find('div[id="zonespanel"]');
+    $zoneRow = $zonesPanel.find('tr[name="zone"]');
+    loadZone();
+
+
 }

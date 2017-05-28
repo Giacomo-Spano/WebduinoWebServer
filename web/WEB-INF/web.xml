@@ -62,22 +62,23 @@
     </servlet-mapping>
 
     <servlet>
-        <servlet-name>ShieldServlet</servlet-name>
-        <servlet-class>com.server.webduino.servlet.ShieldServlet</servlet-class>
-    </servlet>
+    <servlet-name>ShieldServlet</servlet-name>
+    <servlet-class>com.server.webduino.servlet.ShieldServlet</servlet-class>
+</servlet>
     <servlet-mapping>
         <servlet-name>ShieldServlet</servlet-name>
         <url-pattern>/shield</url-pattern>
     </servlet-mapping>
 
     <servlet>
-        <servlet-name>ActuatorServlet</servlet-name>
-        <servlet-class>com.server.webduino.servlet.ActuatorServlet</servlet-class>
+        <servlet-name>SystemServlet</servlet-name>
+        <servlet-class>com.server.webduino.servlet.SystemServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>ActuatorServlet</servlet-name>
-        <url-pattern>/actuator</url-pattern>
+        <servlet-name>SystemServlet</servlet-name>
+        <url-pattern>/system</url-pattern>
     </servlet-mapping>
+
 
     <servlet>
         <servlet-name>ProgramServlet</servlet-name>

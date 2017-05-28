@@ -31,7 +31,7 @@
 
         <div class="header-right">
 
-          <!-- <button type="button" id="addprogram" class="btn btn-sm btn-primary">Aggiungi Programma</button> -->
+            <!-- <button type="button" id="addprogram" class="btn btn-sm btn-primary">Aggiungi Programma</button> -->
 
 
         </div>
@@ -178,17 +178,15 @@
             <div class="row">
                 <div class="col-md-12">
                     <h1 class="page-head-line">Dashboard</h1>
-
                     <h1 class="page-subhead-line">This is dummy text , you can replace it with your original text. </h1>
-
                 </div>
             </div>
 
             <!-- /. ROW  SENSORS-->
-            <div id="sensorpanel" class="row" >
+            <div id="sensorpanel" class="row">
                 <div class="col-md-12">
                     <!--   Stato sensori -->
-                    <div class="panel panel-default" >
+                    <div class="panel panel-default">
                         <div class="panel-heading">
                             Stato Sensori
                         </div>
@@ -218,8 +216,16 @@
                                         <td name="status">Temperatura</td>
                                         <td name="name">name</td>
                                         <td name="subaddress">MAC Address</td>
-                                        <td name="command"><button type="button" name="testbutton" class="btn btn-sm btn-primary" >test</button></td>
-                                        <td name="command"><button type="button" name="statusbutton" class="btn btn-sm btn-primary" >test</button></td>
+                                        <td name="command">
+                                            <button type="button" name="testbutton" class="btn btn-sm btn-primary">
+                                                test
+                                            </button>
+                                        </td>
+                                        <td name="command">
+                                            <button type="button" name="statusbutton" class="btn btn-sm btn-primary">
+                                                test
+                                            </button>
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -233,7 +239,6 @@
                 </div>
             </div>
             <!-- /. ROW  SENSOR-->
-
 
             <!-- /. ROW ACTUATORS -->
             <div id="actuatorpanel" class="row">
@@ -279,17 +284,21 @@
                                         <td name="temperature">Temp</td>
                                         <td name="avtemperature">Avg Temp</td>
                                         <td name="remote">Temp</td>
-                                        <td ><span><input name="target" class="form-control" type="number" min="0" max="30" step="0.1"
-                                                                         style="width: auto;" >°C</span></td>
+                                        <td><span><input name="target" class="form-control" type="number" min="0"
+                                                         max="30" step="0.1"
+                                                         style="width: auto;">°C</span></td>
                                         <td name="sensor">status</td>
                                         <td name="status">status</td>
                                         <td name="relestatus">Rele</td>
                                         <td name="duration">--</td>
                                         <td name="remaining">--</td>
                                         <td name="url">Indirizzo</td>
-                                        <td name="commandbutton"><button type="button" name="commandbutton" class="btn btn-sm btn-primary" programid="programid">
-                                            Modifica
-                                        </button></td>
+                                        <td name="commandbutton">
+                                            <button type="button" name="commandbutton" class="btn btn-sm btn-primary"
+                                                    programid="programid">
+                                                Modifica
+                                            </button>
+                                        </td>
                                         <td name="commandstatus"></td>
                                     </tr>
                                     </tbody>
@@ -326,7 +335,7 @@
                                     </thead>
                                     <tbody name="shieldlist">
                                     <tr name="shield">
-                                        <td name="id"><a href="." name="shieldlink">333</a></td>
+                                        <td name="id"><a href="." name="link">333</a></td>
                                         <td name="boardname">--</td>
                                         <td name="url">--</td>
                                         <td name="MACAddress">--</td>
@@ -344,40 +353,35 @@
             </div>
             <!-- /. ROW SHIELDS  -->
 
-            <!-- /. ROW ACTIVE PROGRAM -->
-            <div id="activeprogrampanel" class="row">
+            <!-- /. ROW  ZONES-->
+            <div id="zonespanel" class="row">
                 <div class="col-md-12">
-                    <!--   programma attivo -->
+                    <!--   Stato sensori -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            Programma attivo
-                            <div id="lastprogramupdate">Programma attivo    </div>
+                            Zone
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
                                 <table id="tbl" class="table table-striped table-bordered table-hover">
                                     <thead>
-                                    <tr>
-                                        <th>lastupdate</th>
-                                        <th>ID</th>
+                                    <tr name="header">
+                                        <th>id</th>
                                         <th>Nome</th>
-                                        <th>Fascia oraria</th>
-                                        <th>inizio</th>
-                                        <th>inizio</th>
-                                        <th>Temperatura</th>
-                                        <th>Sensore</th>
+                                        <th>Stato</th>
+                                        <th>Comandi</th>
                                     </tr>
                                     </thead>
-                                    <tbody>
-                                    <tr name="activeprogram">
-                                        <td name="lastupdate">lastupdate</td>
+                                    <tbody name="zonelist">
+                                    <tr name="zone">
                                         <td name="id">#</td>
-                                        <td name="name">Ultimo aggiornamento</td>
-                                        <td name="timerange">timerange</td>
-                                        <td name="start">timerange</td>
-                                        <td name="end">Temperatura</td>
-                                        <td name="temperature">Temperatura</td>
-                                        <td name="sensor">status</td>
+                                        <td name="name">#</td>
+                                        <td name="status">#</td>
+                                        <td name="command">
+                                            <button type="button" name="statusbutton" class="btn btn-sm btn-primary">
+                                                attiva
+                                            </button>
+                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -390,11 +394,9 @@
 
                 </div>
             </div>
-            <!-- /. ROW ACTIVE PROGRAM  -->
+            <!-- /. ROW  ZONES-->
 
         </div>
-
-
     </div>
     <!-- /. PAGE INNER  -->
 </div>
@@ -418,12 +420,7 @@
 <script src="assets/js/dashboard.js"></script>
 
 <script>
-
     $(document).ready(load);
-
-
 </script>
-
-
 </body>
 </html>

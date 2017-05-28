@@ -19,8 +19,8 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
     private int timeInterval;
     private double temperature;
 
-    public KeepTemperatureProgramInstructions(int id, String type, int actuatorid, double targetValue, int zoneId) {
-        super(id, type, actuatorid, targetValue, zoneId,0);
+    public KeepTemperatureProgramInstructions(int id, String name, String type, int actuatorid, double targetValue, int zoneId) {
+        super(id, name, type, actuatorid, targetValue, zoneId,0);
 
         targetTemperature = targetValue;
 

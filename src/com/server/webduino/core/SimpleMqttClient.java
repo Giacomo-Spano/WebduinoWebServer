@@ -95,7 +95,8 @@ public class SimpleMqttClient implements MqttCallback {
 
 
             if(!Core.isProduction())
-                myClient = new MqttClient("tcp://192.168.1.3:1883", clientID, dataStore);
+                //myClient = new MqttClient("tcp://192.168.1.3:1883", clientID, dataStore);
+                myClient = new MqttClient("tcp://localhost:1883", clientID, dataStore);
             else
                 myClient = new MqttClient("tcp://192.168.1.41:1883", clientID, dataStore);
             //myClient = new MqttClient(BROKER_URL, clientID, dataStore);

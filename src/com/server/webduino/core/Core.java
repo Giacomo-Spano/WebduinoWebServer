@@ -114,7 +114,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static boolean isProduction() {
 
         String tmpDir = System.getProperty("java.io.tmpdir");
-        if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp"))
+        if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp")  ||
+                tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 7.0\\temp"))
             return false;
         else
             return true;
@@ -134,6 +135,43 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         JSONArray jsonArray = new JSONArray();
         for(Scenario scenario : scenarios) {
             jsonArray.put(scenario.toJSON());
+        }
+        return jsonArray;
+    }
+
+    public JSONArray getTimeIntervalsJSONArray(int id) {
+        JSONArray jsonArray = new JSONArray();
+        Scenario.ScenarioCalendar calendar = getScenarioFromId(id).calendar;
+        for(ScenarioTimeInterval timeinterval : calendar.timeIntervals) {
+            jsonArray.put(timeinterval.toJson());
+        }
+        return jsonArray;
+    }
+
+    public static Scenario getScenarioFromId(int id) {
+        for (Scenario scenario : scenarios) {
+            if (scenario.id == id) {
+                return scenario;
+            }
+        }
+        return null;
+    }
+
+    public static List<ProgramInstructions> getProgramInstructions(int timeintervalid) {
+        for (Scenario scenario : scenarios) {
+            for (ScenarioTimeInterval timeInterval: scenario.calendar.timeIntervals) {
+                if (timeInterval.id == timeintervalid) {
+                    return timeInterval.programInstructionsList;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static JSONArray getZonesJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for(Zone zone : zones) {
+            jsonArray.put(zone.toJSON());
         }
         return jsonArray;
     }
@@ -337,10 +375,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 scenario.name = rs.getString("name");
                 scenario.calendar.setDateEnabled(rs.getBoolean("dateenabled"));
                 scenario.calendar.setStartDate(rs.getDate("startdate"));
-                scenario.calendar.setStartTime(rs.getTime("starttime"));
                 scenario.calendar.setEndDate(rs.getDate("enddate"));
-                scenario.calendar.setEndTime(rs.getTime("endtime"));
-
 
                 Statement stmt2 = conn.createStatement();
                 String sql2 = "SELECT * FROM scenarios_timeintervals WHERE scenarioid=" + scenario.id + " ORDER BY priority ASC";
@@ -367,7 +402,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     scenario.calendar.addTimeIntervals(timeInterval);
 
                     Statement stmt3 = conn.createStatement();
-                    String sql3 = "SELECT * FROM program_instructions WHERE scenarioid=" + scenario.id + " ;";
+                    String sql3 = "SELECT * FROM program_instructions WHERE timeintervalid=" + timeInterval.id + " ;";
                     ResultSet rs3 = stmt3.executeQuery(sql3);
 
                     ProgramInstructionsFactory factory = new ProgramInstructionsFactory();
@@ -375,6 +410,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
                         int id = rs3.getInt("id");
                         String type = rs3.getString("type");
+                        String name = rs3.getString("name");
                         int actuatorid = rs3.getInt("actuatorid");
                         float targetValue = rs3.getFloat("targetvalue");
                         int zoneId = rs3.getInt("zoneid");
@@ -387,7 +423,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                             seconds = cal.get(Calendar.SECOND);
                         }
                         //ZoneProgram zoneProgram = factory.createZoneProgram(programId,programName,type,cal.get(Calendar.SECOND));
-                        ProgramInstructions programInstructions = factory.createProgramInstructions(id, type, actuatorid, targetValue, zoneId, seconds);
+                        ProgramInstructions programInstructions = factory.createProgramInstructions(id, name, type, actuatorid, targetValue, zoneId, seconds);
                         if (programInstructions != null) {
                             timeInterval.programInstructionsList.add(programInstructions);
                         }

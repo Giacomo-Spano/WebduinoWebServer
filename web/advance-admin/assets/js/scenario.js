@@ -1,7 +1,7 @@
 var systemServletPath = "../system";
-var $scenariosPanel;
+var $scenarioPanel;
 var $timeintervalRow;
-var $scenarioId = 0;
+
 
 function commanCallback(element, actuator) {
     //element.find('td[name="status"]').text(actuator.status + 'modificato');
@@ -34,27 +34,27 @@ function sendSensorCommand(commandJson, element) {
 
 function loadScenario(id) {
 
-    var tbody = $scenariosPanel.find('tbody[name="timeintervallist"]');
+    var tbody = $scenarioPanel.find('tbody[name="timeintervallist"]');
 
 
 
     $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (data) {
 
-        $scenariosPanel.find('h4[id="name"]')[0].innerHTML = data.name;
-        $scenariosPanel.find('span[id="id"]')[0].innerHTML = data.id;
+        $scenarioPanel.find('h4[id="name"]')[0].innerHTML = data.name;
+        $scenarioPanel.find('span[id="id"]')[0].innerHTML = data.id;
         if (data.active)
-            $scenariosPanel.find('span[id="status"]')[0].innerHTML = "Attivo";
+            $scenarioPanel.find('span[id="status"]')[0].innerHTML = "Attivo";
         else
-            $scenariosPanel.find('span[id="status"]')[0].innerHTML = "Non attivo";
+            $scenarioPanel.find('span[id="status"]')[0].innerHTML = "Non attivo";
         if (data.dateenabled) {
             if (data.startdate)
-                $scenariosPanel.find('span[id="startdate"]')[0].innerHTML = data.startdate;
+                $scenarioPanel.find('span[id="startdate"]')[0].innerHTML = data.startdate;
             else
-                $scenariosPanel.find('span[id="startdate"]')[0].innerHTML = "--";
+                $scenarioPanel.find('span[id="startdate"]')[0].innerHTML = "--";
             if (data.startdate)
-                $scenariosPanel.find('span[id="enddate"]')[0].innerHTML = data.enddate;
+                $scenarioPanel.find('span[id="enddate"]')[0].innerHTML = data.enddate;
             else
-                $scenariosPanel.find('span[id="endtdate"]')[0].innerHTML = "--";
+                $scenarioPanel.find('span[id="endtdate"]')[0].innerHTML = "--";
 
         }
 
@@ -95,8 +95,8 @@ function load() {
 
     var id = getUrlVars()["id"];
 
-    $scenariosPanel = $(this).find('div[id="scenariopanel"]');
-    $timeintervalRow = $scenariosPanel.find('tr[name="timeinterval"]');
+    $scenarioPanel = $(this).find('div[id="scenariopanel"]');
+    $timeintervalRow = $scenarioPanel.find('tr[name="timeinterval"]');
 
     loadScenario(id);
 }

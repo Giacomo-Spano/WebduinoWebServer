@@ -1,0 +1,106 @@
+<form name="myForm2" data-detect="true">
+
+    <label for="myForm">Form</label>
+
+    <div id="settingspanel" class="row">
+        <div class="col-md-12">
+
+            <div class="panel panel-default">
+                <div class="panel-heading">Impostazioni</div>
+                <div class="panel-body">
+
+                    <p>
+                        <strong>ShieldID: </strong><input type='number' id='shieldid' name='shieldid'
+                                                          value='0' min='1' max='9999' disabled><BR>
+                        <strong>Local Port: </strong><input type='number' id='localport'
+                                                            name='localport' value='80' step='1' min='1'
+                                                            max='9999'><BR>
+                        <strong>Shield name: </strong><input type='text' id='shieldname'
+                                                             name='shieldname' value='shieldname'
+                                                             size='29' maxlength='29'><BR>
+                        <strong>Server name: </strong><input type='text' id='server'
+                                                             name='server' value='Server name'
+                                                             size='29' maxlength='29'><BR>
+                        <strong>Server Port: </strong><input type='number' id='serverport'
+                                                             name='serverport' value='8080' step='1'
+                                                             min='1' max='9999'><BR>
+                        <strong>MQTT Server: </strong><input type='text' id='mqttserver'
+                                                             name='mqttserver' value='mqttserver'
+                                                             size='29' maxlength='29'><BR>
+                        <strong>MQTT Port: </strong><input type='number' id='mqttport'
+                                                           name='mqttport' value='8080' step='1'
+                                                           min='1' max='9999'><BR>
+                    </p>
+
+                    <fieldset name="myLibrary">
+
+                        <div class="table-responsive">
+                            <table id="tbl" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>id</th>
+                                    <th>Nome</th>
+                                    <th>Stato</th>
+                                    <th>Comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="scenariolist">
+
+                                <fieldset name="scenarios">
+                                    <fieldset name="scenario">
+                                        <tr name="scenario">
+                                            <td name="id"><input type='number' id='shieldid' name='shieldid'
+                                                                 value='0' min='1' max='9999' disabled></td>
+                                            <td name="name"><input type='text' id='server'
+                                                                   name='server' value='Server name'
+                                                                   size='29' maxlength='29'></td>
+                                            <td name="status"><input type='number' id='localport'
+                                                                     name='localport' value='80' step='1' min='1'
+                                                                     max='9999'></td>
+                                            <td name="command">
+                                                <button type="button" name="statusbutton"
+                                                        class="btn btn-sm btn-primary">
+                                                    attiva
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </fieldset>
+
+                                    <fieldset name="scenario">
+                                        <tr name="scenario">
+                                            <td name="id">id</td>
+                                            <td name="name">name</td>
+                                            <td name="status">status</td>
+                                            <td name="command">
+                                                <button type="button" name="statusbutton"
+                                                        class="btn btn-sm btn-primary">
+                                                    attiva
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </fieldset>
+
+                                    <fieldset name="scenario">
+                                        <tr name="scenario">
+                                            <td name="id">id</td>
+                                            <td name="name">name</td>
+                                            <td name="status">status</td>
+                                            <td name="command">
+                                                <button type="button" name="statusbutton"
+                                                        class="btn btn-sm btn-primary">
+                                                    attiva
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </fieldset>
+                                </fieldset>
+                                </tbody>
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="submit" value="Submit meaa!">
+</form>

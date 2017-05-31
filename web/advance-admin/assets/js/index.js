@@ -27,6 +27,9 @@ function deactivatemenuitems() {
 
 function load() {
 
+    //var myJSONForm =  $('form[id="prova"]');
+    //var ret = myJSONForm.toJSON();
+
     $('a[id="item_home"]').click(function () {
         deactivatemenuitems();
         $('a[id="item_home"]').attr("class", "active-menu");
@@ -325,3 +328,33 @@ function setInstructionElement(element, instruction) {
     element.find('td[name="zoneid"]').text(instruction.zoneid + "(" + instruction.zonename + ")");
     element.find('td[name="seconds"]').text(instruction.seconds);
 }
+
+$.fn.toJSO = function () {
+    var obj = {},
+        $kids = $(this).children('[name]');
+    if (!$kids.length) {
+        return $(this).val();
+    }
+    $kids.each(function () {
+        var $el = $(this),
+            name = $el.attr('name');
+        if ($el.siblings("[name=" + name + "]").length) {
+            if (!/radio|checkbox/i.test($el.attr('type')) || $el.prop('checked')) {
+                obj[name] = obj[name] || [];
+                obj[name].push($el.toJSO());
+            }
+        } else {
+            obj[name] = $el.toJSO();
+        }
+    });
+    return obj;
+};
+
+var func = function(obj){
+    console.log( JSON.stringify( obj ) );
+};
+$("input[type='submit']").click(function () {
+    func($("form").toJSO());
+    func($("form").serialize());
+    return false;
+});

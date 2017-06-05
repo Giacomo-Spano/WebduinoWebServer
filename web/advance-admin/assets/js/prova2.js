@@ -7,19 +7,19 @@ var page;
 function load() {
 
     loadForm("prova4.html", function (/*json*/) {
-        //$("#result").find("label").after( "<strong>id: </strong><input name='id' value='1' placeholder='id'/>" );
-        //var fieldset = $("#result").find("label").after( "<fieldset name='sensors'><legend>sensor</legend><input name='id' value='1' placeholder='id'/></fieldset>" );
-        addTextInput("id", "id");
-        addTextInput("name", "name");
-        var fieldset = createSubitem("sensors","sensor");
-        addSubitemTextInput(fieldset, "sid", "ssid");
-        addSubitemTextInput(fieldset, "sname", "ssname");
+        addTextInput("id", "id", "Id");
+        addTextInput("name", "name", "Nome");
 
-        var fieldset = createSubitem("sensors","sensor2");
-        addSubitemTextInput(fieldset, "sid", "ssid2");
-        addSubitemTextInput(fieldset, "sname", "ssname2");
+        createSubitem("sensors","sensor", "sensore 1");
+        addSubitemTextInput("sensors", "id", "ssid", "Id");
+        addSubitemTextInput("sensors", "name", "ssname", "Nome");
+        addSubitemInputButton("sensors");
+
+        createSubitem("sensors","sensor2", "sensore 2");
+        addSubitemTextInput("sensors", "id", "ssid","Id");
+        addSubitemTextInput("sensors", "name", "ssname2", "Nome");
+        addSubitemInputButton("sensors");
     });
-
 }
 
 function loadForm(htmlpage, func) {
@@ -32,8 +32,6 @@ function loadForm(htmlpage, func) {
             var txt = JSON.stringify( jso )
             var ser = $("form").serialize();
             var txt = JSON.stringify( ser )
-            
-
             return false;
         });
         func(/*txt*/);
@@ -41,22 +39,30 @@ function loadForm(htmlpage, func) {
 
 }
 
-function addTextInput(key, val) {
-    $("#result").find("label").after( "<strong>id: </strong><input name="+key+" value="+val+" placeholder="+key+"/>" );
+function addTextInput(key, val, legend) {
+    $("#result").find("label").after( "<strong>"+legend+"</strong><input name="+key+" value="+val+" placeholder="+key+"/>" );
 }
 
-function createSubitem(key, val)  {
-    var fieldset = $("#result").find("label").after( "<fieldset name="+key+"><legend>"+val"+</legend><input name="+subkey+" value="+val+" placeholder="+subkey+"/></fieldset>" );
-    return fieldset;
+function createSubitem(key, val, legend)  {
+    $("#result").find('input[name="submit"]').before( "<fieldset name="+key+"><legend>"+legend+"</legend></fieldset>" );
 }
 
-function addSubitemTextInput(fieldset, subkey, val)  {
-    fieldset.add( "<input name="+subkey+" value="+val+" placeholder="+subkey+"/>" );
+function addSubitemTextInput(key, subkey, val, legend)  {
+
+    prova = $("#result").find('fieldset[name="' + key  + '"]');
+    prova[prova.length-1].innerHTML += " <strong>"+legend+"</strong><input name="+subkey+" value="+val+" placeholder="+key+"/>"
 }
 
-/*function addSubitemTextInput(key, subkey, val)  {
-    var fieldset = $("#result").find("label").after( "<fieldset name="+key+"><legend>sensor</legend><input name="+subkey+" value="+val+" placeholder="+subkey+"/></fieldset>" );
-}*/
+function addSubitemInputButton(key)  {
+
+    prova = $("#result").find('fieldset[name="' + key  + '"]');
+    button = "<input type='button' value='add' >";
+    prova[prova.length-1].innerHTML += button;
+    //button.click(function () {
+
+
+   //});
+}
 
 $.fn.toJSO = function () {
     var obj = {},
@@ -67,13 +73,15 @@ $.fn.toJSO = function () {
     $kids.each(function () {
         var $el = $(this),
             name = $el.attr('name');
-        if ($el.siblings("[name=" + name + "]").length) {
-            if (!/radio|checkbox/i.test($el.attr('type')) || $el.prop('checked')) {
-                obj[name] = obj[name] || [];
-                obj[name].push($el.toJSO());
+        if (name != 'submit') {
+            if ($el.siblings("[name=" + name + "]").length) {
+                if (!/radio|checkbox/i.test($el.attr('type')) || $el.prop('checked')) {
+                    obj[name] = obj[name] || [];
+                    obj[name].push($el.toJSO());
+                }
+            } else {
+                obj[name] = $el.toJSO();
             }
-        } else {
-            obj[name] = $el.toJSO();
         }
     });
     return obj;

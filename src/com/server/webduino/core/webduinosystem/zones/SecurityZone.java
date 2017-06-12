@@ -13,8 +13,8 @@ public class SecurityZone extends Zone implements SensorBase.SensorListener {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
 
-    public SecurityZone(int id, String name) {
-        super(id, name);
+    public SecurityZone(int id, String name, String type) {
+        super(id, name, type);
     }
 
 

@@ -8,9 +8,9 @@ public class ZoneFactory {
     public Zone createWebduinoZone(int id, String name, String type) {
         Zone zone = null;
         if (type.equals("securityzone")) {
-            zone = new SecurityZone(id,name);
+            zone = new SecurityZone(id,name,type);
         } else if (type.equals("heaterzone")) {
-            zone = new HeaterZone(id,name);
+            zone = new HeaterZone(id,name,type);
         }
         if (zone != null) {
             zone.init();

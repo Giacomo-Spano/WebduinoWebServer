@@ -1,14 +1,18 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.sql.Time;
+
+
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
+//import java.Time;
 /**
  * Created by Giacomo Span� on 07/11/2015.
  */
@@ -18,8 +22,8 @@ public class ScenarioTimeInterval {
     public int scenarioId = 0;
     boolean active;
     public String name;
-    public Time startTime;
-    public Time endTime;
+    public Date startTime;
+    public Date endTime;
 
     public boolean sunday;
     public boolean monday;
@@ -29,34 +33,21 @@ public class ScenarioTimeInterval {
     public boolean friday;
     public boolean saturday;
 
-    public List<ProgramInstructions> programInstructionsList = new ArrayList<>();
+    //public List<ProgramInstructions> programInstructionsList = new ArrayList<>();
 
-    public int priority;
+    //public int priority;
 
     public ScenarioTimeInterval() {
+    }
+
+    public ScenarioTimeInterval(JSONObject json) {
+        fromJson(json);
     }
 
     public boolean isActive() {
         return active;
     }
 
-    /*public ScenarioTimeInterval(int id, String name, Time endTime, int programInstructions, boolean active) {
-        this.id = id;
-        this.name = name;
-        //this.startTime = startTime;
-        this.endTime = endTime;
-        this.programInstructions = programInstructions;
-        this.active = active;
-    }
-
-    public ScenarioTimeInterval(ScenarioTimeInterval tr) {
-        //this.ID = tr.ID;
-        this.name = tr.name;
-        this.endTime = tr.endTime;
-        this.programInstructions = tr.programInstructions;
-        //this. = tr.sensorId;
-        this.active = active;
-    }*/
     public void setSunday(boolean sunday) {
         this.sunday = sunday;
     }
@@ -85,9 +76,9 @@ public class ScenarioTimeInterval {
         this.saturday = saturday;
     }
 
-    public void setPriority(int priority) {
+    /*public void setPriority(int priority) {
         this.priority = priority;
-    }
+    }*/
 
     public JSONObject toJson() {
 
@@ -109,7 +100,7 @@ public class ScenarioTimeInterval {
             json.put("thursday", thursday);
             json.put("friday", friday);
             json.put("saturday", saturday);
-            json.put("priority", priority);
+            //json.put("priority", priority);
 
             return json;
         } catch (JSONException e) {
@@ -117,4 +108,41 @@ public class ScenarioTimeInterval {
         }
         return null;
     }
+
+    public boolean fromJson(JSONObject json) {
+
+        try {
+            if (json.has("id")) {
+                id = json.getInt("id");
+            }
+            if (json.has("name")) {
+                name = json.getString("name");
+            }
+            if (json.has("starttime")) {
+                String time = json.getString("starttime");
+                SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+                try {
+                    startTime = df.parse(time);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (json.has("endtime")) {
+                String time = json.getString("endtime");
+                SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+                try {
+                    endTime = df.parse(time);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return true;
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

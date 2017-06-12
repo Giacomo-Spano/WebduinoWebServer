@@ -13,8 +13,8 @@ public class HeaterZone extends Zone implements SensorBase.SensorListener {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
 
-    public HeaterZone(int id, String name) {
-        super(id, name);
+    public HeaterZone(int id, String name, String type) {
+        super(id, name, type);
     }
 
 

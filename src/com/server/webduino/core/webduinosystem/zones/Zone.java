@@ -30,14 +30,96 @@ public class Zone implements SensorBase.SensorListener {
 
     private int id;
     private String name;
+    private String type;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
 
     private double temperature = 0.0;
 
-    public Zone(int id, String name) {
+    public Zone(int id, String name, String type) {
         this.id = id;
         this.name = name;
+        this.type = type;
         readZoneSensors(id);
+    }
+
+    public Zone(JSONObject json) {
+        fromJson(json);
+    }
+
+    public boolean fromJson(JSONObject json) {
+
+        try {
+            if (json.has("id"))
+                id = json.getInt("id");
+            if (json.has("name"))
+                name = json.getString("name");
+            if (json.has("type"))
+                type = json.getString("type");
+            if (json.has("zonesensors")) {
+                JSONArray sensors = json.getJSONArray("zonesensors");
+                for (int i = 0; i < sensors.length(); i++) {
+                    JSONObject jsonObject = sensors.getJSONObject(i);
+                    ZoneSensor zoneSensor = new ZoneSensor();
+                    if (jsonObject.has("id"))
+                        zoneSensor.id = jsonObject.getInt("id");
+                    if (jsonObject.has("name"))
+                        zoneSensor.name = jsonObject.getString("name");
+                    if (jsonObject.has("sensorid"))
+                        zoneSensor.setSensorId(jsonObject.getInt("sensorid"));
+                    zoneSensors.add(zoneSensor);
+                }
+            }
+
+            return true;
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean write() {
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = null;
+
+            stmt = conn.createStatement();
+            String sql = "INSERT INTO zones (id, name, type)" +
+                    " VALUES ("
+                    + id + ","
+                    + "\"" + name + "\","
+                    + "\"" + type + "\" ) " +
+                    "ON DUPLICATE KEY UPDATE "
+                    + "name=\"" + name + "\","
+                    + "type=\"" + type + "\";";
+            stmt.executeUpdate(sql);
+            stmt.close();
+
+            for (ZoneSensor sensor : zoneSensors) {
+                stmt = conn.createStatement();
+                sql = "INSERT INTO zonesensors (id, sensorid, zoneid, name)" +
+                        " VALUES ("
+                        + sensor.id + ","
+                        + sensor.getSensorId() + ","
+                        + id + "," //zoneid
+                        + "\"" + sensor.name + "\" ) " +
+                        "ON DUPLICATE KEY UPDATE "
+                        + "sensorid=" + sensor.id + ","
+                        + "zoneid=" + id + ","
+                        + "sensorid=" + sensor.getSensorId() + ";";
+
+                stmt.executeUpdate(sql);
+                stmt.close();
+            }
+            return true;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public int getId() {
@@ -109,17 +191,18 @@ public class Zone implements SensorBase.SensorListener {
             Statement stmt = conn.createStatement();
             String sql;
             sql = "SELECT * FROM zonesensors WHERE zoneid=" + zoneid;
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet zoneSensorResultSet = stmt.executeQuery(sql);
             zoneSensors.clear();
-            while (rs.next()) {
+            while (zoneSensorResultSet.next()) {
                 ZoneSensor zoneSensor = new ZoneSensor();
-                zoneSensor.setId(rs.getInt("id"));
-                zoneSensor.setSensorId(rs.getInt("sensorid"));
+                zoneSensor.setId(zoneSensorResultSet.getInt("id"));
+                zoneSensor.setSensorId(zoneSensorResultSet.getInt("sensorid"));
+                zoneSensor.name = zoneSensorResultSet.getString("name");
                 zoneSensors.add(zoneSensor);
             }
-            rs.close();
+            zoneSensorResultSet.close();
             stmt.close();
-            rs.close();
+            zoneSensorResultSet.close();
             stmt.close();
             conn.close();
         } catch (SQLException se) {

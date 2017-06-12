@@ -131,6 +131,15 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return null;
     }
 
+    public static JSONArray getSensorsJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for (SensorBase sensor : mShields.getLastSensorData()) {
+            JSONObject json = sensor.getJson();
+            jsonArray.put(json);
+        }
+        return jsonArray;
+    }
+
     public static JSONArray getScenariosJSONArray() {
         JSONArray jsonArray = new JSONArray();
         for(Scenario scenario : scenarios) {
@@ -157,12 +166,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return null;
     }
 
-    public static List<ProgramInstructions> getProgramInstructions(int timeintervalid) {
+    public static List<ProgramInstructions> getProgramInstructions(int scenarioid) {
         for (Scenario scenario : scenarios) {
-            for (ScenarioTimeInterval timeInterval: scenario.calendar.timeIntervals) {
-                if (timeInterval.id == timeintervalid) {
-                    return timeInterval.programInstructionsList;
-                }
+            if (scenario.id == scenarioid) {
+                    return scenario.programInstructions;
             }
         }
         return null;
@@ -236,20 +243,20 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             Statement stmt = conn.createStatement();
             String sql;
             sql = "SELECT * FROM zones";//" WHERE systemid=" + systemid;
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet zonesResultSet = stmt.executeQuery(sql);
             // Extract data from result set
             zones.clear();
-            while (rs.next()) {
+            while (zonesResultSet.next()) {
                 ZoneFactory factory = new ZoneFactory();
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                String type = rs.getString("type");
+                int id = zonesResultSet.getInt("id");
+                String name = zonesResultSet.getString("name");
+                String type = zonesResultSet.getString("type");
                 Zone zone = factory.createWebduinoZone(id, name, type);
                 if (zone != null)
                     zones.add(zone);
             }
             // Clean-up environment
-            rs.close();
+            zonesResultSet.close();
             stmt.close();
 
             //schedule = new Schedule();
@@ -358,6 +365,18 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         }
     }
 
+    static public boolean saveScenario(JSONObject json) {
+        Scenario scenario = new Scenario(json);
+        scenario.write();
+        return true;
+    }
+
+    static public boolean saveZone(JSONObject json) {
+        Zone zone = new Zone(json);
+        zone.write();
+        return true;
+    }
+
     private void readScenarios() {
         LOGGER.info("readScenarios");
         try {
@@ -367,76 +386,83 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             Statement stmt = conn.createStatement();
             String sql;
             sql = "SELECT * FROM scenarios" + " ORDER BY priority ASC;";;
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet scenariosResultSet = stmt.executeQuery(sql);
             scenarios = new ArrayList<>();
-            while (rs.next()) {
+            while (scenariosResultSet.next()) {
                 Scenario scenario = new Scenario();
-                scenario.id = rs.getInt("id");
-                scenario.name = rs.getString("name");
-                scenario.calendar.setDateEnabled(rs.getBoolean("dateenabled"));
-                scenario.calendar.setStartDate(rs.getDate("startdate"));
-                scenario.calendar.setEndDate(rs.getDate("enddate"));
+                scenario.id = scenariosResultSet.getInt("id");
+                scenario.name = scenariosResultSet.getString("name");
+                scenario.calendar.setDateEnabled(scenariosResultSet.getBoolean("dateenabled"));
+                Date startdate = scenariosResultSet.getTimestamp("startdate");
+                scenario.calendar.setStartDate(startdate);
+                Date enddate = scenariosResultSet.getTimestamp("enddate");
+                scenario.calendar.setEndDate(enddate);
 
                 Statement stmt2 = conn.createStatement();
-                String sql2 = "SELECT * FROM scenarios_timeintervals WHERE scenarioid=" + scenario.id + " ORDER BY priority ASC";
-                ResultSet rs2 = stmt2.executeQuery(sql2);
-                while (rs2.next()) {
+                String sql2 = "SELECT * FROM scenarios_timeintervals WHERE scenarioid=" + scenario.id;
+                ResultSet timeintervalsResultSet = stmt2.executeQuery(sql2);
+                while (timeintervalsResultSet.next()) {
                     ScenarioTimeInterval timeInterval = new ScenarioTimeInterval();
-                    timeInterval.id = rs2.getInt("id");
-                    timeInterval.scenarioId = rs2.getInt("scenarioid");
-                    timeInterval.name = rs2.getString("name");
-                    timeInterval.startTime = rs2.getTime("starttime");
-                    timeInterval.endTime = rs2.getTime("endtime");
+                    timeInterval.id = timeintervalsResultSet.getInt("id");
+                    timeInterval.scenarioId = timeintervalsResultSet.getInt("scenarioid");
+                    timeInterval.name = timeintervalsResultSet.getString("name");
+                    timeInterval.startTime = timeintervalsResultSet.getTime("starttime");
+                    timeInterval.endTime = timeintervalsResultSet.getTime("endtime");
 
-                    timeInterval.setSunday(rs2.getBoolean("sunday"));
-                    timeInterval.setMonday(rs2.getBoolean("monday"));
-                    timeInterval.setTuesday(rs2.getBoolean("tuesday"));
-                    timeInterval.setWednesday(rs2.getBoolean("wednesday"));
-                    timeInterval.setThursday(rs2.getBoolean("thursday"));
-                    timeInterval.setFriday(rs2.getBoolean("friday"));
-                    timeInterval.setSaturday(rs2.getBoolean("saturday"));
-                    timeInterval.setPriority(rs2.getInt("priority"));
-
-                    //timeInterval.programInstructions = rs2.getInt("programinstructionsid");
-                    timeInterval.priority = rs2.getInt("priority");
+                    timeInterval.setSunday(timeintervalsResultSet.getBoolean("sunday"));
+                    timeInterval.setMonday(timeintervalsResultSet.getBoolean("monday"));
+                    timeInterval.setTuesday(timeintervalsResultSet.getBoolean("tuesday"));
+                    timeInterval.setWednesday(timeintervalsResultSet.getBoolean("wednesday"));
+                    timeInterval.setThursday(timeintervalsResultSet.getBoolean("thursday"));
+                    timeInterval.setFriday(timeintervalsResultSet.getBoolean("friday"));
+                    timeInterval.setSaturday(timeintervalsResultSet.getBoolean("saturday"));
                     scenario.calendar.addTimeIntervals(timeInterval);
-
-                    Statement stmt3 = conn.createStatement();
-                    String sql3 = "SELECT * FROM program_instructions WHERE timeintervalid=" + timeInterval.id + " ;";
-                    ResultSet rs3 = stmt3.executeQuery(sql3);
-
-                    ProgramInstructionsFactory factory = new ProgramInstructionsFactory();
-                    while (rs3.next()) {
-
-                        int id = rs3.getInt("id");
-                        String type = rs3.getString("type");
-                        String name = rs3.getString("name");
-                        int actuatorid = rs3.getInt("actuatorid");
-                        float targetValue = rs3.getFloat("targetvalue");
-                        int zoneId = rs3.getInt("zoneid");
-
-                        int seconds = 0;
-                        Time time = rs3.getTime("time");
-                        if (time != null) {
-                            Calendar cal = Calendar.getInstance();
-                            cal.setTime(time);
-                            seconds = cal.get(Calendar.SECOND);
-                        }
-                        //ZoneProgram zoneProgram = factory.createZoneProgram(programId,programName,type,cal.get(Calendar.SECOND));
-                        ProgramInstructions programInstructions = factory.createProgramInstructions(id, name, type, actuatorid, targetValue, zoneId, seconds);
-                        if (programInstructions != null) {
-                            timeInterval.programInstructionsList.add(programInstructions);
-                        }
-                    }
-                    rs3.close();
-                    stmt3.close();
                 }
-                rs2.close();
+                timeintervalsResultSet.close();
                 stmt2.close();
 
+                Statement stmt3 = conn.createStatement();
+                String sql3 = "SELECT * FROM program_instructions WHERE scenarioid=" + scenario.id + " ;";
+                ResultSet instructionsResultset = stmt3.executeQuery(sql3);
+                ProgramInstructionsFactory factory = new ProgramInstructionsFactory();
+                while (instructionsResultset.next()) {
+
+                    int id = instructionsResultset.getInt("id");
+                    String type = instructionsResultset.getString("type");
+                    String name = instructionsResultset.getString("name");
+                    int actuatorid = instructionsResultset.getInt("actuatorid");
+                    float targetValue = instructionsResultset.getFloat("targetvalue");
+                    int zoneId = instructionsResultset.getInt("zoneid");
+                    int seconds = 0;
+                    Time time = instructionsResultset.getTime("time");
+                    if (time != null) {
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(time);
+                        seconds = cal.get(Calendar.SECOND);
+                    }
+                    Boolean schedule = instructionsResultset.getBoolean("schedule");
+                    Date startTime = instructionsResultset.getTimestamp("starttime");
+                    Date endTime = instructionsResultset.getTimestamp("endtime");
+                    Boolean sunday = instructionsResultset.getBoolean("sunday");
+                    Boolean monday = instructionsResultset.getBoolean("monday");
+                    Boolean tuesday = instructionsResultset.getBoolean("tuesday");
+                    Boolean wednesday = instructionsResultset.getBoolean("wednesday");
+                    Boolean thursday = instructionsResultset.getBoolean("thursday");
+                    Boolean friday = instructionsResultset.getBoolean("friday");
+                    Boolean saturday = instructionsResultset.getBoolean("saturday");
+                    int priority = instructionsResultset.getInt("priority");
+
+                    ProgramInstructions programInstructions = factory.createProgramInstructions(id, scenario.id, name, type, actuatorid, targetValue, zoneId, seconds,
+                            schedule, startTime,endTime,sunday,monday,tuesday,wednesday,thursday,friday,saturday,priority);
+                    if (programInstructions != null) {
+                        scenario.programInstructions.add(programInstructions);
+                    }
+                }
+                instructionsResultset.close();
+                stmt3.close();
                 scenarios.add(scenario);
             }
-            rs.close();
+            scenariosResultSet.close();
             stmt.close();
             conn.close();
         } catch (SQLException se) {
@@ -457,7 +483,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.getShields();
     }
 
-    public List<SensorBase> getLastSensorData() {
+    public static List<SensorBase> getLastSensorData() {
         return mShields.getLastSensorData();
     }
 

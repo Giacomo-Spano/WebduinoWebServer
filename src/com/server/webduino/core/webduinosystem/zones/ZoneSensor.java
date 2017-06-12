@@ -6,6 +6,7 @@ package com.server.webduino.core.webduinosystem.zones;
 public class ZoneSensor {
     int id;
     private int sensorId;
+    public String name;
 
     int getId() {
         return id;

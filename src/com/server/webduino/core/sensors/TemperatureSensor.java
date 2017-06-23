@@ -104,7 +104,7 @@ public class TemperatureSensor extends SensorBase {
     }
 
     @Override
-    public void getJSONField() {
+    public void getJSONField(JSONObject json) {
         try {
             json.put("temperature", getTemperature());
             json.put("avtemperature", getAvTemperature());

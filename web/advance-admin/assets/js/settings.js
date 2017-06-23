@@ -178,13 +178,13 @@ function save() {
 
     var sensorsJson = {
         'command': 'saveshieldsettings',
-        'shieldid': document.getElementById('shieldid'),
-        'localport': document.getElementById('localport'),
-        'shieldname': document.getElementById('shieldname'),
-        'server': document.getElementById('server'),
-        'serverport': document.getElementById('serverport'),
-        'mqttserver': document.getElementById('mqttserver'),
-        'mqttport': document.getElementById('mqttport'),
+        'shieldid': document.getElementById('shieldid').value,
+        'localport': document.getElementById('localport').value,
+        'shieldname': document.getElementById('shieldname').value,
+        'server': document.getElementById('server').value,
+        'serverport': document.getElementById('serverport').value,
+        'mqttserver': document.getElementById('mqttserver').value,
+        'mqttport': document.getElementById('mqttport').value,
         sensors: []
     };
 

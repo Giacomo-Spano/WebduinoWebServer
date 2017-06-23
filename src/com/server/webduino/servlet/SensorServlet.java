@@ -76,15 +76,19 @@ public class SensorServlet extends HttpServlet {
         out.print(jsonResponse.toString());
     }
 
-    private void updateShieldSensorsStatus(JSONObject jsonObj/*, URL url*/) throws JSONException {
+    private void updateShieldSensorsStatus(JSONObject jsonObj) throws JSONException {
         Date lastupdate = Core.getDate();
 
         if (jsonObj.has("shieldid")) {
             int shieldid = jsonObj.getInt("shieldid");
-            if (jsonObj.has("sensors")) {
+            /*if (jsonObj.has("swversion")) {
+
+            }*/
+            /*if (jsonObj.has("sensors")) {
                 JSONArray jsonArray = jsonObj.getJSONArray("sensors");
                 updateSensors(shieldid, lastupdate, jsonArray);
-            }
+            }*/
+            updateShieldStatus(shieldid, lastupdate, jsonObj);
         }
 
     }
@@ -93,8 +97,13 @@ public class SensorServlet extends HttpServlet {
 
         LOGGER.info("SensorServlet:updateSensor - start");
         new UpdateSensorsThread(getServletContext(), shieldid, lastupdate, jsonArray).start();
+        LOGGER.info("SensorServlet:updateSensor - end");
+    }
 
+    private void updateShieldStatus(int shieldid, Date lastupdate, JSONObject json) {
 
+        LOGGER.info("SensorServlet:updateSensor - start");
+        new UpdateShieldStatusThread(getServletContext(), shieldid, lastupdate, json).start();
         LOGGER.info("SensorServlet:updateSensor - end");
     }
 

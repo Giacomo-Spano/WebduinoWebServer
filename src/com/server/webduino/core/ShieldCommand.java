@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 public class ShieldCommand extends Command {
 
     private static final Logger LOGGER = Logger.getLogger(ShieldCommand.class.getName());
-    public String command;
-    public int shieldId;
+    //public String command;
+    //public int shieldId;
     public JSONArray sensors;
 
     public ShieldCommand(JSONObject json) {
@@ -26,7 +26,7 @@ public class ShieldCommand extends Command {
             if (json.has("command"))
                 command = json.getString("command");
             if (json.has("shieldid"))
-                shieldId = json.getInt("shieldid");
+                shieldid = json.getInt("shieldid");
             if (json.has("sensors"))
                 sensors = json.getJSONArray("sensors");
 
@@ -44,7 +44,7 @@ public class ShieldCommand extends Command {
         JSONObject json = new JSONObject();
         try {
             json.put("command", command);
-            json.put("shieldid", shieldId);
+            json.put("shieldid", shieldid);
             json.put("sensors", sensors);
             return json;
 

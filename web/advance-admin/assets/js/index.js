@@ -2,6 +2,7 @@
  * Created by giaco on 28/05/2017.
  */
 var systemServletPath = "../system";
+var shieldServletPath = "../shield";
 
 var $zonesPanel;
 var $zoneRow;
@@ -19,13 +20,18 @@ var $instructionsPanel;
 var $instructionRow;
 
 var $sensorsPanel;
-var $ssensorRow;
+var $sensorRow;
+
+var $shieldsPanel;
+var $shieldRow;
+
 
 function deactivatemenuitems() {
     $('a[id="item_home"]').attr("class", "");
     $('a[id="item_dashboard"]').attr("class", "");
     $('a[id="item_scenarios"]').attr("class", "");
     $('a[id="item_zones"]').attr("class", "");
+    $('a[id="item_shields"]').attr("class", "");
 }
 
 function load() {
@@ -57,6 +63,13 @@ function load() {
         deactivatemenuitems();
         $('a[id="item_zones"]').attr("class", "active-menu");
         loadZones();
+        return false;
+    });
+
+    $('a[id="item_shields"]').click(function () {
+        deactivatemenuitems();
+        $('a[id="item_shields"]').attr("class", "active-menu");
+        loadShields();
         return false;
     });
 
@@ -304,6 +317,32 @@ function setZoneSensorElement(element, sensor) {
 
 }
 
+// SHIELD
+function loadShields() {
+
+    $("#result").load("shields.html", function () {
+        $shieldsPanel = $(this).find('div[id="shieldspanel"]');
+        $shieldRow = $shieldsPanel.find('tr[name="shield"]');
+
+        var tbody = $shieldsPanel.find('tbody[name="shieldlist"]');
+        $.getJSON(systemServletPath + "?requestcommand=shields", function (data) {
+            tbody[0].innerHTML = "";
+            $.each(data, function (idx, elem) {
+                var newtr = $shieldRow.clone();
+                setShieldElement(newtr, elem);
+                tbody.append(newtr);
+            });
+        })
+            .done(function () {
+            })
+            .fail(function () {
+                alert("cannot load shields");
+            })
+            .always(function () {
+            });
+    });
+}
+
 function loadDashboard() {
 
     $("#result").load("dashboard.html", function () {
@@ -365,12 +404,14 @@ function setSensorElement(element, sensor) {
         element.find('td[name="onlinestatus"]').text("Online");
     else
         element.find('td[name="onlinestatus"]').text("Offline");
-    // last upodate
+    // last update
     element.find('td[name="date"]').text(sensor.lastupdate);
     // type
     element.find('td[name="type"]').text(sensor.type);
     //name
     element.find('td[name="name"]').text(sensor.name);
+    //pin
+    element.find('td[name="pin"]').text(sensor.pin);
     // subaddress
     element.find('td[name="subaddress"]').text(sensor.subaddress);
 
@@ -442,6 +483,61 @@ function setSensorElement(element, sensor) {
         element.find('td[name="status"]').text("undefined");
     }
 
+}
+
+function setShieldElement(element, shield) {
+
+    element.find('td[name="id"]').text(shield.shieldid);
+    element.find('td[name="name"]').text(shield.shieldname);
+    element.find('td[name="url"]').text(shield.url + ":" + shield.port);
+    element.find('td[name="MACAddress"]').text(shield.macaddress);
+    element.find('td[name="mqttserver"]').text(shield.mqttserver + ":" + shield.mqttport);
+    // last update
+    element.find('td[name="date"]').text(shield.lastupdate);
+    element.find('td[name="swversion"]').text(shield.swversion);
+
+
+    var restartButton = element.find('button[name="restartbutton"]');
+    restartButton.click(function () {
+
+        var command = 'reboot'
+        restartButton.text("sending" + command + " command...");
+        var commandJson = {
+            'shieldid': shield.shieldid,
+            //'actuatorid': shield.id,
+            'command': command,
+        };
+        sendShieldCommand(commandJson)
+    });
+
+
+    /*element.click(function () {
+        //loadShields(shield.id)
+    });*/
+}
+
+function sendShieldCommand(commandJson) {
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+
+            var json = JSON.parse(this.response);
+            /*if (json.answer = 'success') {
+
+             var actuator = JSON.parse(json.actuator);
+             commanCallback(element, actuator);
+             } else {
+             element.find('td[name="commandstatus"]').text("command failed");
+             }*/
+        }
+    };
+
+    xhttp.open("POST", shieldServletPath, true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    var str = JSON.stringify(commandJson);
+    //xhttp.send(commandJson.toString());
+    xhttp.send(str);
 }
 
 function setScenarioElement(element, scenario) {

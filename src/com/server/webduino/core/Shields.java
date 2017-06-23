@@ -70,6 +70,19 @@ public class Shields {
         return false;
     }
 
+    public boolean sendRestartCommand(JSONObject json) {
+        if (!json.has("shieldid"))
+            return false;
+        Shield shield = null;
+        try {
+            shield = fromId(json.getInt("shieldid"));
+            return shield.sendRestartCommand(json);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     interface ShieldsListener {
         void addedSensor(SensorBase sensor);
         void addedShield(Shield shield);
@@ -99,10 +112,12 @@ public class Shields {
         for (Shield shield : list) {
             for (SensorBase sensor : shield.sensors) {
                 sensorList.add(sensor);
+                for (SensorBase child: sensor.childSensors) {
+                    sensorList.add(child);
+                }
             }
         }
         return sensorList;
-
     }
 
     public String getSettingStatus(int shieldid) {
@@ -116,15 +131,19 @@ public class Shields {
     }
 
     boolean updateSettings(int shieldid, JSONObject json) {
-
         Shield shield = fromId(shieldid);
-
         return shield.updateSettings(json);
     }
 
     boolean updateShieldSensors(int shieldid, JSONArray jsonArray) {
         Shield shield = fromId(shieldid);
         return shield.updateSensors(jsonArray);
+    }
+
+
+    boolean updateShieldStatus(int shieldid, JSONObject json) {
+        Shield shield = fromId(shieldid);
+        return shield.updateShieldStatus(json);
     }
 
     // DA ELIMINARE

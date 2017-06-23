@@ -37,6 +37,8 @@ public class Shield extends httpClient {
     public String mqttserver;
     public int mqttport;
 
+    public String swVersion = "";
+
 
     private ShieldSettings settings = new ShieldSettings();
 
@@ -174,7 +176,8 @@ public class Shield extends httpClient {
         try {
             Date date = Core.getDate();
             lastUpdate = date;
-
+            if (json.has("swversion"))
+                swVersion = json.getString("swversion");
             if (json.has("MAC"))
                 MACAddress = json.getString("MAC");
             if (json.has("shieldName"))
@@ -295,10 +298,12 @@ public class Shield extends httpClient {
         JSONObject json = new JSONObject();
         try {
             json.put("shieldid", id);
-
+            json.put("lastupdate", Core.getStrLastUpdate(lastUpdate));
             json.put("port", port);
             if (boardName != null)
                 json.put("shieldname", boardName);
+            if (swVersion != null)
+                json.put("swversion", swVersion);
             if (server != null)
                 json.put("server", server);
             json.put("serverport", serverport);
@@ -306,7 +311,7 @@ public class Shield extends httpClient {
                 json.put("mqttserver", mqttserver);
             json.put("mqttport", mqttport);
             if (MACAddress != null)
-                json.put("macaddres", MACAddress);
+                json.put("macaddress", MACAddress);
             if (url != null)
                 json.put("url", url);
 
@@ -358,9 +363,31 @@ public class Shield extends httpClient {
         return null;
     }
 
+    boolean updateShieldStatus(JSONObject json) {
+        if (json.has("sensors")) {
+            JSONArray jsonArray = null;
+            try {
+                if (json.has("swversion")) {
+                    swVersion = json.getString("swversion");
+                }
+
+                jsonArray = json.getJSONArray("sensors");
+                updateSensors(jsonArray);
+                return true;
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+
     boolean updateSensors(JSONArray jsonArray) {
 
         Date date = Core.getDate();
+        this.lastUpdate = date;
+
         for (int i = 0; i < jsonArray.length(); i++) {
 
             try {
@@ -557,5 +584,10 @@ public class Shield extends httpClient {
         }
 
         return updatedShield;
+    }
+
+    public boolean sendRestartCommand(JSONObject json) {
+        return Core.publish("fromServer/shield/" + MACAddress + "/reboot", "");
+        //return false;
     }
 }

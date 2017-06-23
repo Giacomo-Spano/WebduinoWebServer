@@ -87,6 +87,12 @@ public class ShieldServlet extends HttpServlet {
                     handleSaveSettingEvent(json);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
+                } else  if (json.getString("command").equals("reboot") && json.has("shieldid")) {
+                    //sendRestartCommand(json);
+                    //response.setStatus(HttpServletResponse.SC_OK);
+                    ShieldCommand cmd = new ShieldCommand(json);
+                    String result = cmd.send();
+                    return;
                 } else if (json.getString("command").equals("teststart") || json.getString("command").equals("teststop")
                             || json.getString("command").equals("testopen") || json.getString("command").equals("testclose")) {
 
@@ -205,6 +211,10 @@ public class ShieldServlet extends HttpServlet {
     private boolean handleSaveSettingEvent(JSONObject json) {
 
         return saveShieldSettings(json);
+    }
+
+    private boolean sendRestartCommand(JSONObject json) {
+        return Core.sendRestartCommand(json);
     }
 
     private JSONObject loadShieldSettings(String MACAddress) {

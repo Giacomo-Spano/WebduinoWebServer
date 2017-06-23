@@ -71,7 +71,7 @@ public class HumiditySensor extends SensorBase {
         }
     }
 
-    @Override
+    /*@Override
     public JSONObject getJson() {
         JSONObject json = new JSONObject();
         try {
@@ -81,12 +81,21 @@ public class HumiditySensor extends SensorBase {
             json.put("subaddress", subaddress);
             json.put("current", humidity);
             json.put("name", getName());
-            json.put("lastupdate", getStrLastUpdate());
+            //json.put("lastupdate", getStrLastUpdate());
             json.put("type", type);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
+    }*/
+
+    @Override
+    public void getJSONField(JSONObject json) {
+        try {
+            json.put("motiondetected", humidity);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

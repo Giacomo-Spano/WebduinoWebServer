@@ -82,12 +82,17 @@ public class CurrentSensor extends SensorBase {
             json.put("subaddress", subaddress);
             json.put("current", getCurrent());
             json.put("name", getName());
-            json.put("lastupdate", getStrLastUpdate());
+            //json.put("lastupdate", getStrLastUpdate());
             json.put("type", type);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
+    }
+
+    @Override
+    public void getJSONField(JSONObject json) {
+
     }
 }

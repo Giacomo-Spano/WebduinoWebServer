@@ -81,7 +81,7 @@ public class PressureSensor extends SensorBase {
             json.put("subaddress", subaddress);
             json.put("current", pressure);
             json.put("name", getName());
-            json.put("lastupdate", getStrLastUpdate());
+            //json.put("lastupdate", getStrLastUpdate());
             json.put("type", type);
 
         } catch (JSONException e) {

@@ -53,6 +53,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     static SimpleMqttClient smc;
 
+    public static boolean sendRestartCommand(JSONObject json) {
+        return mShields.sendRestartCommand(json);
+    }
+
     public interface CoreListener {
         void onCommandResponse(String uuid, String response);
     }
@@ -491,6 +495,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.updateShieldSensors(shieldid, jsonArray);
     }
 
+    boolean updateShieldStatus(int shieldid, JSONObject json) {
+        return mShields.updateShieldStatus(shieldid, json);
+    }
+
     boolean updateSettings(int shieldid, JSONObject json) {
         return mShields.updateSettings(shieldid, json);
     }
@@ -586,6 +594,13 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return newDate;
     }
 
+    public static String getStrLastUpdate(Date date) {
+        if (date == null)
+            return "";
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return df.format(date);
+    }
+
     public static String boolToString(boolean val) {
         if (val)
             return "true";
@@ -640,10 +655,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             try {
                 JSONObject jsonObj = new JSONObject(json);
 
-                if (jsonObj.has("sensors")) {
-                    JSONArray jsonArray = jsonObj.getJSONArray("sensors");
-                    updateSensors(shieldid, jsonArray);
-                }
+                //if (jsonObj.has("sensors")) {
+                    //JSONArray jsonArray = jsonObj.getJSONArray("sensors");
+                    updateShieldStatus(shieldid, jsonObj);
+                //}
 
             } catch (JSONException e) {
                 e.printStackTrace();

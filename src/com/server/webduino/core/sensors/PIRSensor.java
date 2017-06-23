@@ -3,6 +3,7 @@ package com.server.webduino.core.sensors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -72,7 +73,7 @@ public class PIRSensor extends SensorBase {
     }
 
 
-    @Override
+    /*@Override
     public JSONObject getJson() {
         JSONObject json = new JSONObject();
         try {
@@ -82,12 +83,21 @@ public class PIRSensor extends SensorBase {
             json.put("subaddress", subaddress);
             json.put("current", motionDetected);
             json.put("name", getName());
-            json.put("lastupdate", getStrLastUpdate());
             json.put("type", type);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
+    }*/
+
+    @Override
+    public void getJSONField(JSONObject json) {
+        try {
+            json.put("motiondetected", motionDetected);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
+
 }

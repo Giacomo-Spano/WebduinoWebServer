@@ -277,6 +277,27 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     }
 
     @Override
+    public void getJSONField(JSONObject json) {
+        try {
+            json.put("temperature", temperature);
+            json.put("status", getStatus());
+            json.put("duration", duration);
+            json.put("remaining", getRemaining());
+            json.put("relestatus", getReleStatus());
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if (lastUpdate != null)
+                json.put("lastupdate", df.format(lastUpdate));
+            json.put("target", targetTemperature);
+            json.put("scenario", getScenarioId());
+            json.put("timeInterval", getTimeIntervalId());
+            json.put("zone", zone);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*@Override
     public JSONObject getJson() {
         JSONObject json = new JSONObject();
         try {
@@ -303,7 +324,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             e.printStackTrace();
         }
         return json;
-    }
+    }*/
 
     @Override
     public void onChangeTemperature(int sensorId, double temperature, double oldtemperature) {

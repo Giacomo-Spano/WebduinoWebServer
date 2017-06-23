@@ -39,7 +39,7 @@ public class SensorBase extends httpClient {
     public Schedule sensorSchedule = null;
     protected ActiveProgram activeProgram = null;
 
-    protected JSONObject json = null;
+    //protected JSONObject json = null;
 
     public List<SensorBase> childSensors = new ArrayList<SensorBase>();
 
@@ -129,12 +129,7 @@ public class SensorBase extends httpClient {
         return lastUpdate;
     }
 
-    public String getStrLastUpdate() {
-        if (lastUpdate == null)
-            return "";
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return df.format(lastUpdate);
-    }
+
 
     public int getId() {
         return id;
@@ -252,19 +247,19 @@ public class SensorBase extends httpClient {
         }
     }
 
-    public void getJSONField() {
+    public void getJSONField(JSONObject json) {
 
     }
 
     public JSONObject getJson() {
 
-        json = new JSONObject();
+        JSONObject json = new JSONObject();
         try {
             json.put("id", getId());
             json.put("shieldid", shieldid);
             json.put("online", online);
             json.put("subaddress", subaddress);
-            json.put("lastupdate", getStrLastUpdate());
+            json.put("lastupdate", Core.getStrLastUpdate(lastUpdate));
             json.put("type", type);
             json.put("name", getName());
             json.put("enabled", Core.boolToString(enabled));
@@ -285,7 +280,7 @@ public class SensorBase extends httpClient {
         }
 
         // get custom json field
-        getJSONField();
+        getJSONField(json);
 
         return json;
     }

@@ -49,6 +49,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static Shields mShields; // rendere private
     public static Schedule mSchedule;// DA ELIMINARE
 
+    private static List<SWVersion> swversions = new ArrayList<>();
+
     public static Devices mDevices = new Devices();
 
     static SimpleMqttClient smc;
@@ -197,6 +199,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         smc.subscribe("uuid/#");
         smc.addListener(this);
 
+        readSoftwareVersions();
+
         mShields = new Shields();
         mShields.init();
 
@@ -231,6 +235,38 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public void clearZoneSensorListeners() {
         for(Zone zone: zones) {
             zone.clearSensorListeners();
+        }
+    }
+
+    public void readSoftwareVersions() {
+
+        LOGGER.info(" read software version");
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM swversion";//" WHERE systemid=" + systemid;
+            ResultSet swversionsResultSet = stmt.executeQuery(sql);
+            // Extract data from result set
+            swversions.clear();
+            while (swversionsResultSet.next()) {
+                int id = swversionsResultSet.getInt("id");
+                String name = swversionsResultSet.getString("name");
+                String version = swversionsResultSet.getString("version");
+                String path = swversionsResultSet.getString("path");
+                String filename = swversionsResultSet.getString("filename");
+                SWVersion swversion = new SWVersion(id,name,version,path,filename);
+                swversions.add(swversion);
+            }
+            swversionsResultSet.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

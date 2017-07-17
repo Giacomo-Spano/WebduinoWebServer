@@ -1,0 +1,84 @@
+package com.server.webduino.core;
+
+import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
+
+import java.sql.*;
+
+/**
+ * Created by giaco on 23/06/2017.
+ */
+public class SWVersion {
+
+    private int id;
+    public String name;
+    public String version;
+    public String path;
+    public String filename;
+
+
+    public SWVersion(int id, String name, String version, String path, String filename) {
+        this.id = id;
+        this.name = name;
+        this.version = version;
+        this.path = path;
+        this.filename = filename;
+    }
+
+    public static SWVersion getLatestVersion() {
+        SWVersion swversion = null;
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM swversions ORDER BY version DESC LIMIT 1";
+            ResultSet swversionsResultSet = stmt.executeQuery(sql);
+            if (swversionsResultSet.next()) {
+                int id = swversionsResultSet.getInt("id");
+                String name = swversionsResultSet.getString("name");
+                String version = swversionsResultSet.getString("version");
+                String path = swversionsResultSet.getString("path");
+                String filename = swversionsResultSet.getString("filename");
+                swversion = new SWVersion(id,name,version,path,filename);
+             }
+            swversionsResultSet.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return swversion;
+    }
+
+    public boolean write() {
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql = "INSERT INTO swversions (id, name, version,path,filename)" +
+                    " VALUES ("
+                    + id + ","
+                    + "\"" + name + "\","
+                    + "\"" + version + "\","
+                    + "\"" + path + "\","
+                    + "\"" + filename + "\" ) " +
+                    "ON DUPLICATE KEY UPDATE "
+                    + "name=\"" + name + "\","
+                    + "version=\"" + version + "\","
+                    + "path=\"" + path + "\","
+                    + "filename=\"" + filename + "\";";
+            stmt.executeUpdate(sql);
+            stmt.close();
+            return true;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+}

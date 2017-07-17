@@ -1,6 +1,7 @@
 package com.server.webduino.servlet;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.SWVersion;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -44,13 +45,11 @@ public class OTAServlet extends HttpServlet {
         [HTTP_X_ESP8266_VERSION] => DOOR-7-g14f53a19
          */
 
-        String currentVersion = "1.0";
-
+        SWVersion latestVersion = SWVersion.getLatestVersion();
         String swversion = request.getHeader("x-esp8266-version");
 
-
         String[] split1 = swversion.split("\\.");
-        String[] split2 = currentVersion.split("\\.");
+        String[] split2 = latestVersion.version.split("\\.");
 
 
         if ((Integer.parseInt(split2[0]) == Integer.parseInt(split1[0]) &&
@@ -59,23 +58,26 @@ public class OTAServlet extends HttpServlet {
                 (Integer.parseInt(split2[0]) > Integer.parseInt(split2[0]))) {
 
 
-            String tmpDir = System.getProperty("java.io.tmpdir");
+            /*String path = System.getProperty("java.io.tmpdir");
             if (!Core.isProduction())
-                tmpDir = System.getenv("tmp");
+                path = System.getenv("tmp");
             else
-                tmpDir = System.getProperty("java.io.tmpdir");
+                path = System.getProperty("java.io.tmpdir");*/
+            String path = latestVersion.path;
 
 
-            String fileName = "ESP8266Webduino.ino.bin";
+            //String fileName = "ESP8266Webduino.ino.bin";
+            String fileName = latestVersion.filename;
             String fileType = ".bin";
 
             response.setContentType(fileType);
 
             // Make sure to show the download dialog
-            response.setHeader("Content-disposition", "attachment; filename=ESP8266Webduino.ino");
+            //response.setHeader("Content-disposition", "attachment; filename=ESP8266Webduino.ino");
+            response.setHeader("Content-disposition", "attachment; filename="+fileName);
             response.setStatus(SC_OK);
 
-            File my_file = new File(tmpDir + "\\" + fileName);
+            File my_file = new File(path + "\\" + fileName);
 
             response.setContentLength((int) my_file.length());
 

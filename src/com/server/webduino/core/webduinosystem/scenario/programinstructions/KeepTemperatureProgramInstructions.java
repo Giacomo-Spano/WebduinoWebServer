@@ -1,8 +1,7 @@
-package com.server.webduino.core.webduinosystem.programinstructions;
+package com.server.webduino.core.webduinosystem.scenario.programinstructions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
-import com.server.webduino.core.webduinosystem.WebduinoTrigger;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
@@ -21,13 +20,12 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
     private int timeInterval;
     private double temperature;
 
-    public KeepTemperatureProgramInstructions(int id, int scenarioid, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds, boolean schedule, Date startTime, Date endTime,
+    public KeepTemperatureProgramInstructions(int id, int programtimerangeid, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds, boolean schedule,
                                               boolean sunday, boolean monday, boolean tuesday, boolean wednesday, boolean thursday, boolean friday, boolean saturday, int priority) {
-        super(id, scenarioid, name, type, actuatorid, targetValue, zoneId,0, schedule, startTime, endTime,
+        super(id, programtimerangeid, name, type, actuatorid, targetValue, zoneId,0, schedule,
                 sunday, monday, tuesday, wednesday, thursday, friday, saturday, priority);
 
         targetTemperature = targetValue;
-
         Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
             zone.addListener(this);
@@ -38,7 +36,6 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
     public void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature) {
 
         try {
-
             JSONObject json = new JSONObject();
             json.put("actuatorid", actuatorid);
 

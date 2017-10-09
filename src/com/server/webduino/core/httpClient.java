@@ -20,7 +20,7 @@ public class httpClient {
         public String response = "";
     }
 
-    protected Result callGet(String param, String path, URL url) {
+    public Result callGet(String param, String path, URL url) {
 
         InputStreamReader responseInputStream;
         Result result = new Result();
@@ -87,7 +87,7 @@ public class httpClient {
 
     }
 
-    protected Result callPost(String path, String urlParameters, URL url) {
+    public Result callPost(String path, String urlParameters, URL url) {
 
         LOGGER.info("path: " + path + "urlParameters: " + urlParameters+ "url: " + url.toString());
 

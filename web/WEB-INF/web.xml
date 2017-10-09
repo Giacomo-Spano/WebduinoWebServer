@@ -24,6 +24,24 @@
     </listener>-->
 
     <servlet>
+        <servlet-name>ProvaServlet</servlet-name>
+        <servlet-class>com.server.webduino.servlet.ProvaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProvaServlet</servlet-name>
+        <url-pattern>/prova</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TokenSigninServlet</servlet-name>
+        <servlet-class>com.server.webduino.servlet.TokenSigninServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TokenSigninServlet</servlet-name>
+        <url-pattern>/tokensignin</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>OTAServlet</servlet-name>
         <servlet-class>com.server.webduino.servlet.OTAServlet</servlet-class>
     </servlet>
@@ -194,6 +212,33 @@
         <servlet-name>DataLogServlet</servlet-name>
         <url-pattern>/datalog</url-pattern>
     </servlet-mapping>
+
+    <security-role>
+        <role-name>tomcat</role-name>
+    </security-role>
+
+    <!--<security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Wildcard means whole app requires authentication</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+
+
+        <auth-constraint>
+            <role-name>tomcat</role-name>
+        </auth-constraint>
+
+        <user-data-constraint>
+
+            <transport-guarantee>NONE</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+    </login-config> -->
 
 
 </web-app>

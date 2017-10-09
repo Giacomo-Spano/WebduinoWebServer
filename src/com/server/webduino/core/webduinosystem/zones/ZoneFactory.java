@@ -11,6 +11,8 @@ public class ZoneFactory {
             zone = new SecurityZone(id,name,type);
         } else if (type.equals("heaterzone")) {
             zone = new HeaterZone(id,name,type);
+        } else {
+            zone = new Zone(id,name,type);
         }
         if (zone != null) {
             zone.init();

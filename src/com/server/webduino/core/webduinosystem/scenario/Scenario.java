@@ -2,9 +2,9 @@ package com.server.webduino.core.webduinosystem.scenario;
 
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
-import com.server.webduino.core.webduinosystem.scenario.ScenarioTimeInterval;
+import com.server.webduino.core.TimeRange;
+import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramInstructions;
+import com.server.webduino.core.webduinosystem.scenario.programtimeranges.ProgramTimeRange;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,7 +30,8 @@ public class Scenario {
     public boolean active;
     public String name;
     public ScenarioCalendar calendar = new ScenarioCalendar();
-    public List<ProgramInstructions> programInstructions = new ArrayList<>();
+    //public List<ProgramInstructions> programInstructionsList = new ArrayList<>();
+    public List<ScenarioProgram> programs = new ArrayList<>();
     public int priority;
 
     private ScenarioTimeInterval activeTimeInterval = null;
@@ -198,16 +199,49 @@ public class Scenario {
         try {
             json.put("id", id);
             json.put("name", name);
-            json.put("active", active);
+            json.put("enabled", active);
             json.put("calendar", calendar.toJson());
             json.put("priority", priority);
 
-            JSONArray jsonArray = new JSONArray();
-            for (ProgramInstructions instruction : programInstructions) {
-                jsonArray.put(instruction.toJson());
-            }
-            json.put("programinstructions", jsonArray);
+            //JSONArray jArray = new JSONArray();
+            //for (ScenarioProgram program : programs) {
 
+                JSONArray jarray = new JSONArray();
+                if (programs != null) {
+                    for (ScenarioProgram program : programs) {
+                        jarray.put(program.toJson());
+                    }
+                    json.put("programs", jarray);
+                }
+
+                json.put("priority", priority);
+
+
+                /*JSONObject jo = new JSONObject();
+                jo.put("id", program.id);
+                jo.put("scenarioid", program.scenarioId);
+                jo.put("enabled", program.enabled);
+                jo.put("name", program.name);*/
+
+                /*JSONArray ja = new JSONArray();
+                if (program.timeRanges != null) {
+                    for (ProgramTimeRange timeRange : program.timeRanges) {
+                        ja.put(timeRange.toJson());
+                    }
+                    jo.put("timeranges", ja);
+                    jArray.put(jo);
+                }*/
+
+                /*JSONArray jaProgramInstructions = new JSONArray();
+                if (program.programInstructionsList != null) {
+                    for (ProgramInstructions instruction : program.programInstructionsList) {
+                        jaProgramInstructions.put(instruction.toJson());
+                    }
+                    jo.put("programinstructions", jaProgramInstructions);
+                    jArray.put(jo);
+                }*/
+            //}
+            //json.put("programs", jArray);
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -225,13 +259,38 @@ public class Scenario {
             if (json.has("calendar"))
                 calendar = new ScenarioCalendar(json.getJSONObject("calendar"));
             if (json.has("priority"))
-                id = json.getInt("priority");
+                priority = json.getInt("priority");
+            if (json.has("programs")) {
+                JSONArray jArray = json.getJSONArray("programs");
+                for (int k = 0; k < jArray.length(); k++) {
+                    ScenarioProgram program = new ScenarioProgram(jArray.getJSONObject(k));
+                    if (jArray.getJSONObject(k).has("programtimeranges")) {
+                        JSONArray jsonArray = jArray.getJSONObject(k).getJSONArray("programtimeranges");
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject j = jsonArray.getJSONObject(i);
+                            ProgramTimeRange timeRange = new ProgramTimeRange(j);
+                            if (timeRange != null)
+                                program.timeRanges.add(timeRange);
+                        }
+
+                    }
+                }
+            }
             return true;
 
         } catch (JSONException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public ScenarioProgram getProgramFromId(int programid) {
+        for (ScenarioProgram program : programs) {
+            if (program.id == programid) {
+                return program;
+            }
+        }
+        return null;
     }
 
     public class ScenarioCalendar {

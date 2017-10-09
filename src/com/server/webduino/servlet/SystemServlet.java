@@ -3,9 +3,7 @@ package com.server.webduino.servlet;
 import com.quartz.QuartzListener;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Shield;
-import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.commands.DoorSensorCommand;
-import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
+import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramInstructionsFactory;
 import com.server.webduino.core.webduinosystem.scenario.Scenario;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
@@ -19,9 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -32,7 +27,7 @@ import java.util.logging.Logger;
  * Created by Giacomo Span� on 08/11/2015.
  */
 
-//@WebServlet(name = "SensorServlet")
+
 public class SystemServlet extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(SystemServlet.class.getName());
@@ -76,6 +71,32 @@ public class SystemServlet extends HttpServlet {
                     out.print(jsonResponse.toString());
                 }
 
+            } else if(data != null && data.equals("program")) {
+                if (!Core.saveScenarioProgram(json)) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    jsonResponse = new JSONObject();
+                    try {
+                        json.put("result", "failed");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    // finally output the json string
+                    out.print(jsonResponse.toString());
+                }
+
+            } else if(data != null && data.equals("timerange")) {
+                if (!Core.saveScenarioProgramTimeRange(json)) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    jsonResponse = new JSONObject();
+                    try {
+                        json.put("result", "failed");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    // finally output the json string
+                    out.print(jsonResponse.toString());
+                }
+
             } else if(data != null && data.equals("zone")) {
                 if (!Core.saveZone(json)) {
                     response.setStatus(HttpServletResponse.SC_OK);
@@ -89,6 +110,22 @@ public class SystemServlet extends HttpServlet {
                     out.print(jsonResponse.toString());
                 }
 
+            } else if(data != null &&data.equals("sensor")) {
+                if (json.has("id")) {
+                    int id = json.getInt("id");
+                    Core.updateSensor(id, json);
+                }
+                /*if (!Core.saveZone(json)) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    jsonResponse = new JSONObject();
+                    try {
+                        json.put("result", "failed");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    // finally output the json string
+                    out.print(jsonResponse.toString());
+                }*/
             }
 
             boolean res = false;
@@ -125,13 +162,22 @@ public class SystemServlet extends HttpServlet {
         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
         if (requestCommand != null && requestCommand.equals("sensors")) {
-            JSONArray jarray = Core.getSensorsJSONArray();
+            int shieldid = 0;
+            if (id != null)
+                shieldid = Integer.parseInt(id);
+            JSONArray jarray = Core.getSensorsJSONArray(shieldid);
             if (jarray != null)
                 out.print(jarray.toString());
 
         } else if (requestCommand != null && requestCommand.equals("scenarios")) {
 
             JSONArray jarray = Core.getScenariosJSONArray();
+            if (jarray != null)
+                out.print(jarray.toString());
+
+        } else if (requestCommand != null && requestCommand.equals("instructiontypes")) {
+
+            JSONArray jarray = ProgramInstructionsFactory.getProgramIntructionTypesJSONArray();
             if (jarray != null)
                 out.print(jarray.toString());
 
@@ -168,11 +214,16 @@ public class SystemServlet extends HttpServlet {
             JSONArray jsonArray = new JSONArray();
             if (scenarioid != null) {
                 int sid = Integer.parseInt(scenarioid);
-                List<ProgramInstructions> programInstructions = Core.getProgramInstructions(sid);
 
-                for (ProgramInstructions instruction : programInstructions) {
-                    jsonArray.put(instruction.toJson());
-                }
+                /*List<ScenarioProgram> programs = Core.getPrograms(sid);
+                for (ScenarioProgram program : programs) {
+                    List<ProgramInstructions> programInstructions = Core.getProgramInstructions(sid,program.id);
+                    JSONArray jArray = new JSONArray();
+                    for (ProgramInstructions instruction : programInstructions) {
+                        jArray.put(instruction.toJson());
+                    }
+                    jsonArray.put(jArray);
+                }*/
             }
             if (jsonArray != null)
                 out.print(jsonArray.toString());

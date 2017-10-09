@@ -76,7 +76,7 @@ public class Shield extends httpClient {
 
         sensorStatus = updateStatus_updating;
 
-        return Core.publish("fromServer/shield/" + MACAddress + "/updatesensorstatusrequest", "");
+        return Core.publish("fromServer/shield/" + MACAddress + "/updatesensorstatusrequest", "requestSensorStatusUpdate");
     }
 
     public boolean requestSettingUpdate() { //
@@ -363,6 +363,16 @@ public class Shield extends httpClient {
         return null;
     }
 
+    public SensorBase findSensorFromId(int id) {
+
+        for (SensorBase sensor : sensors) {
+            SensorBase s = sensor.findSensorFromId(id);
+            if (s != null)
+                return s;
+        }
+        return null;
+    }
+
     boolean updateShieldStatus(JSONObject json) {
         if (json.has("sensors")) {
             JSONArray jsonArray = null;
@@ -529,6 +539,31 @@ public class Shield extends httpClient {
         }
         //return -1;
     }
+
+    //update sensor name
+    public boolean updateSensor(int id, String name) {
+
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = null;
+            stmt = conn.createStatement();
+
+            String sql = "UPDATE sensors SET name='" + name + "' WHERE id=" + id;
+            stmt.executeUpdate(sql);
+            stmt.close();
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
 
     public Shield saveSettings(JSONObject json) {

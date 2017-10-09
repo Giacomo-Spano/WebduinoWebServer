@@ -1,7 +1,5 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
-import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,9 +7,7 @@ import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 //import java.Time;
 /**
  * Created by Giacomo Span� on 07/11/2015.

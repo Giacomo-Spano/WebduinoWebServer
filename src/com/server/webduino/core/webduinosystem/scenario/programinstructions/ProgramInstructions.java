@@ -1,33 +1,25 @@
-package com.server.webduino.core.webduinosystem.programinstructions;
+package com.server.webduino.core.webduinosystem.scenario.programinstructions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.webduinosystem.WebduinoTrigger;
-import com.server.webduino.core.webduinosystem.scenario.ScenarioTimeInterval;
 import com.server.webduino.core.webduinosystem.zones.Zone;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Created by giaco on 17/05/2017.
  */
 public class ProgramInstructions implements Zone.WebduinoZoneListener {
 
-    private int id;
-    private int scenarioid;
-    private String type;
-    private String name;
-    protected int actuatorid;
-    private double targetValue;
-    private int zoneId;
-    private int seconds;
+    public int id;
+    public int timerangeid;
+    public String type;
+    public String name;
+    public int actuatorid;
+    public double targetValue;
+    public int zoneId;
+    public int seconds;
     public boolean schedule;
-    public Date startTime;
-    public Date endTime;
     public boolean sunday;
     public boolean monday;
     public boolean tuesday;
@@ -37,10 +29,10 @@ public class ProgramInstructions implements Zone.WebduinoZoneListener {
     public boolean saturday;
     public int priority;
 
-    public ProgramInstructions(int id, int scenarioid, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds, boolean schedule, Date startTime, Date endTime,
+    public ProgramInstructions(int id, int programtimerangeid, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds, boolean schedule,
                                boolean sunday, boolean monday, boolean tuesday, boolean wednesday, boolean thursday, boolean friday, boolean saturday, int priority) {
         this.id = id;
-        this.scenarioid = scenarioid;
+        this.timerangeid = programtimerangeid;
         this.type = type;
         this.name = name;
         this.actuatorid = actuatorid;
@@ -48,8 +40,6 @@ public class ProgramInstructions implements Zone.WebduinoZoneListener {
         this.zoneId = zoneId;
         this.seconds = seconds;
         this.schedule = schedule;
-        this.startTime = startTime;
-        this.endTime = endTime;
         this.sunday = sunday;
         this.monday = monday;
         this.tuesday = tuesday;
@@ -71,7 +61,6 @@ public class ProgramInstructions implements Zone.WebduinoZoneListener {
     }
 
     public void init() {
-
     }
 
     public JSONObject toJson() {
@@ -79,7 +68,7 @@ public class ProgramInstructions implements Zone.WebduinoZoneListener {
         JSONObject json = new JSONObject();
         try {
             json.put("id", id);
-            json.put("scenarioid", scenarioid);
+            json.put("timerangeid", timerangeid);
             json.put("type", type);
             json.put("name", name);
             json.put("actuatorid", actuatorid);
@@ -93,8 +82,6 @@ public class ProgramInstructions implements Zone.WebduinoZoneListener {
                 json.put("zonename", zone.getName());
             json.put("seconds", seconds);
             json.put("schedule", schedule);
-            json.put("starttime", startTime);
-            json.put("endtime", endTime);
             json.put("sunday", sunday);
             json.put("monday", monday);
             json.put("tuesday", tuesday);

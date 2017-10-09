@@ -253,7 +253,7 @@ function save() {
                 'name': name,
                 'type': type,
                 'enabled': enabled,
-                'addr': address,
+                'addr': '' + address,
                 'pin': pin
             });
         }

@@ -6,10 +6,12 @@ import com.server.webduino.core.webduinosystem.exits.Exit;
 import com.server.webduino.core.webduinosystem.exits.ExitFactory;
 import com.server.webduino.core.webduinosystem.keys.Key;
 import com.server.webduino.core.webduinosystem.keys.KeyFactory;
-import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructions;
-import com.server.webduino.core.webduinosystem.programinstructions.ProgramInstructionsFactory;
+import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramInstructions;
+import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramInstructionsFactory;
 import com.server.webduino.core.webduinosystem.scenario.Scenario;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioProgram;
 import com.server.webduino.core.webduinosystem.scenario.ScenarioTimeInterval;
+import com.server.webduino.core.webduinosystem.scenario.programtimeranges.ProgramTimeRange;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneFactory;
 import org.json.JSONArray;
@@ -137,11 +139,19 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return null;
     }
 
-    public static JSONArray getSensorsJSONArray() {
+    public static JSONArray getSensorsJSONArray(int shieldid) {
         JSONArray jsonArray = new JSONArray();
         for (SensorBase sensor : mShields.getLastSensorData()) {
-            JSONObject json = sensor.getJson();
-            jsonArray.put(json);
+            if (shieldid <= 0) {
+                JSONObject json = sensor.getJson();
+                jsonArray.put(json);
+            } else {
+                if (sensor.getShieldId() == shieldid){
+                    JSONObject json = sensor.getJson();
+                    jsonArray.put(json);
+                }
+            }
+
         }
         return jsonArray;
     }
@@ -172,14 +182,16 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return null;
     }
 
-    public static List<ProgramInstructions> getProgramInstructions(int scenarioid) {
+    /*public static List<ProgramInstructions> getProgramInstructions(int scenarioid, int programid) {
         for (Scenario scenario : scenarios) {
             if (scenario.id == scenarioid) {
-                    return scenario.programInstructions;
+                ScenarioProgram program = scenario.getProgramFromId(programid);
+                if (program != null)
+                    return program.programInstructionsList;
             }
         }
         return null;
-    }
+    }*/
 
     public static JSONArray getZonesJSONArray() {
         JSONArray jsonArray = new JSONArray();
@@ -213,10 +225,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
         addZoneSensorListeners();
 
-        readScenarios();
-        for (Scenario scenario: scenarios) {
-            scenario.init();
-        }
+        initScenarios();
 
         mShields.addListener(this);
 
@@ -224,6 +233,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         Settings settings = new Settings();
 
         mDevices.read();
+    }
+
+    private static void initScenarios() {
+        scenarios.clear();
+        readScenarios();
+        for (Scenario scenario: scenarios) {
+            scenario.init();
+        }
     }
 
     public void addZoneSensorListeners() {
@@ -408,6 +425,21 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     static public boolean saveScenario(JSONObject json) {
         Scenario scenario = new Scenario(json);
         scenario.write();
+        initScenarios();
+        return true;
+    }
+
+    static public boolean saveScenarioProgram(JSONObject json) {
+        ScenarioProgram program = new ScenarioProgram(json);
+        program.save();
+        initScenarios();
+        return true;
+    }
+
+    static public boolean saveScenarioProgramTimeRange(JSONObject json) {
+        ProgramTimeRange timerange = new ProgramTimeRange(json);
+        timerange.save();
+        initScenarios();
         return true;
     }
 
@@ -417,13 +449,20 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return true;
     }
 
-    private void readScenarios() {
+    /*static public boolean saveSensor(JSONObject json) {
+        SensorBase zone = new Zone(json);
+        zone.save();
+        return true;
+    }*/
+
+    private static void readScenarios() {
         LOGGER.info("readScenarios");
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-
+            conn.setAutoCommit(false);
             Statement stmt = conn.createStatement();
+
             String sql;
             sql = "SELECT * FROM scenarios" + " ORDER BY priority ASC;";;
             ResultSet scenariosResultSet = stmt.executeQuery(sql);
@@ -438,9 +477,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 Date enddate = scenariosResultSet.getTimestamp("enddate");
                 scenario.calendar.setEndDate(enddate);
 
+                sql = "SELECT * FROM scenarios_timeintervals WHERE scenarioid=" + scenario.id;
                 Statement stmt2 = conn.createStatement();
-                String sql2 = "SELECT * FROM scenarios_timeintervals WHERE scenarioid=" + scenario.id;
-                ResultSet timeintervalsResultSet = stmt2.executeQuery(sql2);
+                ResultSet timeintervalsResultSet = stmt2.executeQuery(sql);
                 while (timeintervalsResultSet.next()) {
                     ScenarioTimeInterval timeInterval = new ScenarioTimeInterval();
                     timeInterval.id = timeintervalsResultSet.getInt("id");
@@ -448,7 +487,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     timeInterval.name = timeintervalsResultSet.getString("name");
                     timeInterval.startTime = timeintervalsResultSet.getTime("starttime");
                     timeInterval.endTime = timeintervalsResultSet.getTime("endtime");
-
                     timeInterval.setSunday(timeintervalsResultSet.getBoolean("sunday"));
                     timeInterval.setMonday(timeintervalsResultSet.getBoolean("monday"));
                     timeInterval.setTuesday(timeintervalsResultSet.getBoolean("tuesday"));
@@ -462,44 +500,23 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 stmt2.close();
 
                 Statement stmt3 = conn.createStatement();
-                String sql3 = "SELECT * FROM program_instructions WHERE scenarioid=" + scenario.id + " ;";
-                ResultSet instructionsResultset = stmt3.executeQuery(sql3);
-                ProgramInstructionsFactory factory = new ProgramInstructionsFactory();
-                while (instructionsResultset.next()) {
+                sql = "SELECT * FROM scenarios_programs WHERE scenarioid=" + scenario.id + " ;";
+                ResultSet programsResultset = stmt3.executeQuery(sql);
 
-                    int id = instructionsResultset.getInt("id");
-                    String type = instructionsResultset.getString("type");
-                    String name = instructionsResultset.getString("name");
-                    int actuatorid = instructionsResultset.getInt("actuatorid");
-                    float targetValue = instructionsResultset.getFloat("targetvalue");
-                    int zoneId = instructionsResultset.getInt("zoneid");
-                    int seconds = 0;
-                    Time time = instructionsResultset.getTime("time");
-                    if (time != null) {
-                        Calendar cal = Calendar.getInstance();
-                        cal.setTime(time);
-                        seconds = cal.get(Calendar.SECOND);
-                    }
-                    Boolean schedule = instructionsResultset.getBoolean("schedule");
-                    Date startTime = instructionsResultset.getTimestamp("starttime");
-                    Date endTime = instructionsResultset.getTimestamp("endtime");
-                    Boolean sunday = instructionsResultset.getBoolean("sunday");
-                    Boolean monday = instructionsResultset.getBoolean("monday");
-                    Boolean tuesday = instructionsResultset.getBoolean("tuesday");
-                    Boolean wednesday = instructionsResultset.getBoolean("wednesday");
-                    Boolean thursday = instructionsResultset.getBoolean("thursday");
-                    Boolean friday = instructionsResultset.getBoolean("friday");
-                    Boolean saturday = instructionsResultset.getBoolean("saturday");
-                    int priority = instructionsResultset.getInt("priority");
+                while (programsResultset.next()) {
+                    ScenarioProgram program = new ScenarioProgram();
+                    program.id = programsResultset.getInt("id");
+                    program.enabled = programsResultset.getBoolean("enabled");
+                    program.name = programsResultset.getString("name");
+                    program.scenarioId = programsResultset.getInt("scenarioid");
 
-                    ProgramInstructions programInstructions = factory.createProgramInstructions(id, scenario.id, name, type, actuatorid, targetValue, zoneId, seconds,
-                            schedule, startTime,endTime,sunday,monday,tuesday,wednesday,thursday,friday,saturday,priority);
-                    if (programInstructions != null) {
-                        scenario.programInstructions.add(programInstructions);
-                    }
+                    List<ProgramTimeRange> timeRanges = readProgramTimeRanges(conn, program.id);
+                    program.timeRanges = timeRanges;
+                    scenario.programs.add(program);
                 }
-                instructionsResultset.close();
+                programsResultset.close();
                 stmt3.close();
+
                 scenarios.add(scenario);
             }
             scenariosResultSet.close();
@@ -512,6 +529,78 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         }
     }
 
+    private static List<ProgramInstructions> readProgramInstructions(Connection conn, int programtimerangeid) throws SQLException {
+
+        List<ProgramInstructions> list = new ArrayList<>();
+        String sql;
+        Statement stmt4 = conn.createStatement();
+        sql = "SELECT * FROM scenarios_programinstructions WHERE timerangeid=" + programtimerangeid + " ;";
+        ResultSet instructionsResultset = stmt4.executeQuery(sql);
+        ProgramInstructionsFactory factory = new ProgramInstructionsFactory();
+        while (instructionsResultset.next()) {
+            int id = instructionsResultset.getInt("id");
+            String type = instructionsResultset.getString("type");
+            String name = instructionsResultset.getString("name");
+            int actuatorid = instructionsResultset.getInt("actuatorid");
+            float targetValue = instructionsResultset.getFloat("targetvalue");
+            int zoneId = instructionsResultset.getInt("zoneid");
+            int seconds = 0;
+            Time time = instructionsResultset.getTime("time");
+            if (time != null) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(time);
+                seconds = cal.get(Calendar.SECOND);
+            }
+            Boolean schedule = instructionsResultset.getBoolean("schedule");
+            Boolean sunday = instructionsResultset.getBoolean("sunday");
+            Boolean monday = instructionsResultset.getBoolean("monday");
+            Boolean tuesday = instructionsResultset.getBoolean("tuesday");
+            Boolean wednesday = instructionsResultset.getBoolean("wednesday");
+            Boolean thursday = instructionsResultset.getBoolean("thursday");
+            Boolean friday = instructionsResultset.getBoolean("friday");
+            Boolean saturday = instructionsResultset.getBoolean("saturday");
+            int priority = instructionsResultset.getInt("priority");
+
+            ProgramInstructions programInstructions = factory.createProgramInstructions(id, programtimerangeid, name, type, actuatorid, targetValue, zoneId, seconds,
+                    schedule, sunday,monday,tuesday,wednesday,thursday,friday,saturday,priority);
+            if (programInstructions != null) {
+                list.add(programInstructions);
+                //return programInstructions;
+            }
+        }
+        instructionsResultset.close();
+        stmt4.close();
+        if (list.size() == 0)
+            return null;
+        return list;
+    }
+
+    private static List<ProgramTimeRange> readProgramTimeRanges(Connection conn, int programid) throws SQLException {
+
+        List<ProgramTimeRange> list = new ArrayList<>();
+        String sql;
+        Statement stmt = conn.createStatement();
+        sql = "SELECT * FROM scenarios_programtimeranges WHERE programid=" + programid + " ;";
+        ResultSet resultSet = stmt.executeQuery(sql);
+        while (resultSet.next()) {
+            int id = resultSet.getInt("id");
+            String name = resultSet.getString("name");
+            Date startTime = resultSet.getTimestamp("starttime");
+            Date endTime = resultSet.getTimestamp("endtime");
+            Boolean enabled = resultSet.getBoolean("enabled");
+
+            List<ProgramInstructions> instructions = readProgramInstructions(conn, id);
+            ProgramTimeRange timeReange = new ProgramTimeRange(id, programid, name, startTime,endTime,enabled,instructions);
+            if (timeReange != null) {
+                list.add(timeReange);
+            }
+        }
+        resultSet.close();
+        stmt.close();
+        if (list.size() == 0)
+            return null;
+        return list;
+    }
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
 
         LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
@@ -527,8 +616,12 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.getLastSensorData();
     }
 
-    boolean updateSensors(int shieldid, JSONArray jsonArray) {
+     boolean updateSensors(int shieldid, JSONArray jsonArray) {
         return mShields.updateShieldSensors(shieldid, jsonArray);
+    }
+
+    static public boolean updateSensor(int id, JSONObject json) {
+        return mShields.updateShieldSensor(id, json);
     }
 
     boolean updateShieldStatus(int shieldid, JSONObject json) {

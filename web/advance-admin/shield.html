@@ -1,5 +1,5 @@
 <!-- /. ROW  ZONE-->
-<div id="zonepanel" class="row">
+<div id="shieldpanel" class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -13,10 +13,11 @@
                     <table id="tbl" class="table table-striped table-bordered table-hover">
                         <thead>
                         <tr name="header">
-                            <th>zone sensor id</th>
+                            <th>id</th>
                             <th>Nome sensore</th>
                             <th>Tipo Sensore</th>
                             <th>Comandi</th>
+                            <th>edit</th>
                         </tr>
                         </thead>
                         <tbody name="sensorlist">
@@ -29,12 +30,13 @@
                                     attiva
                                 </button>
                             </td>
+                            <td ><button type="button" id="edit" class="btn btn-sm btn-primary">edit</button></td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <button type="button" id="edit" class="btn btn-sm btn-primary">edit</button>
+            <button type="button" id="editBtn" class="btn btn-sm btn-primary">edit</button>
         </div>
         <!-- End  Stato sensori -->
     </div>

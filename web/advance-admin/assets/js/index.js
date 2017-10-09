@@ -25,6 +25,45 @@ var $sensorRow;
 var $shieldsPanel;
 var $shieldRow;
 
+var client;
+
+function onConnect() {
+    // Once a connection has been made, make a subscription and send a message.
+    console.log("onConnect");
+    client.subscribe("fromServer");
+    message = new Paho.MQTT.Message("Hello");
+    message.destinationName = "toServer";
+    client.send(message);
+};
+function onConnectionLost(responseObject) {
+    if (responseObject.errorCode !== 0)
+        console.log("onConnectionLost:" + responseObject.errorMessage);
+};
+function onMessageArrived(message) {
+    console.log("onMessageArrived:" + message.payloadString);
+    client.disconnect();
+};
+
+
+function onSignIn(googleUser) {
+    var profile = googleUser.getBasicProfile();
+    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+    console.log('Name: ' + profile.getName());
+    console.log('Image URL: ' + profile.getImageUrl());
+    console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+
+    var id_token = googleUser.getAuthResponse().id_token;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'http://localhost:8080/webduino/tokensignin');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function () {
+        console.log('Signed in as: ' + xhr.responseText);
+    };
+    xhr.send(id_token);
+
+
+}
 
 function deactivatemenuitems() {
     $('a[id="item_home"]').attr("class", "");
@@ -34,10 +73,35 @@ function deactivatemenuitems() {
     $('a[id="item_shields"]').attr("class", "");
 }
 
+function myFunction() {
+    // Create a client instance
+    client = new Paho.MQTT.Client("192.168.1.3", Number(1883), "/wss");
+    client.startTrace();
+// set callback handlers
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+    client.onConnected = onConnect();
+
+// connect the client
+    client.connect();
+    console.log("attempting to connect...")
+}
+
 function load() {
 
     //var myJSONForm =  $('form[id="prova"]');
     //var ret = myJSONForm.toJSON();
+    /*client = new Paho.MQTT.Client("location.hostname, Number(location.port), "clientIdjsxxxx");
+     client.onConnectionLost = onConnectionLost;
+     client.onMessageArrived = onMessageArrived;
+     client.connect({onSuccess:onConnect});*/
+
+
+    /*MqttMessage message = new MqttMessage();
+     message.setPayload("A single message".getBytes());
+     client.publish("pahodemo/test", message);
+     client.disconnect();*/
+
 
     $('a[id="item_home"]').click(function () {
         deactivatemenuitems();
@@ -100,18 +164,154 @@ function postData(datatype, json, callback) {
         }
     };
 
-    xhttp.open("POST", systemServletPath + "?data="+datatype, true);
+    xhttp.open("POST", systemServletPath + "?data=" + datatype, true);
     xhttp.setRequestHeader("Content-type", "application/json");
     var str = JSON.stringify(json);
     //xhttp.send(commandJson.toString());
     xhttp.send(str);
 }
 
-function scenarioForm(scenario, sensors, zones) {
+function createProgram(program) {
 
-    loadForm("scenarioform.html", function (/*json*/) {
+    id = createSubitem(0, "program", "Program");
+    addSubitemNumInput(id, "id", program.id, "Id", 0, 999999, 1, true);
+    addSubitemTextInput(id, "name", program.name, "Name");
+    addSubitemCheckInput(id, "enabled", program.enabled, "Attivo", function (checked) {
+    });
 
-        addNumInput("id", scenario.id, "Id");
+}
+
+function createProgramInstruction(programinstruction, sensors, zones, instructiontypes) {
+
+    id = createSubitem(0, "programinstructions", "Lista istruzioni");
+    addSubitemNumInput(id, "id", programinstruction.id, "Id", 0, 999999, 1, true);
+    addSubitemNumInput(id, "timerangeidid", programinstruction.timerangeid, "Timerange id", 0, 999999, 1, true);
+
+    var list = [];
+    for (i = 0; i < instructiontypes.length; i++) {
+        var type = [];
+
+        type.push(instructiontypes[i].instruction);
+        type.push(instructiontypes[i].description);
+        list.push(type);
+    }
+    addSubitemSelect(id, "type", list, "Type", programinstruction.type);
+    addSubitemTextInput(id, "name", programinstruction.name, "Name");
+
+    var list = [];
+    for (i = 0; i < sensors.length; i++) {
+        var sensor = [];
+        sensor.push(sensors[i].id);
+        var name = "" + sensors[i].id + "." + sensors[i].name + "(" + sensors[i].type + ")";
+        sensor.push(name);
+        list.push(sensor);
+    }
+    addSubitemSelect(id, "actuatorid", list, "actuatorid", programinstruction.actuatorid);
+    addSubitemNumInput(id, "targetvalue", programinstruction.targetvalue, "targetvalue", 0, 30, "0.01");
+    var zonelist = [];
+    for (i = 0; i < zones.length; i++) {
+        var zone = [];
+        zone.push(zones[i].id);
+        var name = "" + zones[i].id + "." + zones[i].name;
+        zone.push(name);
+        zonelist.push(zone);
+    }
+    addSubitemSelect(id, "zoneid", zonelist, "zoneid", programinstruction.zoneid);
+    addSubitemTimeInput(id, "time", programinstruction.time, "Time");
+    addSubitemCheckInput(id, "schedule", programinstruction.schedule, "Data");
+    addSubitemCheckInput(id, "sunday", programinstruction.sunday, "S");
+    addSubitemCheckInput(id, "monday", programinstruction.monday, "M");
+    addSubitemCheckInput(id, "tuesday", programinstruction.tuesday, "T");
+    addSubitemCheckInput(id, "wednesday", programinstruction.wednesday, "W");
+    addSubitemCheckInput(id, "thursday", programinstruction.sunday, "T");
+    addSubitemCheckInput(id, "friday", programinstruction.friday, "Venerdì", function (checked) {
+    });
+    addSubitemCheckInput(id, "saturday", programinstruction.saturday, "Sabato", function (checked) {
+    });
+    addSubitemNumInput(id, "priority", programinstruction.priority, "priorità", 0, 99);
+}
+
+function scenarioProgramForm(program) {
+
+    loadForm("scenarioprogramform.html", function () {
+
+        // back button
+        $(this).find('button[name="backbutton"]').click(function () {
+            loadScenario(program.scenarioid);
+        });
+
+        addSection("Dati generali");
+
+        addNumInput("id", program.id, "Id", 0, 99999, 1, true);
+        addTextInput("name", program.name, "Nome");
+        addNumInput("scenarioid", program.scenarioid, "Id scenario", 0, 99999, 1, true);
+
+    }, function (json, button) {
+        if (button == 'save') {
+            postData("program", json, function (result) {
+                loadScenario(program.scenarioid);
+            });
+        }
+    });
+}
+
+function scenarioTimeRangeForm(timerange, scenario, sensors, zones, instructiontypes) {
+
+    loadForm("scenariotimerangeform.html", function () {
+
+        addSection("Dati generali");
+
+        addNumInput("id", timerange.id, "Id", 0, 99999, 1, true);
+        addTextInput("name", timerange.name, "Nome");
+        addNumInput("programid", timerange.programid, "Id programma", 0, 99999, 1, true);
+        addTimeInput("starttime", timerange.starttime, "ora inizio");
+        addTimeInput("endtime", timerange.starttime, "ora fine");
+        addCheckBoxInput("enabled", timerange.enabled, "attiva");
+
+        addSection("Istruzioni");
+
+        if (timerange.programinstructions != null) {
+            timerange.programinstructions.forEach(function (programinstruction) {
+                createProgramInstruction(programinstruction, sensors, zones, instructiontypes);
+            });
+        }
+
+    }, function (json, button) {
+        if (button == 'save') {
+            postData("timerange", json, function (result) {
+                loadScenarios();
+            });
+        } else if (button == 'add') {
+            var instruction = {
+                "timerangeid": timerange.id,
+                "type": instructiontypes[0],
+                "id": 0,
+                "actuatorid": 0,
+                "targetvalue": 0,
+                "zoneid": 0,
+                "zonename": "",
+                "name": "program instruction",
+                "sunday": false,
+                "monday": false,
+                "tueday": false,
+                "wedday": false,
+                "thuday": false,
+                "friday": false,
+                "satday": false,
+                "priority": 0,
+                "schedule": false,
+                "seconds": 0,
+            };
+            createProgramInstruction(instruction, sensors, zones, instructiontypes);
+        }
+    });
+}
+
+function scenarioForm(scenario, sensors, zones, instructiontypes) {
+
+    loadForm("scenarioform.html", function () {
+
+        addNumInput("id", scenario.id, "Id", 0, 99999, 1, true);
         addTextInput("name", scenario.name, "Nome");
         //addCheckBoxInput("dateenabled", scenario.calendar.dateenabled, "data");
 
@@ -143,60 +343,24 @@ function scenarioForm(scenario, sensors, zones) {
             addSubitemCheckInput(id, "friday", p1.friday, "F");
             addSubitemCheckInput(id, "saturday", p1.saturday, "S");
         });
-
-        scenario.programinstructions.forEach(function (p1) {
-            id = createSubitem(0, "programinstructions", "Programma");
-            addSubitemNumInput(id, "id", p1.id, "Id");
-            addSubitemNumInput(id, "scenarioid", p1.scenarioid, "Id Scenario");
-            addSubitemTextInput(id, "type", p1.type, "Type");
-            addSubitemTextInput(id, "name", p1.name, "Name");
-
-            var list = [];
-            for (i = 0; i < sensors.length; i++) {
-                var sensor = [];
-                sensor.push(sensors[i].id);
-                var name = "" + sensors[i].id + "." + sensors[i].name + "(" + sensors[i].type + ")";
-                sensor.push(name);
-                list.push(sensor);
-            }
-            ;
-            addSubitemSelect(id, "actuatorid", list, "actuatorid", p1.actuatorid);
-
-            addSubitemNumInput(id, "targetvalue", p1.targetvalue, "targetvalue", 0, 30, "0.01");
-            //addSubitemNumInput(id, "zoneid", p1.zoneid, "zoneid");
-            var zonelist = [];
-            for (i = 0; i < zones.length; i++) {
-                var zone = [];
-                zone.push(zones[i].id);
-                var name = "" + zones[i].id + "." + zones[i].name;
-                zone.push(name);
-                zonelist.push(zone);
-            }
-            ;
-            addSubitemSelect(id, "zoneid", zonelist, "zoneid", p1.zoneid);
-
-            addSubitemTimeInput(id, "time", p1.time, "Time");
-
-            addSubitemCheckInput(id, "schedule", p1.schedule, "Data");
-            addSubitemTimeInput(id, "starttime", p1.starttime, "start");
-            addSubitemTimeInput(id, "endtime", p1.endtime, "end");
-            addSubitemCheckInput(id, "sunday", p1.sunday, "S");
-            addSubitemCheckInput(id, "monday", p1.monday, "M");
-            addSubitemCheckInput(id, "tuesday", p1.tuesday, "T");
-            addSubitemCheckInput(id, "wednesday", p1.wednesday, "W");
-            addSubitemCheckInput(id, "thursday", p1.sunday, "T");
-            addSubitemCheckInput(id, "friday", p1.friday, "F");
-            addSubitemCheckInput(id, "saturday", p1.saturday, "S");
-            addSubitemNumInput(id, "priority", p1.priority, "priorità", 0, 99);
-        });
-
-
         addSeparator(" ");
 
-    }, function (json) {
-        postData("scenario",json, function (result) {
-            loadScenarios();
-        });
+    }, function (json, button) {
+
+        if (button == 'save') {
+            postData("scenario", json, function (result) {
+                loadScenario(scenario.id);
+            });
+        } else if (button == 'add') {
+
+            var program = {
+                "scenarioid": scenario.id,
+                "id": 0,
+                "name": "new program",
+                "enabled": true,
+            };
+            createProgram(program);
+        }
     });
 }
 
@@ -225,7 +389,7 @@ function zoneForm(zone, sensors) {
         }
         ,
         function (json) { // callback function
-            postData("zone",json, function (result) {
+            postData("zone", json, function (result) {
                 loadZones();
             });
         }
@@ -276,6 +440,13 @@ function loadZone(id) {
         var tbody = $zonePanel.find('tbody[name="sensorlist"]');
         $.getJSON(systemServletPath + "?requestcommand=zone&id=" + id, function (zone) {
 
+            $zonePanel.find('span#id').text(zone.id);
+            $zonePanel.find('span#name').text(zone.name);
+            if (zone.type != null)
+                $zonePanel.find('span#type').text(zone.type);
+            else
+                $zonePanel.find('span#type').text('');
+
             tbody[0].innerHTML = "";
 
             $.each(zone.zonesensors, function (idx, elem) {
@@ -312,7 +483,8 @@ function loadZone(id) {
 function setZoneSensorElement(element, sensor) {
 
     element.find('td[name="id"]').text(sensor.id);
-    element.find('td[name="name"]').text(sensor.name);
+    element.find('td[name="name"]').text(sensor.sensorid + sensor.name);
+    element.find('td[name="type"]').text(sensor.type);
 
 
 }
@@ -340,6 +512,11 @@ function loadShields() {
             })
             .always(function () {
             });
+
+        $shieldsPanel.find('button[id="edit"]').click(function () {
+
+
+        });
     });
 }
 
@@ -351,6 +528,32 @@ function loadDashboard() {
 
         var tbody = $sensorsPanel.find('tbody[name="sensorlist"]');
         $.getJSON(systemServletPath + "?requestcommand=sensors", function (data) {
+            tbody[0].innerHTML = "";
+            $.each(data, function (idx, elem) {
+                var newtr = $sensorRow.clone();
+                setSensorElement(newtr, elem);
+                tbody.append(newtr);
+            });
+        })
+            .done(function () {
+            })
+            .fail(function () {
+                alert("cannot load sensorss");
+            })
+            .always(function () {
+            });
+    });
+}
+
+function loadShield(shieldid) {
+
+    $("#result").load("shield.html", function () {
+        $shieldPanel = $(this).find('div[id="shieldpanel"]');
+        $sensorRow = $shieldPanel.find('tr[name="sensor"]');
+
+
+        var tbody = $shieldPanel.find('tbody[name="sensorlist"]');
+        $.getJSON(systemServletPath + "?requestcommand=sensors&id=" + shieldid, function (data) {
             tbody[0].innerHTML = "";
             $.each(data, function (idx, elem) {
                 var newtr = $sensorRow.clone();
@@ -410,6 +613,41 @@ function setSensorElement(element, sensor) {
     element.find('td[name="type"]').text(sensor.type);
     //name
     element.find('td[name="name"]').text(sensor.name);
+
+    /*element.find('td[name="name"]').addEventListener('input', function() {
+     console.log('Hey, somebody changed something in my text!');
+     });*/
+    editBtn = element.find('button[id="edit"]');
+    //editables = document.querySelectorAll('#name, #type')
+
+    editBtn.click(function () {
+
+        editables = element.find('td[name="name"]');
+        id = element.find('td[name="id"]').text();
+
+
+        if (!editables[0].isContentEditable) {
+            for (var i = 0; i < editables.length; i++) {
+                editables[i].contentEditable = 'true';
+            }
+            this.innerHTML = 'Save Changes';
+        } else {
+            for (var i = 0; i < editables.length; i++) {
+                editables[0].contentEditable = 'false';
+                editBtn.innerHTML = 'Enable Editing';
+                //localStorage.setItem(editables[i].getAttribute('id'), editables[i].innerHTML);
+
+            }
+
+            var json = {'id': id, 'name': editables[0].innerHTML};
+
+            postData("sensor", json, function (result) {
+                //loadZones();
+            });
+            this.innerHTML = 'Edit';
+        }
+    });
+
     //pin
     element.find('td[name="pin"]').text(sensor.pin);
     // subaddress
@@ -495,6 +733,9 @@ function setShieldElement(element, shield) {
     // last update
     element.find('td[name="date"]').text(shield.lastupdate);
     element.find('td[name="swversion"]').text(shield.swversion);
+    element.click(function () {
+        loadShield(shield.shieldid)
+    });
 
 
     var restartButton = element.find('button[name="restartbutton"]');
@@ -510,10 +751,11 @@ function setShieldElement(element, shield) {
         sendShieldCommand(commandJson)
     });
 
-
-    /*element.click(function () {
-        //loadShields(shield.id)
-    });*/
+    element.find('button[id="edit"]').click(function () {
+        path = "./webduino_settings.html?id=" + shield.shieldid;
+        window.location.href = path;
+        //loadProva();
+    });
 }
 
 function sendShieldCommand(commandJson) {
@@ -558,17 +800,43 @@ function setScenarioElement(element, scenario) {
 function loadScenario(id) {
 
     $("#result").load("scenario.html", function () {
-        $scenarioPanel = $(this).find('div[id="scenariopanel"]');
-        $timeintervalRow = $scenarioPanel.find('tr[name="timeinterval"]');
-        $instructionRow = $scenarioPanel.find('tr[name="instruction"]');
 
-        var tbody = $scenarioPanel.find('tbody[name="timeintervallist"]');
-        var tbody2 = $scenarioPanel.find('tbody[name="instructionlist"]');
+        // back button
+        $(this).find('button[name="backbutton"]').click(function () {
+            loadScenarios();
+        });
+
+        $scenarioPanel = $(this).find('div[id="scenariopanel"]');
+
+        $calendarPanel = $(this).find('div[id="calendarpanel"]');
+        $calendarRow = $calendarPanel.find('tr[name="timeinterval"]');
+        var calendartbody = $calendarPanel.find('tbody[name="timeintervallist"]');
+
+        $programPanel = $(this).find('div[id="programpanel"]');
+        $programRow = $programPanel.find('tr[name="program"]');
+        var programstbody = $(this).find('div[id="programpanel"]').find('tbody[name="programlist"]');
+
         $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (data) {
 
             var scenario = data;
+            $scenarioPanel.find('span[id="name"]').innerHTML = data.name;
+            $scenarioPanel.find('span[id="name"]').focus(function(){
+                //$(this).append("<li>Item Focused</li>");
+                $(this).next().click(function () {
+                    scenario.name = $(this).text();
+                    postData("scenario", scenario/*JSON.stringify(scenario)*/, function (result) {
 
-            $scenarioPanel.find('h4[id="name"]')[0].innerHTML = data.name;
+                        loadScenario(scenario.id);
+                    });
+                });
+            });
+
+            /*postData("scenario", json, function (result) {
+                loadScenario(scenario.id);
+            });*/
+
+
+
             $scenarioPanel.find('span[id="id"]')[0].innerHTML = data.id;
             if (data.active)
                 $scenarioPanel.find('span[id="status"]')[0].innerHTML = "Attivo";
@@ -584,60 +852,131 @@ function loadScenario(id) {
                 else
                     $scenarioPanel.find('span[id="endtdate"]')[0].innerHTML = "--";
             }
-            tbody[0].innerHTML = "";
+            $scenarioPanel.find('button[name="edit"]').click(function () {
+                $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
+                    $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
+                        $.getJSON(systemServletPath + "?requestcommand=instructiontypes", function (instructiontypes) {
+                            scenarioForm(scenario, sensors, zones, instructiontypes);
+                        })
+                    });
+                });
+            });
+
+            // calendar
+            calendartbody[0].innerHTML = "";
             $.each(scenario.calendar.timeintervals, function (idx, elem) {
                 var newtr = $timeintervalRow.clone();
                 setTimeintervalElement(newtr, id, elem);
-                tbody.append(newtr);
+                calendartbody.append(newtr);
             });
-
-            tbody2[0].innerHTML = "";
-            $.each(scenario.programinstructions, function (idx, elem) {
-                var newtr = $instructionRow.clone();
-                setInstructionElement(newtr, elem);
-                tbody2.append(newtr);
-            });
-
-
-            $scenarioPanel.find('button[id="edit"]').click(function () {
-
+            $calendarPanel.find('button[name="add"]').click(function () {
                 $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
-
-                    //scenarioForm(scenario,sensors);
                     $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
-
-                        scenarioForm(scenario, sensors, zones);
-                    })
-                        .done(function () {
-                        })
-                        .fail(function () {
-                            alert("cannot load sensorss");
-                        })
-                        .always(function () {
+                        $.getJSON(systemServletPath + "?requestcommand=instructiontypes", function (instructiontypes) {
+                            var timeinterval = {
+                                "scenarioid": scenario.id,
+                                "id": 0,
+                                "name": "program",
+                                "enabled": true,
+                            };
+                            //scenarioTimeRangeForm(program, scenario, sensors, zones, instructiontypes);
                         });
-
-                })
-                    .done(function () {
-                    })
-                    .fail(function () {
-                        alert("cannot load sensorss");
-                    })
-                    .always(function () {
                     });
+                });
             });
 
-        })
-            .done(function () {
-            })
-            .fail(function () {
-                alert("cannot load timeintervals");
-            })
-            .always(function () {
+            // programs
+            programstbody[0].innerHTML = "";
+            $.each(scenario.programs, function (idx, elem) {
+                var newtr = $programRow.clone();
+                setProgramElement(newtr, elem, scenario);
+                programstbody.append(newtr);
+            });
+            $programPanel.find('button[name="add"]').click(function () {
+                var program = {
+                    "scenarioid": scenario.id,
+                    "id": 0,
+                    "name": "nuovo programma",
+                    "enabled": true,
+                };
+                //scenarioProgramForm(program, sensors, zones, instructiontypes);
+                postData("program", program, function (result) {
+                    loadScenario(scenario.id);
+                });
+
             });
 
+        });
+    });
+}
+
+// SCENARIO PROGRAM
+function loadScenarioProgram(program, scenario) {
+
+    $("#result").load("scenarioprogram.html", function () {
+
+        // back button
+        $(this).find('button[name="backbutton"]').click(function () {
+            loadScenario(program.scenarioid);
+        });
+
+        $scenarioPanel = $(this).find('div[id="scenariopanel"]');
+        $instructionRow = $scenarioPanel.find('tr[name="instruction"]');
+
+        $timerange = $(this).find('div[id="timerange"]');
+        $programinstructions = $(this).find('div[id="programinstructions"]');
+
+        $timerange.remove();
+
+        var timerangelistdiv = $scenarioPanel.find('div[name="timerangelist"]');
+
+        $scenarioPanel.find('span[id="name"]')[0].innerHTML = program.name;
+        $scenarioPanel.find('span[id="id"]')[0].innerHTML = program.id;
+        $scenarioPanel.find('span[id="scenarioid"]')[0].innerHTML = program.scenarioid;
+        $scenarioPanel.find('span[id="enabled"]')[0].innerHTML = program.enabled;
+
+        timerangelistdiv[0].innerHTML = "";
+
+        if (program.timeranges != null) {
+            $.each(program.timeranges, function (idx, timerange) {
+                var tr = $timerange.clone();
+                tr.find('span[name="id"]').text(timerange.id);
+                tr.find('span[name="name"]').text(timerange.name);
+                if (timerange.startdate != null) tr.find('span[name="startdate"]').text(timerange.startdate);
+                if (timerange.enddate != null) tr.find('span[name="enddate"]').text(timerange.enddate);
+                timerangelistdiv.append(tr);
+
+                var tbody = tr.find('tbody[name="instructionlist"]');
+                tbody[0].innerHTML = "";
+                if (timerange.programinstructions != null) {
+
+                    $.each(timerange.programinstructions, function (idx, elem) {
+                        var pi = $instructionRow.clone();
+                        setInstructionElement(pi, elem);
+                        tbody.append(pi);
+                    });
+                }
+
+                tr.find('button[name="edit"]').click(function () {
+                    $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
+                        $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
+                            $.getJSON(systemServletPath + "?requestcommand=instructiontypes", function (instructiontypes) {
+                                scenarioTimeRangeForm(timerange, scenario, sensors, zones, instructiontypes);
+                            })
+                        });
+                    });
+                });
+
+            });
+        }
+
+        $scenarioPanel.find('button[id="edit"]').click(function () {
+            scenarioProgramForm(program);
+        });
 
     });
 }
+
 
 function setTimeintervalElement(element, scenarioid, timeinterval) {
 
@@ -724,12 +1063,21 @@ function setInstructionElement(element, instruction) {
     element.find('td[name="seconds"]').text(instruction.seconds);
 
     element.find('td[name="schedule"]').text(instruction.schedule);
-    element.find('td[name="starttime"]').text(instruction.starttime);
-    element.find('td[name="endtime"]').text(instruction.endtime);
     element.find('td[name="days"]').text(getDays(instruction));
     element.find('td[name="priority"]').text(instruction.priority);
 
 
+}
+
+function setProgramElement(element, program, scenario) {
+
+    element.find('td[name="id"]').text(program.id);
+    element.find('td[name="scenarioid"]').text(program.scenarioid);
+    element.find('td[name="name"]').text(program.name);
+    element.find('td[name="enabled"]').text(program.enabled);
+    element.click(function () {
+        loadScenarioProgram(program, scenario)
+    });
 }
 
 var func = function (obj) {
@@ -740,3 +1088,4 @@ $("input[type='submit']").click(function () {
     func($("form").serialize());
     return false;
 });
+

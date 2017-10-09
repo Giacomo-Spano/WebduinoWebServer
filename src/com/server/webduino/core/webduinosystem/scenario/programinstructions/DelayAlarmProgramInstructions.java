@@ -1,7 +1,6 @@
-package com.server.webduino.core.webduinosystem.programinstructions;
+package com.server.webduino.core.webduinosystem.scenario.programinstructions;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.WebduinoTrigger;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 
 import java.util.Date;
@@ -12,9 +11,9 @@ import java.util.TimerTask;
  * Created by giaco on 17/05/2017.
  */
 public class DelayAlarmProgramInstructions extends ProgramInstructions {
-    public DelayAlarmProgramInstructions(int id, int scenarioid, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds, boolean schedule, Date startTime, Date endTime,
+    public DelayAlarmProgramInstructions(int id, int programtimerangeid, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds, boolean schedule,
                                          boolean sunday, boolean monday, boolean tuesday, boolean wednesday, boolean thursday, boolean friday, boolean saturday, int priority) {
-        super(id, scenarioid, name, type, actuatorid, targetValue, zoneId, seconds, schedule, startTime, endTime,
+        super(id, programtimerangeid, name, type, actuatorid, targetValue, zoneId, seconds, schedule,
         sunday, monday, tuesday, wednesday, thursday, friday, saturday, priority);
 
         Zone zone = Core.getZoneFromId(zoneId);

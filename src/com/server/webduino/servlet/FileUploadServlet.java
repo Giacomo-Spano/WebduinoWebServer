@@ -67,7 +67,7 @@ public class FileUploadServlet extends HttpServlet {
         String fileName = "";
         //File file = new File(fileSaveDir, fileName);
        // File file = new File(uploads, "somefilename.ext");
-        //Get all the parts from request and write it to the file on server
+        //Get all the parts from request and save it to the file on server
         for (Part part : request.getParts()) {
 
 
@@ -84,7 +84,7 @@ public class FileUploadServlet extends HttpServlet {
 
             /*fileName = getFileName(part);
 
-            part.write(uploadFilePath + File.separator + fileName);*/
+            part.save(uploadFilePath + File.separator + fileName);*/
         }
 
         SWVersion swVersion = new SWVersion(0,name,version,uploadFilePath,fileName);

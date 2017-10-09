@@ -3,6 +3,7 @@
  */
 
 var page;
+var elemStyleMinWidth = " style='min-width:300px'";
 
 function load() {
 
@@ -46,41 +47,43 @@ function loadForm(htmlpage, func, callback) {
 
     $("#result").load(htmlpage, function () {
         page = htmlpage;
-        $("input[type='submit']").click(function () {
-
+        $("input[type='button']").click(function () {
             var jso = $("form").toJSO();
             var txt = JSON.stringify(jso)
-            //var ser = $("form").serialize();
-            //var txt = JSON.stringify(ser);
-            callback(jso);
+            callback(jso, this.name);
             return false;
         });
-
-        $("input[type='button']").click(function () {
-
-
-            return false;
-        });
-
-        func(/*txt*/);
+        /*$("input[type='button']").click(function () {
+         callback(null,this.name);
+         return false;
+         });*/
+        func();
     });
-
 }
 
 function addTextInput(key, val, legend, maxlength) {
-    $("#result").find('input[name="submit"]').before(textInput(key, val, legend, maxlength));
+    $("#result").find('div[id="bookmark"]').before(textInput(key, val, legend, maxlength));
 }
 
-function addCheckBoxInput(key, val, legend) {
-    $("#result").find('input[name="submit"]').before(checkBoxInput(key, val, legend));
+function addCheckBoxInput(key, val, legend, callback) {
+    elem = $("#result").find('div[id="bookmark"]').before(checkBoxInput(key, val, legend));
+
+    elem.prev().find('input').change(function () {
+        if (callback != null)
+            callback($(this).is(':checked'));
+    });
 }
 
 function addDateInput(key, date, legend) {
-    $("#result").find('input[name="submit"]').before(dateInput(key, date, legend));
+    $("#result").find('div[id="bookmark"]').before(dateInput(key, date, legend));
 }
 
 function addTimeInput(key, time, legend) {
-    $("#result").find('input[name="submit"]').before(timeInput(key, time, legend));
+    $("#result").find('div[id="bookmark"]').before(timeInput(key, time, legend));
+}
+
+function addNumInput(key, val, legend, min, max, step, disabled) {
+    $("#result").find('div[id="bookmark"]').before(numInput(key, val, legend, min, max, step, disabled));
 }
 
 function addSubitemTextInput(id, subkey, val, legend, maxlength) {
@@ -96,19 +99,23 @@ function addSubitemSelect(id, subkey, list, legend, selected) {
 }
 
 
-function addSubitemNumInput(id, subkey, val, legend, min, max, step) {
+function addSubitemNumInput(id, subkey, val, legend, min, max, step, disabled) {
     var legendElement = $("#result").find('#' + id).find('legend');
     key = legendElement.attr("name");
     //var element = $("#result").find('#' + id).find('input[type="button"]');
     var element = $("#result").find('#' + id).find('input[type="hidden"]');
-    element.first().before(numInput(subkey, val, legend, min, max, step));
+    element.first().before(numInput(subkey, val, legend, min, max, step, disabled));
 }
 
-function addSubitemCheckInput(id, subkey, val, legend) {
+function addSubitemCheckInput(id, subkey, val, legend, callback) {
     var legendElement = $("#result").find('#' + id).find('legend');
     key = legendElement.attr("name");
     var element = $("#result").find('#' + id).find('input[type="hidden"]');
-    element.first().before(checkBoxInput(subkey, val, legend));
+    elem = element.first().before(checkBoxInput(subkey, val, legend));
+    elem.prev().find('input').change(function () {
+        if (callback != null)
+            callback($(this).is(':checked'));
+    });
 }
 
 function addSubitemDateInput(id, subkey, date, legend) {
@@ -125,17 +132,15 @@ function addSubitemTimeInput(id, subkey, time, legend) {
     element.first().before(timeInput(subkey, time, legend));
 }
 
-function addNumInput(key, val, legend, min, max, step) {
-    $("#result").find('input[name="submit"]').before(numInput(key, val, legend, min, max, step));
-}
 
-function textInput(key, val, legend, maxlength=10) {
+function textInput(key, val, legend, maxlength=50) {
     var dec = val.toString().replace(/\s/g, '&nbsp;');
-    return "<strong>" + legend + "</strong><input type='text' name=" + key + " value=" + dec + " maxlength='" + maxlength + "' placeholder=" + key + "/>";
+    //return "<div><label " + elemStyleMinWidth + "><strong>" + legend + "</strong></label><input  type='text' name=" + key + " value=" + dec + " maxlength='" + maxlength + "' placeholder=" + key + "/></div>";
+    return "<label " + elemStyleMinWidth + "><strong>" + legend + "</strong></label><input  type='text' name=" + key + " value=" + dec + " maxlength='" + maxlength + "' placeholder=" + key + "/><br>";
 }
 
 function selectInput(key, list, legend, selected) {
-    var selectList = "<strong>" + legend + "</strong><select name='" + key + "'>";
+    var selectList = "<label " + elemStyleMinWidth + "><strong>" + legend + "</strong></label><select name='" + key + "'>";
     for (var i = 0; i < list.length; i++) {
         if (selected == list[i][0]) {
             selectList += "<option selected value='" + list[i][0] + "'>" + list[i][1] + "</option>";
@@ -143,7 +148,7 @@ function selectInput(key, list, legend, selected) {
             selectList += "<option value='" + list[i][0] + "'>" + list[i][1] + "</option>";
         }
     }
-    selectList += "</select>";
+    selectList += "</select><br>";
     return selectList
 }
 
@@ -151,12 +156,15 @@ function inputLegend(legend) {
     return "<strong>" + legend + "</strong>";
 }
 
-function numInput(key, val, legend, min=0, max=99, step="1") {
-    return "<strong>" + legend + "</strong><input type='number' name=" + key + " value=" + val + " min='" + min + "' max='" + max + "' step='" + step + "' placeholder=" + key + "/>";
+function numInput(key, val, legend, min=0, max=99, step="1", disabled=false) {
+    disabledkey = "";
+    if (disabled)
+        disabledkey = " disabled";
+    return "<label " + elemStyleMinWidth + "><strong>" + legend + "</strong></label><input type='number' name=" + key + " value=" + val + " min='" + min + "' max='" + max + "' step='" + step + "' placeholder=" + key + disabledkey + "/><br>";
 }
 
 function checkBoxInput(key, val, legend) {
-    return "<strong>" + legend + "</strong><input type='checkbox' name=" + key + " value=" + val + " placeholder=" + key + "/>";
+    return "<label " + elemStyleMinWidth + "><strong>" + legend + "</strong></label><input type='checkbox' name=" + key + " value=" + val + " placeholder=" + key + "/><br>";
 }
 
 function dateInput(key, date, legend) {
@@ -164,35 +172,42 @@ function dateInput(key, date, legend) {
     if (date == null)
         date = new Date();
     strdate = date.toString("yyyy-MM-ddTHH:mm");
-    return "<strong>" + legend + "</strong><input type='datetime-local' name=" + key + " value=" + strdate + " placeholder=" + key + "/>";
+    return "<label " + elemStyleMinWidth + "><strong>" + legend + "</strong></label><input type='datetime-local' name=" + key + " value=" + strdate + " placeholder=" + key + "/><br>";
 }
 
 function timeInput(key, time, legend) {
     if (time == null)
         time = "00:00";
-    return "<strong>" + legend + "</strong><input type='time' name=" + key + " value=" + time + " placeholder=" + key + "/>";
+    return "<label " + elemStyleMinWidth + "><strong>" + legend + "</strong></label><input type='time' name=" + key + " value=" + time + " placeholder=" + key + "/><br>";
 }
 
 
 function addSeparator(name) {
-    $("#result").find('input[name="submit"]').before("<hr name='" + name + "'>");
+    $("#result").find('div[id="bookmark"]').before("<hr name='" + name + "'>");
 }
+
+function addTag(tag) {
+    $("#result").find('div[id="bookmark"]').before(tag);
+}
+
+function addNewLine() {
+    $("#result").find('div[id="bookmark"]').before("<BR>");
+}
+
+function addSection(name) {
+    $("#result").find('div[id="bookmark"]').before("<h>" + name + "</h><BR>");
+}
+
 
 function createItem(name, legend) {
     var uuid = getUniqueId();
-    //var div = "<div id='"+uuid+"' name='"+ name +"'></div>";
     var fieldset = "<fieldset name=" + name + " id='" + uuid + "'><legend>" + legend + "</legend></fieldset>";
-
-
-    $("#result").find('input[name="submit"]').before(fieldset);
+    $("#result").find('div[id="bookmark"]').before(fieldset);
     addSubitemSeparator(uuid);
-    //$("#result").find('input[name="submit"]').before("");
-    //hr = $("#result").find("hr[name='" + key + "']");
     return uuid;
 }
 
 function createSubitem(id, key, legend) {
-
 
     var hr = $("#result").find("hr[name='" + key + "']");
     if (hr.length == 0) {
@@ -200,23 +215,18 @@ function createSubitem(id, key, legend) {
         var elem;
 
         if (id == 0) {
-            var elem = $("#result").find('input[name="submit"]');
-            elem.before("<hr><strong>" + key + "</strong><hr name='" + key + "'>");
+            var elem = $("#result").find('div[id="bookmark"]');
+            elem.before("<hr><strong>" + legend + "</strong><hr name='" + key + "'>");
         } else {
             var elem = $("#result").find('#' + id);
-            elem[0].innerHTML += "<hr><strong>" + key + "</strong><hr name='" + key + "'>";
+            elem[0].innerHTML += "<hr><strong>" + legend + "</strong><hr name='" + key + "'>";
         }
 
         hr = $("#result").find("hr[name='" + key + "']");
-
-        /*$("#result").find('input[name="submit"]').before("<hr><strong>" + key + "</strong>");
-         $("#result").find('input[name="submit"]').before("<hr name='" + key + "'>");
-         hr = $("#result").find("hr[name='" + key + "']");*/
     }
 
     var uuid = getUniqueId();
-    hr.before("<fieldset name=" + key + " id='" + uuid + "'><legend>" + legend /*+ " " + uuid */ + "</legend></fieldset>");
-
+    hr.before("<legend>" + legend + "</legend><fieldset name=" + key + " id='" + uuid + "'></fieldset>");
 
     addSubitemSeparator(uuid);
     addSubitemInsertButton(uuid);
@@ -339,8 +349,8 @@ function addSubitemMoveUpButton(id) {
 }
 
 $.fn.toJSO = function () {
-    var obj = {},
-        $kids = $(this).children('[name]');
+    var obj = {};
+    var $kids = $(this).children('[name]');
     if (!$kids.length) {
 
         if ($(this).attr('type') == 'checkbox') {
@@ -368,7 +378,7 @@ $.fn.toJSO = function () {
     $kids.each(function () {
         var $el = $(this),
             name = $el.attr('name');
-        if (name != 'submit' && name != 'add' && name != 'delete' && name != 'delete' && name != 'up' && name != 'down' && name != 'separator' && !$el.is('hr')) {
+        if (name != 'save' && name != 'add' && name != 'delete' && name != 'delete' && name != 'up' && name != 'down' && name != 'separator' && !$el.is('hr')) {
             if ($el.siblings("[name=" + name + "]").length) {
                 if (!/radio|checkbox/i.test($el.attr('type')) || $el.prop('checked')) {
                     obj[name] = obj[name] || [];

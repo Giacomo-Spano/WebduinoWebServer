@@ -140,6 +140,23 @@ public class Shields {
         return shield.updateSensors(jsonArray);
     }
 
+    boolean updateShieldSensor(int id, JSONObject json) {
+        Shield shield = fromSensorId(id);
+        if (shield == null)
+            return false;
+        if (json.has("name")) {
+            String name = null;
+            try {
+                name = json.getString("name");
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return false;
+            }
+            return shield.updateSensor(id,name);
+        }else
+            return false;
+    }
+
 
     boolean updateShieldStatus(int shieldid, JSONObject json) {
         Shield shield = fromId(shieldid);
@@ -163,6 +180,15 @@ public class Shields {
     public Shield fromId(int id) {
         for (Shield shield : getShields()) {
             if (shield.id == id) {
+                return shield;
+            }
+        }
+        return null;
+    }
+
+    public Shield fromSensorId(int id) {
+        for (Shield shield : getShields()) {
+            if (shield.findSensorFromId(id) != null) {
                 return shield;
             }
         }

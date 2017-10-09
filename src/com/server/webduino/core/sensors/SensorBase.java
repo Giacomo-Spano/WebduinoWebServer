@@ -72,6 +72,17 @@ public class SensorBase extends httpClient {
         return null;
     }
 
+    public SensorBase findSensorFromId(int id) {
+        if (this.id == id)
+            return this;
+        for (SensorBase child : childSensors) {
+            SensorBase s = child.findSensorFromId(id);
+            if (s != null)
+                return s;
+        }
+        return null;
+    }
+
     public interface SensorListener {
         static public String SensorEvents = "sensor event";
         void onChangeTemperature(int sensorId, double temperature,double oldtemperature);

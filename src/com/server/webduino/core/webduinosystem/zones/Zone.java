@@ -229,7 +229,8 @@ public class Zone implements SensorBase.SensorListener {
                 SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
                 jsonObject.put("id",zonesensor.getId());
                 jsonObject.put("name",sensor.getName());
-                //jsonObject.put("name",sensor.getS);
+                jsonObject.put("sensorid",sensor.getId());
+                jsonObject.put("type",sensor.getType());
                 jsonArray.put(jsonObject);
             }
             json.put("zonesensors", jsonArray);

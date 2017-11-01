@@ -296,7 +296,7 @@ public class Schedule {
 
                         LOGGER.info("program.dateEnabled=" + program.dateEnabled);
                         LOGGER.info("program.startDate=" + program.startDate);
-                        LOGGER.info("program.startTime=" + program.startTime);
+                        LOGGER.info("program.startDateTime=" + program.startTime);
                         LOGGER.info("currentProgram.timeRange=" + currentProgram.timeRange.endTime);
                         nextActive = new ActiveProgram();
                         nextActive.program = program;

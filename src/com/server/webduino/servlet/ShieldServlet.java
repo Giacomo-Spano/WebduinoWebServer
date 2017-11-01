@@ -2,10 +2,9 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
-import com.server.webduino.core.sensors.DoorSensor;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
-import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.webduinosystem.scenario.Scenarios;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -178,9 +177,7 @@ public class ShieldServlet extends HttpServlet {
 
     private int registerShield(JSONObject jsonObj) throws JSONException {
 
-        Shield shield = new Shield(/*jsonObj*/);
-        if (!shield.FromJson(jsonObj))
-            return 0;
+        Shield shield = new Shield(jsonObj);
 
         int shieldid = Core.registerShield(shield);
         return shieldid;
@@ -241,12 +238,12 @@ public class ShieldServlet extends HttpServlet {
         if (command.equals("settings")) {
             if (id != null) {
                 int shieldId = Integer.parseInt(id);
-                JSONObject json = Core.getShieldFromId(shieldId).getJson();
+                JSONObject json = Core.getShieldFromId(shieldId).toJson();
                 out.print(json.toString());
             }
         } else if (command.equals("scenarios")) {
 
-            JSONArray jarray = Core.getScenariosJSONArray();
+            JSONArray jarray = Scenarios.getScenariosJSONArray();
             out.print(jarray.toString());
 
         } else if (command != null && id != null) { // CHIAMTA CON ATTESA RITORNO
@@ -262,7 +259,7 @@ public class ShieldServlet extends HttpServlet {
             Iterator<Shield> iterator = list.iterator();
             while (iterator.hasNext()) {
                 Shield shield = iterator.next();
-                JSONObject json = shield.getJson();
+                JSONObject json = shield.toJson();
                 jsonarray.put(json);
             }
             out.print(jsonarray.toString());

@@ -125,7 +125,7 @@ public class SensorServlet extends HttpServlet {
         if (id != null) {
 
             SensorBase sensor = core.getSensorFromId(Integer.valueOf(id));
-            JSONObject json = sensor.getJson();
+            JSONObject json = sensor.toJson();
             out.print(json.toString());
 
         } else if (shieldParam != null) { // todo eliminare
@@ -150,7 +150,7 @@ public class SensorServlet extends HttpServlet {
 
 
             for (SensorBase sensor : list) {
-                JSONObject json = sensor.getJson();
+                JSONObject json = sensor.toJson();
                 jsonarray.put(json);
             }
 

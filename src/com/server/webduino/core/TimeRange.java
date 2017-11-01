@@ -1,5 +1,5 @@
 package com.server.webduino.core;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramInstructions;
+import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
 
 import java.sql.Time;
 
@@ -10,11 +10,11 @@ public class TimeRange {
 
     public int ID;
     public String name;
-    //Time startTime;
+    //Time startDateTime;
     public Time endTime;
     public Double temperature;
 
-    public ProgramInstructions programInstructions;
+    public ProgramAction programActions;
     public int sensorId = 0;
     public int programID;
     public int priority;
@@ -25,7 +25,7 @@ public class TimeRange {
     public TimeRange(int ID, String name, Time endTime, Double temperature, int shieldId, int programID) {
         this.ID = ID;
         this.name = name;
-        //this.startTime = startTime;
+        //this.startDateTime = startDateTime;
         this.endTime = endTime;
         this.temperature = temperature;
         this.sensorId = shieldId;

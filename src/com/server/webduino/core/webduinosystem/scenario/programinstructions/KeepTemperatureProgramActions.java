@@ -7,12 +7,10 @@ import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Date;
-
 /**
  * Created by giaco on 17/05/2017.
  */
-public class KeepTemperatureProgramInstructions extends ProgramInstructions {
+public class KeepTemperatureProgramActions extends ProgramAction {
 
     private double targetTemperature;
     private int duration = 1000;
@@ -20,16 +18,25 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
     private int timeInterval;
     private double temperature;
 
-    public KeepTemperatureProgramInstructions(int id, int programtimerangeid, String name, String type, int actuatorid, double targetValue, int zoneId, int seconds, boolean schedule,
-                                              boolean sunday, boolean monday, boolean tuesday, boolean wednesday, boolean thursday, boolean friday, boolean saturday, int priority) {
-        super(id, programtimerangeid, name, type, actuatorid, targetValue, zoneId,0, schedule,
-                sunday, monday, tuesday, wednesday, thursday, friday, saturday, priority);
+    public KeepTemperatureProgramActions(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
+                                         int zoneId, int seconds, boolean enabled) {
+        super(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+                zoneId, seconds, enabled);
 
-        targetTemperature = targetValue;
+        targetTemperature = targetvalue;
         Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
             zone.addListener(this);
         }
+    }
+
+    @Override
+    public String getStatus() {
+        String status;
+        Zone zone = Core.getZoneFromId(zoneId);
+        status = "Zona: (" + zoneId + ")" + zone.getName() + " Temperatura: " + zone.getTemperature() + " °C";
+        status += " Target: " + targetTemperature + " °C";
+        return status;
     }
 
     @Override
@@ -54,7 +61,7 @@ public class KeepTemperatureProgramInstructions extends ProgramInstructions {
 
             Core.postCommand(cmd);
 
-            } catch (JSONException e1) {
+        } catch (JSONException e1) {
             e1.printStackTrace();
         }
     }

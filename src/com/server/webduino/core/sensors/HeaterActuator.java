@@ -37,8 +37,8 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public int timeInterval;
     protected int zone; //  questo valore non è letto dal sensore ma rimane solo sul server
 
-    public HeaterActuator(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
-        super(id,name,subaddress,shieldid, pin, enabled);
+    public HeaterActuator(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id,name, description,subaddress,shieldid, pin, enabled);
         type = "heatersensor";
     }
 
@@ -298,7 +298,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     }
 
     /*@Override
-    public JSONObject getJson() {
+    public JSONObject toJson() {
         JSONObject json = new JSONObject();
         try {
             json.put("id", id);
@@ -365,7 +365,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             try {
                 // calcola la durata del prossimo programma
                 Date date1 = format.parse(currentTime.toString());
-                Date date2 = format.parse(activeProgram.timeRange.endTime.toString());
+                Date date2 = format.parse(activeProgram.timeRange.endDateTime.toString());
                 long difference = date2.getTime() - date1.getTime();
                 long duration = (difference / 1000 + 59) / 60; // aggiungi 59 secondi per non fare andare l'actuator in idle
 

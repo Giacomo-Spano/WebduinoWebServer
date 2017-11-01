@@ -126,12 +126,12 @@ public class Program {
             if (!currentTimeRange.endTime.equals(Time.valueOf("00:00:00"))) {
 
                 if (currentTime.after(currentTimeRange.endTime) || currentTime.equals(currentTimeRange.endTime)) {
-                    //startTime = currentTimeRange.endTime;
+                    //startDateTime = currentTimeRange.endDateTime;
                     continue;
                 }
 
                 if (currentTime.before(startTime)) {
-                    //startTime = currentTimeRange.endTime;
+                    //startDateTime = currentTimeRange.endDateTime;
                     continue;
                 }
             }

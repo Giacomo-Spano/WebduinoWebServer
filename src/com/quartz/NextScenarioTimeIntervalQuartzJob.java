@@ -20,17 +20,16 @@ public class NextScenarioTimeIntervalQuartzJob implements Job {
             throws JobExecutionException {
 
         try {
-            LOGGER.info("NextScenarioTimeIntervalQuartzJob START");
-            Date date = Core.getDate();
-            LOGGER.info("" + date.toString() + " NextScenarioTimeIntervalQuartzJob");
 
             Scenario scenario = (Scenario) context.getMergedJobDataMap().get("scenario");
-            scenario.triggerNextTimeInterval();
 
 
-            /*ServletContext servletContext = (ServletContext) context.getMergedJobDataMap().get("servletContext");
-            Core core = (Core)servletContext.getAttribute(QuartzListener.CoreClass);
-            core.mSchedule.checkProgram();*/
+            LOGGER.info("NextScenarioTimeIntervalQuartzJob START id="+scenario.id);
+
+            Date currentDate = Core.getDate();
+            scenario.triggerNextTimeInterval(currentDate);
+
+            LOGGER.info("NextScenarioTimeIntervalQuartzJob END id="+scenario.id);
 
         } catch (Exception e) {
 
@@ -44,7 +43,5 @@ public class NextScenarioTimeIntervalQuartzJob implements Job {
             e2.refireImmediately();
             throw e2;
         }
-        LOGGER.info("NextScenarioTimeIntervalQuartzJob END");
-
     }
 }

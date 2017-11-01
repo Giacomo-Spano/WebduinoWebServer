@@ -1,18 +1,68 @@
-<!-- /. ROW  SCENARIO-->
+<!-- /. ROW  SCENARIO
 
-<button type="button" name="backbutton" iclass="btn btn-sm btn-primary">Indietro</button>
+<button type="button" name="backbutton" iclass="btn btn-sm btn-primary">Indietro</button>-->
 
 <div id="scenariopanel" class="row">
     <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">Dati generali</div>
+        <div class="panel panel-info">
+            <div class="panel-heading">Dati generali
+                <p style="display: inline-block;" name="headingleft"></p>
+                <p style="float: right;" name="headingright">xx.xx</p>
+            </div>
             <div class="panel-body">
-                <div><b>Nome: </b><span id="name" contenteditable="true">name</span><button type="button" name="save" class="btn btn-sm btn-primary">save</button><button type="button" name="save" class="btn btn-sm btn-primary">save</button></div>
-                <b>Id: </b><span id="id">ddd</span><BR>
-                <b>Stato: </b><span id="status">stato</span><BR>
-                <b>Data inizio: </b><span id="startdate">startdate</span><BR>
-                <b>Data fine: </b><span id="enddate">enddate</span><BR>
-                <button type="button" name="edit" class="btn btn-sm btn-primary">Modifica</button>
+                <form role="form">
+
+                    <div class="form-group col-md-4">
+                        <label>Nome</label>
+                        <input class="form-control" name="name" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Abilitato</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="enabled" value="">Abilitato
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Stato</label>
+                        <p class="form-control" name="status">
+                    </div>
+
+
+                    <div class="form-group col-md-12">
+                        <label>Descrizione</label>
+                        <textarea class="form-control" rows="3" name="description"></textarea>
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Data inizio</label>
+                        <input class="form-control" name="startdate">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Data fine</label>
+                        <input class="form-control" name="enddate">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Priorità</label>
+                        <input class="form-control" type="number" name="priority" value="0" min="0" max="30" step="1">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <button type="button" name="save" class="btn btn-info">Salva</button>
+                        <button type="button" name="cancel" class="btn btn-info">Annulla</button>
+                        <button type="button" name="edit" class="btn btn-info">Modifica</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -20,41 +70,51 @@
 
 <div id="calendarpanel" class="row">
     <div class="col-md-12">
-        <div class="panel panel-default">
+        <div class="panel panel-info">
             <div class="panel-heading">Calendario</div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table id="tbl" class="table table-striped table-bordered table-hover">
-                        <thead>
-                        <tr name="header">
-                            <th>id</th>
-                            <th>Nome</th>
-                            <th>Giorni</th>
-                            <th>Ora inizio</th>
-                            <th>Ora fine</th>
-                            <th>Comandi</th>
-                        </tr>
-                        </thead>
-                        <tbody name="timeintervallist">
-                        <tr name="timeinterval">
-                            <td name="id"><a href="." name="link"></a></td>
-                            <td name="name">#</td>
-                            <td name="days">#</td>
-                            <td name="starttime">#</td>
-                            <td name="endtime">#</td>
-                            <td name="command">
-                                <button type="button" name="edittimeinterval" class="btn btn-sm btn-primary">
-                                    modifica
-                                </button>
-                                <button type="button" name="deletetimeinterval" class="btn btn-sm btn-primary">
-                                    rimuovi
-                                </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <button type="button" name="add" class="btn btn-sm btn-primary">Aggiungi</button>
+                <form role="form">
+                    <div class="form-group col-md-12">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>id</th>
+                                    <th>Nome</th>
+                                    <th>Giorni</th>
+                                    <th>Data inizio</th>
+                                    <th>Data fine</th>
+                                    <th>Priorità</th>
+                                    <th>Stato</th>
+                                    <th>Comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="timeintervallist">
+                                <tr name="timeinterval">
+                                    <td name="id"><a href="." name="link"></a></td>
+                                    <td name="name">#</td>
+                                    <td name="days">#</td>
+                                    <td name="starttime">#</td>
+                                    <td name="endtime">#</td>
+                                    <td name="priority">#</td>
+                                    <td name="status">#</td>
+                                    <td name="command">
+                                        <button type="button" name="edittimeinterval" class="btn btn-sm btn-primary">
+                                            modifica
+                                        </button>
+                                        <button type="button" name="deletetimeinterval" class="btn btn-sm btn-primary">
+                                            rimuovi
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="add" class="btn btn-info">Aggiungi</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -62,41 +122,57 @@
 
 <div id="triggerpanel" class="row">
     <div class="col-md-12">
-        <div class="panel panel-default">
+        <div class="panel panel-info">
             <div class="panel-heading">Trigger</div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table id="tbl" class="table table-striped table-bordered table-hover">
-                        <thead>
-                        <tr name="header">
-                            <th>id</th>
-                            <th>Nome</th>
-                            <th>tipo</th>
-                            <th>Sensore</th>
-                            <th>Valore</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody name="triggerlist">
-                        <tr name="trigger">
-                            <td name="id"><a href="." name="link"></a></td>
-                            <td name="name">#</td>
-                            <td name="type">#</td>
-                            <td name="sensor">#</td>
-                            <td name="value">#</td>
-                            <td name="command">
-                                <button type="button" name="edittimeinterval" class="btn btn-sm btn-primary">
-                                    modifica
-                                </button>
-                                <button type="button" name="deletetimeinterval" class="btn btn-sm btn-primary">
-                                    rimuovi
-                                </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <button type="button" name="add" class="btn btn-sm btn-primary">Aggiungi</button>
+                <form role="form">
+                    <div class="form-group col-md-12">
+                        <div class="table-responsive">
+                            <table id="tbl" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>id</th>
+                                    <th>Stato</th>
+                                    <th>Nome</th>
+                                    <th>Descrizione</th>
+                                    <th>tipo</th>
+                                    <th>Valore</th>
+                                    <th>Stato</th>
+                                    <th>priorità</th>
+                                    <th>abilitato</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody name="triggerlist">
+                                <tr name="trigger">
+                                    <td name="id"><a href="." name="link"></a></td>
+                                    <td name="status">#</td>
+                                    <td name="name">#</td>
+                                    <td name="description">#</td>
+                                    <td name="type">#</td>
+                                    <td name="value">#</td>
+                                    <td name="status">#</td>
+                                    <td name="priority">#</td>
+                                    <td name="enabled">#</td>
+                                    <td name="command">
+                                        <button type="button" name="details"
+                                                class="btn btn-sm btn-primary">
+                                            modifica
+                                        </button>
+                                        <button type="button" name="delete"
+                                                class="btn btn-sm btn-primary">
+                                            rimuovi
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="add" class="btn btn-info">Aggiungi</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -104,39 +180,58 @@
 
 <div id="programpanel" class="row">
     <div class="col-md-12">
-        <div class="panel panel-default">
+        <div class="panel panel-info">
             <div class="panel-heading">Programmi</div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table id="tbl2" class="table table-striped table-bordered table-hover">
-                        <thead>
-                        <tr name="header">
-                            <th>Id</th>
-                            <th>Id scenario</th>
-                            <th>Nome</th>
-                            <th>attivo</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody name="programlist">
-                        <tr name="program">
-                            <td name="id">#</td>
-                            <td name="scenarioid">#</td>
-                            <td name="name">#</td>
-                            <td name="enabled">#</td>
-                            <td name="command">
-                                <button type="button" name="editprogram" class="btn btn-sm btn-primary">
-                                    modifica
-                                </button>
-                                <button type="button" name="deleteprogram" class="btn btn-sm btn-primary">
-                                    rimuovi
-                                </button>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <button type="button" name="add" class="btn btn-sm btn-primary">Aggiungi</button>
+                <form role="form">
+                    <div class="form-group col-md-12">
+                        <div class="table-responsive">
+                            <table id="tbl2" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>Id scenario</th>
+                                    <th>Nome</th>
+                                    <th>start</th>
+                                    <th>end</th>
+                                    <th>Abilitato</th>
+                                    <th>Stato</th>
+                                    <th>Nextjob</th>
+                                    <th>Timerange</th>
+                                    <th>action</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody name="programlist">
+                                <tr name="program">
+                                    <td name="id">#</td>
+                                    <td name="scenarioid">#</td>
+                                    <td name="name">#</td>
+                                    <td name="start">#</td>
+                                    <td name="end">#</td>
+                                    <td name="enabled">#</td>
+                                    <td name="status">#</td>
+                                    <td name="nextjob">#</td>
+                                    <td name="timerange">#</td>
+                                    <td name="action">#</td>
+                                    <th>Comandi</th>
+                                    <td name="command">
+                                        <button type="button" name="details" class="btn btn-sm btn-primary">
+                                            dettagli
+                                        </button>
+                                        <button type="button" name="delete" class="btn btn-sm btn-primary">
+                                            rimuovi
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="add" class="btn btn-info">Aggiungi</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

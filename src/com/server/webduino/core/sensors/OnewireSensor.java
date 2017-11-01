@@ -24,9 +24,9 @@ public class OnewireSensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public OnewireSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
+    public OnewireSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         //statusUpdatePath = "/temperaturesensorstatus";
-        super(id, name, subaddress, shieldid, pin, enabled);
+        super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "onewiresensor";
     }
 
@@ -56,7 +56,7 @@ public class OnewireSensor extends SensorBase {
     }
 
     /*@Override
-    public JSONObject getJson() {
+    public JSONObject toJson() {
         JSONObject json = new JSONObject();
         try {
             json.put("id", getId());

@@ -40,7 +40,7 @@ public class ActuatorServlet extends HttpServlet {
         if (id != null) {
 
             SensorBase actuator = core.getFromShieldId(Integer.valueOf(id), null);
-            JSONObject json = actuator.getJson();
+            JSONObject json = actuator.toJson();
             out.print(json.toString());
 
         } else {
@@ -50,7 +50,7 @@ public class ActuatorServlet extends HttpServlet {
             /*Iterator<Actuator> iterator = list.iterator();
             while (iterator.hasNext()) {
                 Actuator actuator = iterator.next();
-                JSONObject json = actuator.getJson();
+                JSONObject json = actuator.toJson();
                 jsonarray.put(json);
             }*/
             out.print(jsonarray.toString());

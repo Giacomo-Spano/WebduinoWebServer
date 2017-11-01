@@ -28,9 +28,9 @@ public class TemperatureSensor extends SensorBase {
         return false;
     }
 
-    public TemperatureSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
+    public TemperatureSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
 
-        super(id, name, subaddress, shieldid, pin, enabled);
+        super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "temperaturesensor";
     }
 

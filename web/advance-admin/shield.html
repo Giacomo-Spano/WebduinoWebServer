@@ -1,47 +1,117 @@
-<!-- /. ROW  ZONE-->
-<div id="shieldpanel" class="row">
+<div id="panel" class="row">
     <div class="col-md-12">
-        <div class="panel panel-default">
+        <div class="panel panel-info">
             <div class="panel-heading">
-                Zona
+                Panel <p style="display: inline-block;" name="headingleft"></p>
+                <p style="float: right;" name="headingright">xx.xx</p>
             </div>
-            <div class="panel-body">
-                <b>Id: </b><span id="id">--</span><BR>
-                <b>Nome: </b><span id="name">--</span><BR>
-                <b>Tipo: </b><span id="type">--</span><BR>
-                <div class="table-responsive">
-                    <table id="tbl" class="table table-striped table-bordered table-hover">
-                        <thead>
-                        <tr name="header">
-                            <th>id</th>
-                            <th>Nome sensore</th>
-                            <th>Tipo Sensore</th>
-                            <th>Comandi</th>
-                            <th>edit</th>
-                        </tr>
-                        </thead>
-                        <tbody name="sensorlist">
-                        <tr name="sensor">
-                            <td name="id"><a href="." name="link"></a></td>
-                            <td name="name">#</td>
-                            <td name="type">#</td>
-                            <td name="command">
-                                <button type="button" name="statusbutton" class="btn btn-sm btn-primary">
-                                    attiva
-                                </button>
-                            </td>
-                            <td ><button type="button" id="edit" class="btn btn-sm btn-primary">edit</button></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="panel-body" name="body">
+
+                <form role="form">
+
+                    <div class="form-group col-md-10">
+                        <label>Nome</label>
+                        <input class="form-control" name="shieldname" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Local port</label>
+                        <input class="form-control" type="number" name="localport" value="0" min="0" max="9999" step="1">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-10">
+                        <label>Descrizione</label>
+                        <textarea class="form-control" rows="3" name="description"></textarea>
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Abilitato</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="shieldenabled" value="">Abilitato
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-10">
+                        <label>Server name</label>
+                        <input class="form-control" name="servername" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Server port</label>
+                        <input class="form-control" type="number" name="serverport" value="0" min="0" max="9999" step="1">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-10">
+                        <label>MQTT server name</label>
+                        <input class="form-control" name="mqttname" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>MQTT server port</label>
+                        <input class="form-control" type="number" name="mqttport" value="0" min="0" max="9999" step="1">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+
+                    <div class="form-group col-md-12">
+                        <label>Sensori</label>
+                        <div class="table-responsive">
+                            <table id="tbl2" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>parentid</th>
+                                    <th>Sub</th>
+                                    <th>Stato</th>
+                                    <th>Abilitato</th>
+                                    <th>Tipo</th>
+                                    <th>Pin</th>
+                                    <th>Nome</th>
+                                    <th>Descrizione</th>
+                                    <th>comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="list">
+                                <tr name="row">
+                                    <td name="id">
+                                    <td name="parentid">
+                                    </td><td name="subaddress"></td>
+                                    <td name="status"></td>
+                                    <td><input type="checkbox" name="enabled" value=""></td>
+                                    <td><select class="form-control" name="type"></select></td>
+                                    <td><select class="form-control" name="pin"></select></td>
+                                    <td><input class="form-control" name="name"></td>
+                                    <td><input class="form-control" name="description"></td>
+                                    <td name="command">
+                                        <button type="button" name="delete" class="btn btn-sm btn-info">Rimuovi</button>
+                                        <button type="button" name="addchild" class="btn btn-sm btn-info">Aggiungi figlio</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" name="add" class="btn btn-info">Aggiungi sensore</button>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="save" class="btn btn-info">Salva</button>
+                        <button type="button" name="cancel" class="btn btn-info">Annulla</button>
+                        <button type="button" name="edit" class="btn btn-info">Modifica</button>
+                    </div>
+
+                </form>
             </div>
-            <button type="button" id="editBtn" class="btn btn-sm btn-primary">edit</button>
+
         </div>
-        <!-- End  Stato sensori -->
-    </div>
-    <div class="col-md-12">
 
     </div>
+
 </div>
-<!-- /. ROW  ZONE-->
+

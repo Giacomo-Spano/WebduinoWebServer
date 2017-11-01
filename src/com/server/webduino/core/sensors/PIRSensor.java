@@ -24,8 +24,8 @@ public class PIRSensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public PIRSensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
-        super(id, name, subaddress, shieldid, pin, enabled);
+    public PIRSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "pirsensor";
     }
 
@@ -74,7 +74,7 @@ public class PIRSensor extends SensorBase {
 
 
     /*@Override
-    public JSONObject getJson() {
+    public JSONObject toJson() {
         JSONObject json = new JSONObject();
         try {
             json.put("id", getId());

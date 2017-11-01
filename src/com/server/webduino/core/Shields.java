@@ -12,7 +12,6 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
 import java.util.logging.Logger;
 
 import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
@@ -28,7 +27,7 @@ public class Shields {
         Shields shields = new Shields();
         JSONArray jarray = new JSONArray();
         for (Shield shield : list) {
-            JSONObject json = shield.getJson();
+            JSONObject json = shield.toJson();
             jarray.put(json);
         }
         return jarray;
@@ -297,12 +296,11 @@ public class Shields {
         int lastid = 0;
         try {
             Statement stmt = conn.createStatement();
-            String sql = "SELECT * FROM shields WHERE macaddress='" + macAddress + "'";
 
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String date = "NULL";
             date = "'" + df.format(Core.getDate()) + "'";
-            sql = "INSERT INTO shields (lastupdate, macaddress, boardname)" +
+            String sql = "INSERT INTO shields (lastupdate, macaddress, name)" +
                     " VALUES ("
                     + date + ",\""
                     + macAddress + "\",\""
@@ -543,106 +541,41 @@ public class Shields {
 
     public void read() {
 
-        //List<Shield> list = new ArrayList<>();
+        list.clear();
+
         try {
-            // Register JDBC driver
             Class.forName("com.mysql.jdbc.Driver");
-            // Open a connection
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-            // Execute SQL query
             Statement stmt = conn.createStatement();
             String sql = "SELECT * FROM shields";
             ResultSet rs = stmt.executeQuery(sql);
             // Extract data from result set
             while (rs.next()) {
-
                 Shield shield = new Shield();
-                shield.id = rs.getInt("id");
-                if (rs.getString("macaddress") != null)
-                    shield.MACAddress = rs.getString("MACAddress");
-                if (rs.getString("boardname") != null)
-                    shield.boardName = rs.getString("boardname");
-                shield.port = rs.getInt("port");
-
-                if (rs.getString("server") != null)
+                if (rs.getInt("id") <= 0) continue;
+                    shield.id = rs.getInt("id");
+                if (rs.getString("macaddress") == null || rs.getString("macaddress").equals("")) continue;
+                shield.MACAddress = rs.getString("MACAddress");
+                if (rs.getString("name") != null)
+                    shield.boardName = rs.getString("name");
+                if (rs.getString("description") != null)
+                    shield.description = rs.getString("description");
+                shield.enabled = rs.getBoolean("enabled");
+                if (rs.getInt("port") <= 0) continue;
+                    shield.port = rs.getInt("port");
+                if (rs.getString("server") == null) continue;
                     shield.server = rs.getString("server");
-                shield.serverport = rs.getInt("serverport");
+                if (rs.getInt("serverport") <= 0) continue;
+                    shield.serverport = rs.getInt("serverport");
                 if (rs.getString("mqttserver") != null)
                     shield.mqttserver = rs.getString("mqttserver");
-                shield.mqttport = rs.getInt("mqttport");
+                if (rs.getInt("mqttport") <= 0) continue;
+                    shield.mqttport = rs.getInt("mqttport");
 
-                if (rs.getString("url") != null)
-                    shield.url = new URL(rs.getString("url"));
-
-                Statement stmt2 = conn.createStatement();
-                String sql2 = "SELECT * FROM sensors " +
-                        "WHERE shieldid = " + shield.id + " AND parentid=0";
-
-                ResultSet sensorRs = stmt2.executeQuery(sql2);
-                while (sensorRs.next()) {
-                    String type = "";
-                    String name = "";
-                    int id = 0;
-                    int shieldid = 0;
-                    String subaddress = "";
-                    String pin = "";
-                    boolean enabled;
-                    if (sensorRs.getString("type") != null)
-                        type = sensorRs.getString("type");
-                    id = sensorRs.getInt("id");
-                    shieldid = sensorRs.getInt("shieldid");
-                    if (sensorRs.getString("subaddress") != null)
-                        subaddress = sensorRs.getString("subaddress");
-                    if (sensorRs.getString("name") != null)
-                        name = sensorRs.getString("name");
-                    if (sensorRs.getString("pin") != null)
-                        pin = sensorRs.getString("pin");
-                    enabled = sensorRs.getBoolean("enabled");
-
-                    SensorBase sensor;
-                    sensor = SensorFactory.createSensor(type, name, subaddress, id, shieldid, pin, enabled);
-                    if (sensor == null)
-                        continue;
-
-                    // add child sensors
-                    Statement stmt3 = conn.createStatement();
-                    String sql3 = "SELECT * FROM sensors " +
-                            "WHERE shieldid = " + shield.id + " AND parentid=" + id;
-                    ResultSet sensorRs3 = stmt3.executeQuery(sql3);
-                    while (sensorRs3.next()) {
-
-                        if (sensorRs3.getString("type") != null)
-                            type = sensorRs3.getString("type");
-                        id = sensorRs3.getInt("id");
-                        shieldid = sensorRs3.getInt("shieldid");
-                        if (sensorRs3.getString("subaddress") != null)
-                            subaddress = sensorRs3.getString("subaddress");
-                        if (sensorRs3.getString("name") != null)
-                            name = sensorRs3.getString("name");
-                        if (sensorRs3.getString("enabled") != null)
-                            enabled = sensorRs.getBoolean("enabled");
-
-                        SensorBase child;
-                        child = SensorFactory.createSensor(type, name, subaddress, id, shieldid, "", enabled);
-                        if (sensor == null)
-                            continue;
-                        sensor.childSensors.add(child);
-                    }
-                    stmt3.close();
-
-
-                    shield.sensors.add(sensor);
-                }
-
-                sensorRs.close();
-                stmt2.close();
-                //list.add(shield);
+                shield.sensors = SensorBase.readSensors(conn,shield.id,0);
                 addShield(shield);
-
             }
-
             rs.close();
-
             stmt.close();
             conn.close();
 
@@ -656,7 +589,6 @@ public class Shields {
             e.printStackTrace();
             return;
         }
-
     }
 
     // chiamata per aggiungere un sensore

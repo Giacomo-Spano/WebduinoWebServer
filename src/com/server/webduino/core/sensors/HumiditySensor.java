@@ -23,8 +23,8 @@ public class HumiditySensor extends SensorBase {
         listeners.add(toAdd);
     }
 
-    public HumiditySensor(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
-        super(id, name, subaddress, shieldid, pin, enabled);
+    public HumiditySensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "huniditysensor";
     }
 
@@ -72,7 +72,7 @@ public class HumiditySensor extends SensorBase {
     }
 
     /*@Override
-    public JSONObject getJson() {
+    public JSONObject toJson() {
         JSONObject json = new JSONObject();
         try {
             json.put("id", getId());

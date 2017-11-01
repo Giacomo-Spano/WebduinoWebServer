@@ -1,6 +1,7 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.httpClient;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,8 +17,8 @@ public abstract class Actuator extends SensorBase {
 
     private String status = "";
 
-    public Actuator(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
-        super(id,name,subaddress,shieldid,pin,enabled);
+    public Actuator(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id,name,description,subaddress,shieldid,pin,enabled);
     }
 
     /*public void SetData(int id, int shieldid, String subaddress, String name, Date lastupdate) {
@@ -55,7 +56,7 @@ public abstract class Actuator extends SensorBase {
             // questa per ora è usata solo dat heater actuator
 
         //String result = callPost(path, postParam);
-        Result result = call("POST", path, postParam);
+        httpClient.Result result = call("POST", path, postParam);
         if (result.res == false) {
             for (int i = 0; i < 2; i++) {
 
@@ -95,7 +96,7 @@ public abstract class Actuator extends SensorBase {
     }
 
     /*@Override
-    public JSONObject getJson() {
+    public JSONObject toJson() {
 
         return null;
     }*/

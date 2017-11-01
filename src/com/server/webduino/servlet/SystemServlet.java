@@ -2,9 +2,12 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.Shield;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramInstructionsFactory;
-import com.server.webduino.core.webduinosystem.scenario.Scenario;
+import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.scenario.*;
+import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
+import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramActionFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,6 +40,7 @@ public class SystemServlet extends HttpServlet {
         LOGGER.info("SystemServlet:doPost");
 
         String data = request.getParameter("data");
+        String param = request.getParameter("param");
 
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
@@ -58,46 +62,134 @@ public class SystemServlet extends HttpServlet {
 
         try {
             JSONObject json = new JSONObject(jb.toString());
-            if(data != null && data.equals("scenario")) {
-                if (!Core.saveScenario(json)) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    jsonResponse = new JSONObject();
-                    try {
-                        json.put("result", "failed");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+            if (data != null && data.equals("scenario")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        JSONArray jarray = Core.removeScenario(json);
+                        if (jarray != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(jarray.toString());
+                            return;
+                        }
+                    } else {
+                        Scenario scenario = Core.saveScenario(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(scenario.toJson());
+                        return;
                     }
-                    // finally output the json string
-                    out.print(jsonResponse.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
                 }
 
-            } else if(data != null && data.equals("program")) {
-                if (!Core.saveScenarioProgram(json)) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    jsonResponse = new JSONObject();
-                    try {
-                        json.put("result", "failed");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+            } else if (data != null && data.equals("trigger")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Scenario scenario = Core.removeScenarioTrigger(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(scenario.toJson());
+                        return;
+                    } else {
+                        ScenarioTrigger trigger = Core.saveScenarioTrigger(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(trigger.toJson());
+                        return;
                     }
-                    // finally output the json string
-                    out.print(jsonResponse.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
                 }
 
-            } else if(data != null && data.equals("timerange")) {
-                if (!Core.saveScenarioProgramTimeRange(json)) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    jsonResponse = new JSONObject();
-                    try {
-                        json.put("result", "failed");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+            } else if (data != null && data.equals("timeinterval")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Scenario scenario = Core.removeScenarioTimeinterval(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(scenario.toJson());
+                        return;
+                    } else {
+                        ScenarioTimeInterval timeInterval = Core.saveScenarioTimeinterval(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(timeInterval.toJson());
+                        return;
                     }
-                    // finally output the json string
-                    out.print(jsonResponse.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
                 }
 
-            } else if(data != null && data.equals("zone")) {
+            } else if (data != null && data.equals("program")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Scenario scenario = Core.removeScenarioProgram(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(scenario.toJson());
+                        return;
+                    } else {
+                        ScenarioProgram program = Core.saveScenarioProgram(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(program.toJson());
+                        return;
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
+            } else if (data != null && data.equals("timerange")) {
+
+                try {
+                    if (param != null && param.equals("delete")) {
+                        ScenarioProgram program = Core.removeScenarioProgramTimeRange(json);
+                        if (program != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(program.toJson());
+                            return;
+                        }
+                    } else {
+                        ScenarioProgramTimeRange timerange = Core.saveScenarioProgramTimeRange(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(timerange.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+            } else if (data != null && data.equals("instruction")) {
+
+                try {
+                    if (param != null && param.equals("delete")) {
+                        ScenarioProgramTimeRange timeRange = Core.removeScenarioProgramTimeRangeInstruction(json);
+                        if (timeRange != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(timeRange.toJson());
+                            return;
+                        }
+                    } else {
+                        ProgramAction instruction = Core.saveScenarioProgramTimeRangeInstruction(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(instruction.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+            } else if (data != null && data.equals("zone")) {
                 if (!Core.saveZone(json)) {
                     response.setStatus(HttpServletResponse.SC_OK);
                     jsonResponse = new JSONObject();
@@ -110,28 +202,61 @@ public class SystemServlet extends HttpServlet {
                     out.print(jsonResponse.toString());
                 }
 
-            } else if(data != null &&data.equals("sensor")) {
-                if (json.has("id")) {
+            } else if (data != null && data.equals("sensor")) {
+                /*if (json.has("id")) {
                     int id = json.getInt("id");
                     Core.updateSensor(id, json);
-                }
-                /*if (!Core.saveZone(json)) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    jsonResponse = new JSONObject();
-                    try {
-                        json.put("result", "failed");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    // finally output the json string
-                    out.print(jsonResponse.toString());
                 }*/
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Shield shield = removeSensor(json);
+                        if (shield != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(shield.toJson());
+                            return;
+                        }
+                    } else {
+                        SensorBase sensor = saveSensor(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(sensor.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+            } else if (data != null && data.equals("shield")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Shield shield = removeShield(json);
+                        if (shield != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(shield.toJson());
+                            return;
+                        }
+                    } else {
+                        Shield shield = saveShield(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(shield.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
             }
 
             boolean res = false;
 
 
-        } catch (JSONException e) {
+        } catch (
+                JSONException e)
+
+        {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             LOGGER.severe("BAD REQUEST");
@@ -140,9 +265,14 @@ public class SystemServlet extends HttpServlet {
 
         response.setStatus(HttpServletResponse.SC_OK);
         JSONObject json = new JSONObject();
-        try {
+        try
+
+        {
             json.put("result", "success");
-        } catch (JSONException e) {
+        } catch (
+                JSONException e)
+
+        {
             e.printStackTrace();
         }
         // finally output the json string
@@ -166,32 +296,74 @@ public class SystemServlet extends HttpServlet {
             if (id != null)
                 shieldid = Integer.parseInt(id);
             JSONArray jarray = Core.getSensorsJSONArray(shieldid);
-            if (jarray != null)
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
+                return;
+            }
 
         } else if (requestCommand != null && requestCommand.equals("scenarios")) {
 
-            JSONArray jarray = Core.getScenariosJSONArray();
-            if (jarray != null)
+            JSONArray jarray = Scenarios.getScenariosJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
+                return;
+            }
+
+        } else if (requestCommand != null && requestCommand.equals("sensortypes")) {
+
+            JSONArray jarray = SensorFactory.getSensorTypesJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
 
         } else if (requestCommand != null && requestCommand.equals("instructiontypes")) {
 
-            JSONArray jarray = ProgramInstructionsFactory.getProgramIntructionTypesJSONArray();
-            if (jarray != null)
+            JSONArray jarray = ProgramActionFactory.getProgramIntructionTypesJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
+                return;
+            }
+
+        } else if (requestCommand != null && requestCommand.equals("pins")) {
+
+            JSONArray jarray = SensorFactory.getPinJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
+
+        } else if (requestCommand != null && requestCommand.equals("triggertypes")) {
+
+            JSONArray jarray = ScenarioTrigger.getTriggerTypesJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
 
         } else if (requestCommand != null && requestCommand.equals("zones")) {
 
             JSONArray jarray = Core.getZonesJSONArray();
-            if (jarray != null)
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
+                return;
+            }
 
         } else if (requestCommand != null && requestCommand.equals("zone") && id != null) {
             int zoneid = Integer.parseInt(id);
             Zone zone = Core.getZoneFromId(zoneid);
-            if (zone != null)
+            if (zone != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
                 out.print(zone.toJSON());
+                return;
+            }
         } else if (requestCommand != null && requestCommand.equals("shields")) {
             List<Shield> list = core.getShields();
             //create Json Object
@@ -199,34 +371,94 @@ public class SystemServlet extends HttpServlet {
             Iterator<Shield> iterator = list.iterator();
             while (iterator.hasNext()) {
                 Shield shield = iterator.next();
-                JSONObject json = shield.getJson();
+                JSONObject json = shield.toJson();
                 jsonarray.put(json);
             }
-            if (jsonarray != null)
+            if (jsonarray != null) {
                 out.print(jsonarray.toString());
+                response.setStatus(HttpServletResponse.SC_OK);
+                return;
+            }
+        } else if (requestCommand != null && requestCommand.equals("shield") && id != null) {
+            int shieldid = Integer.parseInt(id);
+            Shield shield = Core.getShieldFromId(shieldid);
+            if (shield != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(shield.toJson());
+                return;
+            }
         } else if (requestCommand != null && requestCommand.equals("scenario") && id != null) {
             int scenarioid = Integer.parseInt(id);
-            Scenario scenario = Core.getScenarioFromId(scenarioid);
-            if (scenario != null)
-                out.print(scenario.toJSON());
+            Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
+            if (scenario != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(scenario.toJson());
+                return;
+            }
+        } else if (requestCommand != null && requestCommand.equals("program") && id != null) {
+            int programid = Integer.parseInt(id);
+            ScenarioProgram program = Scenarios.getScenarioProgramFromId(programid);
+            if (program != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(program.toJson());
+                return;
+            }
+        } else if (requestCommand != null && requestCommand.equals("timerange") && id != null) {
+            int timerangeid = Integer.parseInt(id);
+            ScenarioProgramTimeRange timerange = Scenarios.getScenarioProgramTimeRangeFromId(timerangeid);
+            if (timerange != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(timerange.toJson());
+                return;
+            }
         } else if (requestCommand != null && requestCommand.equals("instructions") && id != null) {
             String scenarioid = request.getParameter("scenarioid");
             JSONArray jsonArray = new JSONArray();
             if (scenarioid != null) {
                 int sid = Integer.parseInt(scenarioid);
-
-                /*List<ScenarioProgram> programs = Core.getPrograms(sid);
-                for (ScenarioProgram program : programs) {
-                    List<ProgramInstructions> programInstructions = Core.getProgramInstructions(sid,program.id);
-                    JSONArray jArray = new JSONArray();
-                    for (ProgramInstructions instruction : programInstructions) {
-                        jArray.put(instruction.toJson());
-                    }
-                    jsonArray.put(jArray);
-                }*/
             }
             if (jsonArray != null)
                 out.print(jsonArray.toString());
         }
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+    }
+
+    public SensorBase saveSensor(JSONObject json) throws Exception {
+        SensorFactory factory = new SensorFactory();
+        SensorBase sensor = factory.fromJson(json);
+        sensor.save();
+        Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+        core.init();
+        return sensor;
+    }
+
+    public Shield removeSensor(JSONObject json) throws Exception {
+        SensorFactory factory = new SensorFactory();
+        SensorBase sensor = factory.fromJson(json);
+        int sensorid = sensor.getId();
+        sensor.remove();
+        Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+        core.init();
+        Shield shield = core.getShieldFromId(sensorid);
+        return shield;
+    }
+
+    public Shield saveShield(JSONObject json) throws Exception {
+        Shield shield = new Shield(json);
+        shield.save();
+        Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+        core.init();
+        return shield;
+    }
+
+    public Shield removeShield(JSONObject json) throws Exception {
+        SensorFactory factory = new SensorFactory();
+        SensorBase sensor = factory.fromJson(json);
+        int sensorid = sensor.getId();
+        sensor.remove();
+        Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+        core.init();
+        Shield shield = core.getShieldFromId(sensorid);
+        return shield;
     }
 }

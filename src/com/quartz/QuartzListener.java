@@ -21,17 +21,18 @@ public class QuartzListener implements ServletContextListener {
 
     Scheduler scheduler = null;
 
-    /*static*/ Core core;// = new Core();
+    private Core core;// = new Core();
 
     @Override
     public void contextInitialized(ServletContextEvent servletContext) {
 
         core = new Core();
+        core.initMQTT();
+
         core.init();
 
         ServletContext cntxt = servletContext.getServletContext();
         cntxt.setAttribute(CoreClass, core);
-
 
         System.out.println("Context Initialized");
 

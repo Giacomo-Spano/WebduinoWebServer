@@ -17,8 +17,8 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
 
     protected boolean on;
 
-    public ReleActuator(int id, String name, String subaddress, int shieldid, String pin, boolean enabled) {
-        super(id, name, subaddress, shieldid, pin, enabled);
+    public ReleActuator(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
+        super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "releactuator";
     }
 
@@ -120,7 +120,7 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
     }
 
     @Override
-    public JSONObject getJson() {
+    public JSONObject toJson() {
         JSONObject json = new JSONObject();
         try {
             json.put("id", id);

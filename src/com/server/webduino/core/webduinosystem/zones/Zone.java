@@ -34,6 +34,7 @@ public class Zone implements SensorBase.SensorListener {
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
 
     private double temperature = 0.0;
+    private boolean doorStatusOpen = false;
 
     public Zone(int id, String name, String type) {
         this.id = id;
@@ -156,6 +157,10 @@ public class Zone implements SensorBase.SensorListener {
         this.temperature = temperature;
     }
 
+    public double getTemperature() {
+        return temperature;
+    }
+
     @Override
     public void changeAvTemperature(int sensorId, double avTemperature) {
 
@@ -177,7 +182,11 @@ public class Zone implements SensorBase.SensorListener {
         for(WebduinoZoneListener listener: listeners) {
             listener.onDoorStatusChange(id,open,oldOpen);
         }
-        this.temperature = temperature;
+        this.doorStatusOpen = open;
+    }
+
+    public boolean getDoorStatusOpen() {
+        return doorStatusOpen;
     }
 
     public void readZoneSensors(int zoneid) {

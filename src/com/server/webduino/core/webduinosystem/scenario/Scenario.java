@@ -3,7 +3,6 @@ package com.server.webduino.core.webduinosystem.scenario;
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,12 +11,7 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import java.sql.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.Calendar;
 import java.util.Date;
@@ -44,7 +38,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     public boolean dateEnabled = true;
     public boolean enabled = false;
 
-    //private ScenarioTimeInterval activeTimeInterval = null;
+    private JobKey jobKey;
     private JobDetail nextTimeIntervalJob = null;
     private Scheduler scheduler = null;
     private Date nextJobDate = null;
@@ -54,17 +48,16 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     public Scenario() {
     }
 
-    public Scenario(JSONObject json) throws JSONException {
+    public Scenario(JSONObject json) throws Exception {
         fromJson(json);
     }
 
-    public void removeListeners() {
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-            timeInterval.deleteListener(this);
-        }
-    }
+    public void start() {
 
-    public void init() {
+        if (!enabled) {
+            active = false;
+            return;
+        }
 
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
             timeInterval.addListener(this);
@@ -72,18 +65,31 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         checkStatus();
 
-        try {
-            scheduler = new StdSchedulerFactory().getScheduler();
-            //scheduler.start();
-        } catch (SchedulerException e) {
-            e.printStackTrace();
-        }
+        jobKey = JobKey.jobKey("ScenarioJob"+id, "my-jobs"+id);
+
         Date currentDate = Core.getDate();
         Calendar cal = Calendar.getInstance();
         cal.setTime(currentDate);
         cal.add(Calendar.SECOND, 5);
         Date date = cal.getTime();
         scheduleNextTimeIntervalJob(date);
+    }
+
+    public void stop() {
+        removeListeners();
+
+        deleteNextTimeRangeJob();
+
+        for (ScenarioProgram program:programs) {
+            program.stopProgram();
+        }
+
+    }
+
+    private void removeListeners() {
+        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+            timeInterval.deleteListener(this);
+        }
     }
 
     public void triggerNextTimeInterval(Date currentDate) {
@@ -122,8 +128,10 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     private void scheduleNextTimeIntervalJob(Date date) {
 
         try {
-            if (nextTimeIntervalJob != null)
-                scheduler.deleteJob(nextTimeIntervalJob.getKey());
+            scheduler = new StdSchedulerFactory().getScheduler();
+            deleteNextTimeRangeJob();
+            /*if (nextTimeIntervalJob != null)
+                scheduler.deleteJob(nextTimeIntervalJob.getKey());*/
         } catch (SchedulerException e) {
             e.printStackTrace();
         }
@@ -132,8 +140,9 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("scenario", this);
         // define the job and tie it to our job's class
-        nextTimeIntervalJob = newJob(NextScenarioTimeIntervalQuartzJob.class).withIdentity(
-                "CronNextTimeIntervalQuartzJob" + this.id, "Group")
+        nextTimeIntervalJob = newJob(NextScenarioTimeIntervalQuartzJob.class)
+                //.withIdentity("CronNextTimeIntervalQuartzJob" + this.id, "Group")
+                .withIdentity(jobKey)
                 .usingJobData(jobDataMap)
                 .build();
 
@@ -149,6 +158,18 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             e.printStackTrace();
         }
     }
+
+    private void deleteNextTimeRangeJob() {
+        try {
+            scheduler = new StdSchedulerFactory().getScheduler();
+            //printJobsAndTriggers(scheduler);
+            scheduler.deleteJob(jobKey);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     @Override
     public void delete(Statement stmt) throws SQLException {
@@ -311,7 +332,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         return json;
     }
 
-    public void fromJson(JSONObject json) throws JSONException {
+    public void fromJson(JSONObject json) throws Exception {
 
         if (json.has("id"))
             id = json.getInt("id");
@@ -365,7 +386,6 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
             if (timeInterval.isActive(Core.getDate())) {
                 active = true;
-
             }
         }
 

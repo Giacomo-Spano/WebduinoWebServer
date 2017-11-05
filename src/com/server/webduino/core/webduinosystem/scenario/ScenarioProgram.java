@@ -4,7 +4,6 @@ import com.quartz.NextScenarioProgramTimeIntervalQuartzJob;
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,7 +11,6 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 
-import javax.ejb.Local;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -67,7 +65,7 @@ public class ScenarioProgram extends DBObject {
     }
 
 
-    public ScenarioProgram(JSONObject json) throws JSONException {
+    public ScenarioProgram(JSONObject json) throws Exception {
         fromJson(json);
     }
 
@@ -315,7 +313,7 @@ public class ScenarioProgram extends DBObject {
     }
 
     @Override
-    public void fromJson(JSONObject json) throws JSONException {
+    public void fromJson(JSONObject json) throws Exception {
 
         if (json.has("id")) id = json.getInt("id");
         if (json.has("scenarioid")) scenarioId = json.getInt("scenarioid");

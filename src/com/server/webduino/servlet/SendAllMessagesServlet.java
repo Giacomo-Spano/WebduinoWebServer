@@ -129,7 +129,7 @@ public class SendAllMessagesServlet extends BaseServlet {
         //ControlPanel.sendPushMessage.send(title, messagetxt);
 
         /*SendPushMessages sp = new SendPushMessages();
-        sp.init();
+        sp.start();
         sp.send(message);*/
 
     }

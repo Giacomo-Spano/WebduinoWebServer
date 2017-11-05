@@ -1,0 +1,116 @@
+<div id="panel" class="row">
+    <div class="col-md-12">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                Fascia oraria programmma <p style="display: inline-block;" name="headingleft"></p>
+                <p style="float: right;" name="headingright">xx.xx</p>
+            </div>
+            <div class="panel-body" name="body">
+
+                <form role="form">
+
+                    <div class="form-group col-md-4">
+                        <label>Ora inizio</label>
+                        <input class="form-control" name="starttime">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Ora fine</label>
+                        <input class="form-control" name="endtime">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Abilitato</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="timerangeabled" checked data-toggle="toggle">Abilitato
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-10">
+                        <label>Nome</label>
+                        <input class="form-control" name="name" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Descrizione</label>
+                        <textarea class="form-control" rows="3" name="description"></textarea>
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Istruzioni</label>
+                        <div id="programinstructions" class="table-responsive">
+                            <table id="tbl2" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+
+                                    <th>Abilitato</th>
+                                    <th>Tipo</th>
+                                    <th>Nome</th>
+                                    <th>Descrizione</th>
+                                    <th>Attuatore</th>
+                                    <th>Valore target</th>
+                                    <th>Zona</th>
+                                    <th>Valore soglia</th>
+                                    <th>Secondi</th>
+                                    <th>priorità</th>
+                                    <th>Stato</th>
+                                    <th>comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="list">
+                                <tr name="row">
+                                    <td name="id"></td>
+                                    <td><label name="enabled"><input type="checkbox" name="enabled" value="">Abilitato</label></td>
+                                    <td><select class="form-control" name="type"></select></td>
+                                    <td><input class="form-control" name="name"></td>
+                                    <td><input class="form-control" name="description"></td>
+                                    <td><select class="form-control" name="actuatorid" value="keeptemperature"></select></td>
+                                    <td><input class="form-control" type="number" name="targetvalue" value="0" min="0"
+                                               max="30" step="0.01"></td>
+                                    <td><select class="form-control" name="zoneid"></select></td>
+                                    <td><input class="form-control" type="number" name="thresholdvalue" value="0"
+                                               min="0" max="30" step="0.01"></td>
+                                    <td><input class="form-control" name="seconds"></td>
+                                    <td><input class="form-control" type="number" name="priority" value="0" min="0"
+                                               max="30" step="1"></td>
+
+                                    <td name="status"></td>
+                                    <td name="command">
+                                        <button type="button" name="editaction" class="btn btn-sm btn-info">dettagli
+                                        </button>
+                                        <button type="button" name="deleteaction" class="btn btn-sm btn-info">
+                                            rimuovi
+                                        </button>
+                                        <button type="button" name="addaction" class="btn btn-sm btn-info">
+                                            aggiungi
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" name="add" class="btn btn-info">Aggiungi action
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="save" class="btn btn-info">Salva</button>
+                        <button type="button" name="cancel" class="btn btn-info">Annulla</button>
+                        <button type="button" name="edit" class="btn btn-info">Modifica</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+

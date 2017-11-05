@@ -64,6 +64,23 @@ public class SensorBase extends /*httpClient,*/ DBObject {
         return activeProgram;
     }
 
+    public List<SensorBase> getAllChildSensors() {
+
+        List<SensorBase> list = new ArrayList<>();
+        for (SensorBase child : childSensors) {
+
+            list.add(child);
+
+            List<SensorBase> childlist = child.getAllChildSensors();
+            if (childlist != null) {
+                for (SensorBase elem : childlist) {
+                    list.add(elem);
+                }
+            }
+        }
+        return list;
+    }
+
     public SensorBase getSensorFromId(int id) {
         if (this.id == id) {
             return this;

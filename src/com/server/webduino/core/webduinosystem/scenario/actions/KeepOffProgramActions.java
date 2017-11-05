@@ -1,4 +1,4 @@
-package com.server.webduino.core.webduinosystem.scenario.programinstructions;
+package com.server.webduino.core.webduinosystem.scenario.actions;
 
 /**
  * Created by giaco on 17/05/2017.

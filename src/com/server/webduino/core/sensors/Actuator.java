@@ -16,17 +16,11 @@ public abstract class Actuator extends SensorBase {
     private static final Logger LOGGER = Logger.getLogger(Actuator.class.getName());
 
     private String status = "";
+    protected String oldStatus = "";
 
     public Actuator(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id,name,description,subaddress,shieldid,pin,enabled);
     }
-
-    /*public void SetData(int id, int shieldid, String subaddress, String name, Date lastupdate) {
-        super.setData(shieldid, subaddress, name, lastUpdate);
-
-        this.id = id;
-        listeners = new ArrayList<ActuatorListener>();
-    }*/
 
     public abstract ActuatorCommand getCommandFromJson(JSONObject json);
 
@@ -43,9 +37,8 @@ public abstract class Actuator extends SensorBase {
     }
 
     public void setStatus(String status) {
-
+        oldStatus = this.status;
         this.status = status;
-
     }
 
     public String getStatus() {

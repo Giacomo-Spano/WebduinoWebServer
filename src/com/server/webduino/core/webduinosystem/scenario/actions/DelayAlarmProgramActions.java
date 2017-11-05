@@ -1,4 +1,4 @@
-package com.server.webduino.core.webduinosystem.scenario.programinstructions;
+package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.webduinosystem.zones.Zone;
@@ -44,14 +44,19 @@ public class DelayAlarmProgramActions extends ProgramAction {
 
     @Override
     public String getStatus() {
-        String status;
+        String status = "";
         Zone zone = Core.getZoneFromId(zoneId);
-        status = "Zona: (" + zoneId + ")" + zone.getName() + " Stato: ";
-        if (zone.getDoorStatusOpen())
-            status += " open";
-        else
-            status += " closed";
-        status += " Allarm: ";
+
+        if (zone != null) {
+            status = "Zona: (" + zoneId + ")" + zone.getName() + " Stato: ";
+            if (zone.getDoorStatusOpen())
+                status += " open";
+            else
+                status += " closed";
+        } else {
+            status = " error: zone " + zone + "not found";
+        }
+        status += " Alarm: ";
         if (alarmActive)
             status += " active";
         else

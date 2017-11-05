@@ -2,9 +2,12 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
+import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
+import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.webduinosystem.scenario.Scenarios;
+import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,10 +56,12 @@ public class ShieldServlet extends HttpServlet {
             return;
         }
 
+
         try {
             JSONObject json = new JSONObject(jb.toString());
 
-            boolean res = false;
+            //boolean res = false;
+            String error = "";
 
             if (json.has("event")) { // DA ELIMINARE FINO A ELSE
                 if (json.getString("event").equals("register")) { // receive status update
@@ -86,27 +91,66 @@ public class ShieldServlet extends HttpServlet {
                     handleSaveSettingEvent(json);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
-                } else  if (json.getString("command").equals("reboot") && json.has("shieldid")) {
+                } else if (json.getString("command").equals("reboot") && json.has("shieldid")) {
                     //sendRestartCommand(json);
                     //response.setStatus(HttpServletResponse.SC_OK);
                     ShieldCommand cmd = new ShieldCommand(json);
                     String result = cmd.send();
                     return;
                 } else if (json.getString("command").equals("teststart") || json.getString("command").equals("teststop")
-                            || json.getString("command").equals("testopen") || json.getString("command").equals("testclose")) {
+                        || json.getString("command").equals("testopen") || json.getString("command").equals("testclose")) {
 
                     if (json.has("actuatorid")) {
                         int id = json.getInt("actuatorid");
                         SensorBase actuator = Core.getSensorFromId(id);
 
                         //DoorSensorCommand cmd = new DoorSensorCommand(json);
-                        DoorSensorCommand cmd = new DoorSensorCommand(json.getString("command"),actuator.getShieldId(),id,"close");
+                        DoorSensorCommand cmd = new DoorSensorCommand(json.getString("command"), actuator.getShieldId(), id, "close");
                         String result = cmd.send();
                         //cmd = new DoorSensorCommand("test",actuator.getShieldId(),id,"open");
                         //result = cmd.send();
 
                     }
+                } else if (json.getString("command").equals("manual") || json.getString("command").equals("off")) {
+
+                    if (json.has("actuatorid")) {
+                        int id = json.getInt("actuatorid");
+                        SensorBase actuator = Core.getSensorFromId(id);
+                        if (actuator instanceof HeaterActuator) {
+                            HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
+
+                            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                            cmd.date = df.format(Core.getDate());
+                            Zone zone = Core.getZoneFromId(cmd.zone);
+                            if (zone != null) {
+                                cmd.temperature = zone.getTemperature();
+                                //String result = cmd.send();
+                                cmd.post(new Command.CommandListener() {
+                                    @Override
+                                    public void onCommandResponse(String response) {
+
+                                    }
+                                });
+                                response.setStatus(HttpServletResponse.SC_OK);
+                                out.print("result");
+                                return;
+                            } else {
+                                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                out.print("Invalid zone " + cmd.zone);
+                                return;
+                            }
+                        }
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        out.print("Invalid actuatorid");
+                        return;
+                    }
+                } else {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print("command '" + json.getString("command") + "' not found");
+                    return;
                 }
+
             }
 
         } catch (JSONException e) {
@@ -116,10 +160,10 @@ public class ShieldServlet extends HttpServlet {
             return;
         }
 
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         JSONObject json = new JSONObject();
         try {
-            json.put("result", "success");
+            json.put("result", "error");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -171,11 +215,18 @@ public class ShieldServlet extends HttpServlet {
             } catch (JSONException e1) {
                 e1.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                jsonResponse.put("result", "error");
+            } catch (JSONException e1) {
+                e1.printStackTrace();
+            }
         }
         return jsonResponse;
     }
 
-    private int registerShield(JSONObject jsonObj) throws JSONException {
+    private int registerShield(JSONObject jsonObj) throws Exception {
 
         Shield shield = new Shield(jsonObj);
 

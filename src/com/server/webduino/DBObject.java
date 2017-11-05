@@ -27,7 +27,7 @@ public abstract class DBObject {
     }
 
     abstract public JSONObject toJson();
-    abstract public void fromJson(JSONObject json) throws JSONException;
+    abstract public void fromJson(JSONObject json) throws Exception;
     abstract protected void delete(Statement stmt) throws SQLException;
     abstract protected void write(Connection conn) throws SQLException, Exception;
 }

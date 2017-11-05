@@ -28,6 +28,13 @@ public class Zone implements SensorBase.SensorListener {
         listeners.add(toAdd);
     }
 
+    public void removeListener(WebduinoZoneListener toRemove) {
+        for (WebduinoZoneListener listener: listeners) {
+            if (listener == toRemove)
+                listeners.remove(toRemove);
+        }
+    }
+
     private int id;
     private String name;
     private String type;

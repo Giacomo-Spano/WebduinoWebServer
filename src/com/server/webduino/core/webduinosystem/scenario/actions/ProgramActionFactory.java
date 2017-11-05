@@ -1,11 +1,10 @@
-package com.server.webduino.core.webduinosystem.scenario.programinstructions;
+package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -22,7 +21,7 @@ public class ProgramActionFactory {
             programActions = new DelayAlarmProgramActions(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals("keeptemperature")) {
-            programActions = new KeepTemperatureProgramActions(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new KeepTemperatureProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals("keepoff")) {
             programActions = new KeepOffProgramActions(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,

@@ -92,6 +92,7 @@ function addNewSensorLine(newtr, elem) {
                 'command': command
             };
             sendSensorCommand(commandJson, elem)
+
         });
 
         // test open/close button
@@ -113,6 +114,7 @@ function addNewSensorLine(newtr, elem) {
                 'command': command,
             };
             sendSensorCommand(commandJson, elem)
+
         });
 
 

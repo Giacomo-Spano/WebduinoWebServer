@@ -1,0 +1,124 @@
+<div id="panel" class="row">
+    <div class="col-md-12">
+        <!--   Stato sensori -->
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                Programma <p style="display: inline-block;" name="headingleft"></p>
+                <p style="float: right;" name="headingright">xx.xx</p>
+            </div>
+            <div class="panel-body" name="body">
+
+                <form role="form">
+
+                    <div class="form-group col-md-4">
+                        <label>Nome</label>
+                        <input class="form-control" name="name" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Priorità</label>
+                        <input class="form-control" type="number" name="priority" value="0" min="0" max="30" step="1">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Abilitato</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="programenabled" value="">Abilitato
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Descrizione</label>
+                        <textarea class="form-control" rows="3" name="description"></textarea>
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Giorni della settimana</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="monday">L
+                            </label>
+                            <label>
+                                <input type="checkbox" name="tuesday">Ma
+                            </label>
+                            <label>
+                                <input type="checkbox" name="wednesday">Me
+                            </label>
+                            <label>
+                                <input type="checkbox" name="thursday">G
+                            </label>
+                            <label>
+                                <input type="checkbox" name="friday">V
+                            </label>
+                            <label>
+                                <input type="checkbox" name="saturday">S
+                            </label>
+                            <label>
+                                <input type="checkbox" name="sunday">D
+                            </label>
+                        </div>
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+
+                    <div class="form-group col-md-12">
+                        <div id="timeranges" class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Idx</th>
+                                    <th>Abilitato</th>
+                                    <th>Ora inizio</th>
+                                    <th>Ora fine</th>
+                                    <th>Nome</th>
+                                    <th>Descrizione</th>
+                                    <th>stato</th>
+                                    <th>Action</th>
+                                    <th>comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="list">
+                                <tr name="row">
+                                    <td name="id">#</td>
+                                    <td><input type="checkbox" name="enabled" value=""></td>
+                                    <td><input class="form-control" name="starttime"></td>
+                                    <td><input class="form-control" name="endtime"></td>
+                                    <td><input class="form-control" name="name"></td>
+                                    <td><input class="form-control" name="description"></td>
+                                    <td name="status"></td>
+                                    <td name="action"></td>
+                                    <td name="command">
+                                        <button type="button" name="edittimerange" class="btn btn-sm btn-info">dettagli
+                                        </button>
+                                        <button type="button" name="addtimerange" class="btn btn-sm btn-info">aggiungi
+                                        </button>
+                                        <button type="button" name="deletetimerange" class="btn btn-sm btn-info">rimuovi</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" name="add" class="btn btn-info">Aggiungi fascia</button>
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="save" class="btn btn-info">Salva</button>
+                        <button type="button" name="cancel" class="btn btn-info">Annulla</button>
+                        <button type="button" name="edit" class="btn btn-info">Modifica</button>
+                    </div>
+
+                </form>
+            </div>
+            <!-- End  prototipo -->
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- End  prototipo -->

@@ -7,8 +7,8 @@ import com.server.webduino.core.webduinosystem.exits.ExitFactory;
 import com.server.webduino.core.webduinosystem.keys.Key;
 import com.server.webduino.core.webduinosystem.keys.KeyFactory;
 import com.server.webduino.core.webduinosystem.scenario.*;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramActionFactory;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneFactory;
 import org.json.JSONArray;
@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
-public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, SimpleMqttClient.SimpleMqttClientListener,Shields.ShieldsListener {
+public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, SimpleMqttClient.SimpleMqttClientListener, Shields.ShieldsListener {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
 
@@ -44,7 +44,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static String APP_DNS_OPENSHIFT = "webduinocenter.rhcloud.com";
     public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
 
-    private static List <WebduinoSystem> webduinoSystems = new ArrayList<>();
+    private static List<WebduinoSystem> webduinoSystems = new ArrayList<>();
     private static List<Zone> zones = new ArrayList<>();
     private static Scenarios scenarios = new Scenarios();
     private static List<Exit> exits = new ArrayList<>();
@@ -132,7 +132,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static boolean isProduction() {
 
         String tmpDir = System.getProperty("java.io.tmpdir");
-        if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp")  ||
+        if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp") ||
                 tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 7.0\\temp"))
             return false;
         else
@@ -141,10 +141,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public static Zone getZoneFromId(int zoneid) {
 
-        for(Zone zone : zones) {
-                if (zoneid == zone.getId()) {
-                    return zone;
-                }
+        for (Zone zone : zones) {
+            if (zoneid == zone.getId()) {
+                return zone;
+            }
         }
         return null;
     }
@@ -156,7 +156,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 JSONObject json = sensor.toJson();
                 jsonArray.put(json);
             } else {
-                if (sensor.getShieldId() == shieldid){
+                if (sensor.getShieldId() == shieldid) {
                     JSONObject json = sensor.toJson();
                     jsonArray.put(json);
                 }
@@ -168,7 +168,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public JSONArray getTimeIntervalsJSONArray(int id) {
         JSONArray jsonArray = new JSONArray();
         Scenario.ScenarioCalendar calendar = scenarios.getScenarioFromId(id).calendar;
-        for(ScenarioTimeInterval timeinterval : calendar.timeIntervals) {
+        for (ScenarioTimeInterval timeinterval : calendar.timeIntervals) {
             jsonArray.put(timeinterval.toJson());
         }
         return jsonArray;
@@ -176,11 +176,12 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public static JSONArray getZonesJSONArray() {
         JSONArray jsonArray = new JSONArray();
-        for(Zone zone : zones) {
+        for (Zone zone : zones) {
             jsonArray.put(zone.toJSON());
         }
         return jsonArray;
     }
+
 
     public void initMQTT() {
 
@@ -196,7 +197,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public void init() {
 
-        LOGGER.info("init");
+        LOGGER.info("start");
 
         // versione sw
         readSoftwareVersions();
@@ -227,15 +228,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
 
-
     public void addZoneSensorListeners() {
-        for(Zone zone: zones) {
+        for (Zone zone : zones) {
             zone.addSensorListeners();
         }
     }
 
     public void clearZoneSensorListeners() {
-        for(Zone zone: zones) {
+        for (Zone zone : zones) {
             zone.clearSensorListeners();
         }
     }
@@ -259,7 +259,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 String version = swversionsResultSet.getString("version");
                 String path = swversionsResultSet.getString("path");
                 String filename = swversionsResultSet.getString("filename");
-                SWVersion swversion = new SWVersion(id,name,version,path,filename);
+                SWVersion swversion = new SWVersion(id, name, version, path, filename);
                 swversions.add(swversion);
             }
             swversionsResultSet.close();
@@ -331,7 +331,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 String name = rs.getString("name");
                 String type = rs.getString("type");
                 WebduinoSystemFactory factory = new WebduinoSystemFactory();
-                WebduinoSystem system = factory.createWebduinoSystem(id,name,type);
+                WebduinoSystem system = factory.createWebduinoSystem(id, name, type);
                 if (system != null)
                     webduinoSystems.add(system);
             }
@@ -362,7 +362,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 String type = rs.getString("type");
                 int actuatorid = rs.getInt("sensorid");
                 ExitFactory factory = new ExitFactory();
-                Exit exit = factory.createWebduinoExit(id,name,type,actuatorid);
+                Exit exit = factory.createWebduinoExit(id, name, type, actuatorid);
                 if (exit != null)
                     exits.add(exit);
             }
@@ -393,7 +393,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 String type = rs.getString("type");
                 int actuatorid = rs.getInt("sensorid");
                 KeyFactory factory = new KeyFactory();
-                Key key = factory.createWebduinoKey(id,name,type,actuatorid);
+                Key key = factory.createWebduinoKey(id, name, type, actuatorid);
                 if (key != null)
                     keys.add(key);
             }
@@ -509,9 +509,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
 
-
-
-
     static public boolean saveZone(JSONObject json) {
         Zone zone = new Zone(json);
         zone.write();
@@ -523,8 +520,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         zone.save();
         return true;
     }*/
-
-
 
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
@@ -542,7 +537,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.getLastSensorData();
     }
 
-     boolean updateSensors(int shieldid, JSONArray jsonArray) {
+    boolean updateSensors(int shieldid, JSONArray jsonArray) {
         return mShields.updateShieldSensors(shieldid, jsonArray);
     }
 
@@ -636,8 +631,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         final String dateInString = df.format(date);
 
 
-
-
         Date newDate = null;
         try {
 
@@ -698,11 +691,11 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     }
                 } else if (list[1].equals("register")) {
                     callCommand("register", 0, message);
-                } else if (list[1].equals("response")){
+                } else if (list[1].equals("response")) {
                     if (list.length > 2) {
                         String uuid = list[2];
-                        for (CoreListener listener: listeners){
-                            listener.onCommandResponse(uuid,message);
+                        for (CoreListener listener : listeners) {
+                            listener.onCommandResponse(uuid, message);
                         }
                     }
                 }
@@ -716,16 +709,25 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         if (command.equals("sensorsupdate")) {
             try {
                 JSONObject jsonObj = new JSONObject(json);
-
-                //if (jsonObj.has("sensors")) {
-                    //JSONArray jsonArray = jsonObj.getJSONArray("sensors");
-                    updateShieldStatus(shieldid, jsonObj);
-                //}
-
+                updateShieldStatus(shieldid, jsonObj);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        } else if (command.equals("settingsupdate")) {
+        } /*else if (command.equals("requestzonetemperature")) {
+            try {
+                JSONObject jsonObj = new JSONObject(json);
+                if (jsonObj.has("shieldid") && jsonObj.has("zoneid")) {
+                    int actuatorid = jsonObj.getInt("id");
+                    int zoneid = jsonObj.getInt("zoneid");
+                    sendTemperature(shieldid, actuatorid, zoneid);
+
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+        }*/ else if (command.equals("settingsupdate")) {
             try {
                 JSONObject jsonObj = new JSONObject(json);
                 updateSettings(shieldid, jsonObj);
@@ -742,17 +744,20 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     shield.fromJson(shieldJson);
                     int id = registerShield(shield);
                     //SimpleMqttClient smc = new SimpleMqttClient();
-                    return smc.publish("fromServer/shield/" + shield.MACAddress + "/registerresponse", ""+id);
+                    return smc.publish("fromServer/shield/" + shield.MACAddress + "/registerresponse", "" + id);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } else {
-            //SimpleMqttClient smc = new SimpleMqttClient();
             return smc.publish("fromServer", "prova");
         }
         return false;
     }
+
+
 
     static public boolean publish(String topic, String message) {
 

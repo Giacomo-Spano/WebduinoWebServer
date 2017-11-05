@@ -1,20 +1,10 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramActionFactory;
 import org.json.JSONArray;
 
 import java.sql.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -57,12 +47,13 @@ public class Scenarios {
     public static void initScenarios() {
         scenarioList.clear();
         for(Scenario scenario :scenarioList) {
-            scenario.removeListeners();
+            scenario.stop();
+
         }
 
         readScenarios();
         for (Scenario scenario: scenarioList) {
-            scenario.init();
+            scenario.start();
         }
     }
 

@@ -6,6 +6,8 @@ import com.server.webduino.servlet.ShieldServlet;
 import org.json.JSONObject;
 
 import javax.servlet.ServletContext;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -13,6 +15,17 @@ import java.util.logging.Logger;
  * Created by Giacomo Spanò on 29/12/2016.
  */
 public class Command {
+
+    public interface CommandListener {
+        void onCommandResponse(String response);
+    }
+
+    protected List<CommandListener> listeners = new ArrayList<CommandListener>();
+
+    public void addListener(CommandListener toAdd) {
+        Core.addListener(new commandResponse());
+        listeners.add(toAdd);
+    }
 
     private static final Logger LOGGER = Logger.getLogger(Command.class.getName());
     public String command;
@@ -27,6 +40,7 @@ public class Command {
         this.shieldid = shieldid;
         this.actuatorid = actuatorid;
         uuid = UUID.randomUUID().toString();
+
     }
 
     public Command(JSONObject json) {
@@ -81,11 +95,6 @@ public class Command {
 
             Core.addListener(this);
             Core.postCommand(command);
-            /*if (command.equals(updateSettingStatusRequest)) {
-                Core.requestShieldSettingsUpdate(shieldid);
-            } else if (command.equals(updateSensorStatusRequest)) {
-                Core.requestShieldSensorsUpdate(shieldid);
-            }*/
             // il thread si mette in attesa di aggiornamento
             // AGGIUNGERE TIMEOU
             this.execute = true;
@@ -111,6 +120,25 @@ public class Command {
             if (uuid.equals(command.uuid))
                 jsonResult = response;
             this.execute = false;
+        }
+    }
+
+    public void post(CommandListener listener) {
+        addListener(listener);
+        Core.postCommand(this);
+    }
+
+    private class commandResponse implements Core.CoreListener {
+
+        @Override
+        public void onCommandResponse(String commanduuid, String response) {
+
+            if (uuid.equals(commanduuid)) {
+                for (CommandListener listener : listeners) {
+                    listener.onCommandResponse(response);
+                }
+                Core.removeListener(this);
+            }
         }
     }
 }

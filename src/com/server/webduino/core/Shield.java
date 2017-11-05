@@ -48,6 +48,7 @@ public class Shield extends DBObject/*httpClient*/ {
 
     private String settingsStatus = updateStatus_notUpdated;
     private String sensorStatus = updateStatus_notUpdated;
+    private SensorBase[] allSensors;
 
 
     public String getSettingStatus() {
@@ -63,7 +64,7 @@ public class Shield extends DBObject/*httpClient*/ {
     public Shield() {
     }
 
-    public Shield(JSONObject json) throws JSONException {
+    public Shield(JSONObject json) throws Exception {
         fromJson(json);
     }
 
@@ -177,7 +178,7 @@ public class Shield extends DBObject/*httpClient*/ {
         return sensor;
     }
 
-    public void fromJson(JSONObject json) throws JSONException {
+    public void fromJson(JSONObject json) throws Exception {
 
         if (json.has("shieldid"))
             id = json.getInt("shieldid");
@@ -211,33 +212,23 @@ public class Shield extends DBObject/*httpClient*/ {
     }
 
 
-    private List<SensorBase> getSensors(JSONArray jsonArray/*, String parentSubaddress*/) {
+    private List<SensorBase> getSensors(JSONArray jsonArray) throws Exception {
 
         List<SensorBase> sensors = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject j = null;
-            try {
                 j = jsonArray.getJSONObject(i);
                 SensorFactory factory = new SensorFactory();
                 SensorBase sensor = factory.fromJson(j);
-                //sensor.setSubaddress(parentSubaddress + "." + i);
-
                 if (j.has("childsensors")) {
-                    sensor.childSensors = getSensors(j.getJSONArray("childsensors")/*,sensor.getSubaddress()*/);
+                    sensor.childSensors = getSensors(j.getJSONArray("childsensors"));
                 }
 
                 sensors.add(sensor);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return null;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
         }
         return sensors;
     }
+
 
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
@@ -618,5 +609,21 @@ public class Shield extends DBObject/*httpClient*/ {
     public void delete(Statement stmt) throws SQLException {
         String sql = "DELETE FROM shields WHERE id=" + id;
         stmt.executeUpdate(sql);
+    }
+
+    public List<SensorBase> getAllSensors() {
+
+        List<SensorBase> list = new ArrayList<>();
+        for (SensorBase sensor: sensors) {
+            list.add(sensor);
+
+            List<SensorBase> childlist = sensor.getAllChildSensors();
+            if (childlist != null) {
+                for (SensorBase elem : childlist) {
+                    list.add(elem);
+                }
+            }
+        }
+        return list;
     }
 }

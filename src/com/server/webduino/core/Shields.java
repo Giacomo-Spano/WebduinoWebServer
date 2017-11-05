@@ -55,7 +55,7 @@ public class Shields {
                     if (updatedShield != null) {
                         list.remove(shield);
                         list.add(updatedShield);
-                        for(ShieldsListener listener: listeners) {
+                        for (ShieldsListener listener : listeners) {
                             listener.updatedShields();
                         }
                     }
@@ -84,15 +84,20 @@ public class Shields {
 
     interface ShieldsListener {
         void addedSensor(SensorBase sensor);
+
         void addedShield(Shield shield);
+
         void updatedSensor(SensorBase sensor);
+
         void updatedShields();
     }
 
     private static final Logger LOGGER = Logger.getLogger(Shields.class.getName());
+
     public void addListener(ShieldsListener toAdd) {
         listeners.add(toAdd);
     }
+
     protected List<ShieldsListener> listeners = new ArrayList<>();
     private static List<TemperatureSensor> mTemperatureSensorList = new ArrayList<TemperatureSensor>();
 
@@ -111,12 +116,23 @@ public class Shields {
         for (Shield shield : list) {
             for (SensorBase sensor : shield.sensors) {
                 sensorList.add(sensor);
-                for (SensorBase child: sensor.childSensors) {
+                for (SensorBase child : sensor.childSensors) {
                     sensorList.add(child);
                 }
             }
         }
         return sensorList;
+    }
+
+    public static List<SensorBase> getTemperatureSensorList() {
+        List <SensorBase> temperatureSensors = new ArrayList<>();
+        for (Shield shield : list) {
+            for (SensorBase sensor : shield.getAllSensors()) {
+                if (sensor instanceof TemperatureSensor)
+                    temperatureSensors.add(sensor);
+            }
+        }
+        return temperatureSensors;
     }
 
     public String getSettingStatus(int shieldid) {
@@ -151,8 +167,8 @@ public class Shields {
                 e.printStackTrace();
                 return false;
             }
-            return shield.updateSensor(id,name);
-        }else
+            return shield.updateSensor(id, name);
+        } else
             return false;
     }
 
@@ -250,11 +266,13 @@ public class Shields {
 
                 int shieldid = shieldRs.getInt("id");
                 json.put("shieldid", shieldid);
-                json.put("name", shieldRs.getString("boardname"));
+                json.put("name", shieldRs.getString("name"));
                 json.put("server", shieldRs.getString("server"));
                 json.put("serverport", shieldRs.getInt("serverport"));
                 json.put("mqttserver", shieldRs.getString("mqttserver"));
                 json.put("mqttport", shieldRs.getInt("mqttport"));
+                json.put("enabled", shieldRs.getBoolean("enabled"));
+                json.put("port", shieldRs.getInt("port"));
 
                 int parentId = 0;
                 JSONArray sensors = addChildSensors(conn, shieldid, parentId);
@@ -269,19 +287,13 @@ public class Shields {
             stmt.close();
 
             conn.close();
-        } catch (
-                SQLException se)
-
-        {
+        } catch (SQLException se) {
             //Handle errors for JDBC
             se.printStackTrace();
             LOGGER.severe(se.toString());
             return null;
 
-        } catch (
-                Exception e)
-
-        {
+        } catch (Exception e) {
             //Handle errors for Class.forName
             e.printStackTrace();
             LOGGER.severe(e.toString());
@@ -553,7 +565,7 @@ public class Shields {
             while (rs.next()) {
                 Shield shield = new Shield();
                 if (rs.getInt("id") <= 0) continue;
-                    shield.id = rs.getInt("id");
+                shield.id = rs.getInt("id");
                 if (rs.getString("macaddress") == null || rs.getString("macaddress").equals("")) continue;
                 shield.MACAddress = rs.getString("MACAddress");
                 if (rs.getString("name") != null)
@@ -562,17 +574,17 @@ public class Shields {
                     shield.description = rs.getString("description");
                 shield.enabled = rs.getBoolean("enabled");
                 if (rs.getInt("port") <= 0) continue;
-                    shield.port = rs.getInt("port");
+                shield.port = rs.getInt("port");
                 if (rs.getString("server") == null) continue;
-                    shield.server = rs.getString("server");
+                shield.server = rs.getString("server");
                 if (rs.getInt("serverport") <= 0) continue;
-                    shield.serverport = rs.getInt("serverport");
+                shield.serverport = rs.getInt("serverport");
                 if (rs.getString("mqttserver") != null)
                     shield.mqttserver = rs.getString("mqttserver");
                 if (rs.getInt("mqttport") <= 0) continue;
-                    shield.mqttport = rs.getInt("mqttport");
+                shield.mqttport = rs.getInt("mqttport");
 
-                shield.sensors = SensorBase.readSensors(conn,shield.id,0);
+                shield.sensors = SensorBase.readSensors(conn, shield.id, 0);
                 addShield(shield);
             }
             rs.close();

@@ -1,0 +1,99 @@
+
+
+<div id="panel" class="row">
+    <div class="col-md-12">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                Panel <p style="display: inline-block;" name="headingleft"></p>
+                <p style="float: right;" name="headingright">xx.xx</p>
+            </div>
+            <div class="panel-body" name="body">
+
+                <div class="form-group col-md-4">
+                    <label>Sensore</label>
+                    <p name="name">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>Temperatura</label>
+                    <p name="temperature">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>Target</label>
+                    <p name="target">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>Stato</label>
+                    <p name="status">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>Ultimo aggiornamento</label>
+                    <p name="date">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>Action</label>
+                    <p name="action">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>Relè</label>
+                    <p name="rele">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>PIN</label>
+                    <p name="pin">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>Shield id</label>
+                    <p name="shieldid">Help text here.</p>
+                </div>
+
+                <div class="form-group col-md-4">
+                    <label>id</label>
+                    <p name="id">Help text here.</p>
+                </div>
+
+                <form role="form">
+
+                    <div class="form-group col-md-12">
+                        <label>Nome</label>
+                        <select class="form-control" name="program">
+                        <option value="auto">Automatico</option>
+                        <option value="manual">Manuale</option>
+                        </select>
+                        <p class="help-block">Automatico o manuale</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Zona</label>
+                        <select class="form-control" name="zoneid"></select>
+                        <p class="help-block">Zona</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Durata</label>
+                        <input class="form-control" name="duration">
+                        <p class="help-block">Durata programma manuale</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <label>Target</label>
+                        <input class="form-control" type="number" name="target" value="0" min="0" max="30" step="0.5">
+                        <p class="help-block">Temperatura target</p>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <button type="button" name="save" class="btn btn-info">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

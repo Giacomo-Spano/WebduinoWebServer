@@ -1,4 +1,4 @@
-package com.server.webduino.core.webduinosystem.scenario.programinstructions;
+package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.SensorBase;
@@ -81,12 +81,13 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
             SensorBase actuator = Core.getSensorFromId(actuatorid);
             if (actuator != null) json.put("actuatorname", actuator.getName());
             json.put("targetvalue", targetvalue);
-            json.put("thresoldvalue", thresholdvalue);
+            json.put("thresholdvalue", thresholdvalue);
             json.put("zoneid", zoneId);
             Zone zone = Core.getZoneFromId(zoneId);
             if (zone != null) json.put("zonename", zone.getName());
             json.put("seconds", seconds);
             json.put("enabled", enabled);
+            json.put("priority", priority);
 
         } catch (JSONException e) {
             e.printStackTrace();

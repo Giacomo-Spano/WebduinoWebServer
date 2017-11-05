@@ -2,9 +2,8 @@ package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.Program;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramActionFactory;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,10 +41,10 @@ public class ScenarioProgramTimeRange extends DBObject {
     }
 
     /*public ScenarioProgramTimeRange(int id, int programid, String name, String description, LocalTime startTime, LocalTime endTime, boolean enabled, List<ProgramAction> actions) {
-        init(id, programid, name, description, startTime, endTime, enabled, actions);
+        start(id, programid, name, description, startTime, endTime, enabled, actions);
     }*/
 
-    public ScenarioProgramTimeRange(JSONObject json) throws JSONException {
+    public ScenarioProgramTimeRange(JSONObject json) throws Exception {
         fromJson(json);
     }
 
@@ -120,7 +119,7 @@ public class ScenarioProgramTimeRange extends DBObject {
                 for (ProgramAction action : programActionList) {
                     jarray.put(action.toJson());
                 }
-                json.put("programinstructions", jarray);
+                json.put("actions", jarray);
             }
 
             if (active) {
@@ -136,7 +135,7 @@ public class ScenarioProgramTimeRange extends DBObject {
         return json;
     }
 
-    public void fromJson(JSONObject json) throws JSONException {
+    public void fromJson(JSONObject json) throws Exception {
 
         if (json.has("id"))
             id = json.getInt("id");
@@ -158,10 +157,10 @@ public class ScenarioProgramTimeRange extends DBObject {
         if (json.has("enabled"))
             enabled = json.getBoolean("enabled");
 
-        if (json.has("programinstructions")) {
+        if (json.has("actions")) {
 
             ProgramActionFactory factory = new ProgramActionFactory();
-            JSONArray jsonArray = json.getJSONArray("programinstructions");
+            JSONArray jsonArray = json.getJSONArray("actions");
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jo = jsonArray.getJSONObject(i);
                 ProgramAction action = null;
@@ -170,6 +169,7 @@ public class ScenarioProgramTimeRange extends DBObject {
                     programActionList.add(action);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    throw new Exception("action error");
                 }
             }
         }

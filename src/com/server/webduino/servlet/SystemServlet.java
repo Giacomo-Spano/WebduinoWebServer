@@ -2,12 +2,13 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.Shields;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.Shield;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.scenario.*;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramActionFactory;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -356,7 +357,21 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
-        } else if (requestCommand != null && requestCommand.equals("zone") && id != null) {
+        } /*else if (requestCommand != null && requestCommand.equals("temperaturesensors")) {
+
+
+            List<SensorBase> list = Shields.getTemperatureSensorList();
+            JSONArray jarray = new JSONArray();
+            for(SensorBase sensor : list) {
+                jarray.put(sensor.toJson());
+            }
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
+
+        }*/ else if (requestCommand != null && requestCommand.equals("zone") && id != null) {
             int zoneid = Integer.parseInt(id);
             Zone zone = Core.getZoneFromId(zoneid);
             if (zone != null) {
@@ -393,6 +408,14 @@ public class SystemServlet extends HttpServlet {
             if (scenario != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(scenario.toJson());
+                return;
+            }
+        } else if (requestCommand != null && requestCommand.equals("sensor") && id != null) {
+            int sensorid = Integer.parseInt(id);
+            SensorBase sensor = Shields.getSensorFromId(sensorid);
+            if (sensor != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(sensor.toJson());
                 return;
             }
         } else if (requestCommand != null && requestCommand.equals("program") && id != null) {

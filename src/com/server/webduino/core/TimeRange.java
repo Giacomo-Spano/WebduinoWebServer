@@ -1,5 +1,5 @@
 package com.server.webduino.core;
-import com.server.webduino.core.webduinosystem.scenario.programinstructions.ProgramAction;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 
 import java.sql.Time;
 

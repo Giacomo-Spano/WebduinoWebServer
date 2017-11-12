@@ -77,7 +77,7 @@ public class OTAServlet extends HttpServlet {
             response.setHeader("Content-disposition", "attachment; filename="+fileName);
             response.setStatus(SC_OK);
 
-            File my_file = new File(path + "\\" + fileName);
+            File my_file = new File(path + "/" + fileName);
 
             response.setContentLength((int) my_file.length());
 

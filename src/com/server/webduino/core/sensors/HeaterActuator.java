@@ -39,6 +39,12 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public int timeInterval;
     protected int zone; //  questo valore non è letto dal sensore ma rimane solo sul server
 
+    public interface TemperatureSensorListener extends SensorBase.SensorListener {
+        public String TemperatureEvents = "temperature event";
+        void onUpdateTemperature(int sensorId, double temperature, double oldtemperature);
+        void changeAvTemperature(int sensorId, double avTemperature);
+    }
+
     public HeaterActuator(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "heatersensor";
@@ -46,9 +52,6 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
 
     public void init() {
         startPrograms();
-        sensorSchedule.addListener(this);
-        sensorSchedule.setHeaterStatus(getStatus());
-        sensorSchedule.checkProgram();
     }
 
 
@@ -184,11 +187,6 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
                 String status = json.getString("status");
                 setStatus(status);
             }
-            if (json.has("name"))
-                setName(json.getString("name"));
-            if (json.has("sensorid"))
-                setId(json.getInt("sensorid"));
-
             if (json.has("duration"))
                 setDuration(duration = json.getInt("duration"));
             if (json.has("remaining"))
@@ -219,7 +217,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         }
         if (!getStatus().equals(oldStatus)) {
             // notifica Schedule che è cambiato lo stato ed invia una notifica alle app
-            sensorSchedule.checkProgram();
+            //sensorSchedule.checkProgram();
             String description = "Status changed from " + oldStatus + " to " + getStatus();
             Core.sendPushNotification(SendPushMessages.notification_statuschange, "Status", description, "0", getId());
         }
@@ -250,20 +248,16 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     }
 
     @Override
-    public void onChangeTemperature(int sensorId, double temperature, double oldtemperature) {
-
-    }
-
-    @Override
-    public void changeAvTemperature(int sensorId, double avTemperature) {
-    }
-
-    @Override
     public void changeOnlineStatus(boolean online) {
     }
 
     @Override
     public void changeOnlineStatus(int sensorId, boolean online) {
+
+    }
+
+    @Override
+    public void onChangeStatus(String newStatus, String oldStatus) {
 
     }
 

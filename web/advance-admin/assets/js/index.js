@@ -6,24 +6,14 @@ var shieldServletPath = "../shield";
 
 var $zonesPanel;
 var $zoneRow;
-
 var $zonePanel;
-var $sensorRow;
-
 var $scenariosPanel;
 var $scenarioRow;
-
 var $programPanel;
-var $timeintervalRow;
-
 var $instructionsPanel;
 var $instructionRow;
-
 var $sensorsPanel;
 var $sensorRow;
-
-
-
 var panel;
 
 var client;
@@ -50,8 +40,6 @@ function onMessageArrived(message) {
     console.log("onMessageArrived:" + message.payloadString);
     client.disconnect();
 };
-
-
 function onSignIn(googleUser) {
     var profile = googleUser.getBasicProfile();
     console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
@@ -95,16 +83,11 @@ function myFunction() {
 }
 
 function load() {
-
-    //prova(1);
-
     pagetitle = $(this).find('div[name="pagetitle"]');
     pagesubtitle = $(this).find('div[name="pagesubtitle"]');
     notification = $(this).find('div[name="notification"]');
     notificationsuccess = $(this).find('div[name="notification-success"]');
     backbutton = $(this).find('button[name="backbutton"]');
-    //notification.hide();
-
 
     $('a[id="item_home"]').click(function () {
         deactivatemenuitems();
@@ -161,66 +144,6 @@ function postData(datatype, json, callback, param) {
     xhttp.setRequestHeader("Content-type", "application/json");
     var str = JSON.stringify(json);
     xhttp.send(str);
-}
-
-function createProgram(program) {
-
-    id = createSubitem(0, "program", "Program");
-    addSubitemNumInput(id, "id", program.id, "Id", 0, 999999, 1, true);
-    addSubitemTextInput(id, "name", program.name, "Name");
-    addSubitemCheckInput(id, "enabled", program.enabled, "Attivo", function (checked) {
-    });
-
-}
-
-function createProgramInstruction(programinstruction, sensors, zones, instructiontypes) {
-
-    id = createSubitem(0, "actions", "Lista istruzioni");
-    addSubitemNumInput(id, "id", programinstruction.id, "Id", 0, 999999, 1, true);
-    addSubitemNumInput(id, "timerangeidid", programinstruction.timerangeid, "Timerange id", 0, 999999, 1, true);
-
-    var list = [];
-    for (i = 0; i < instructiontypes.length; i++) {
-        var type = [];
-
-        type.push(instructiontypes[i].instruction);
-        type.push(instructiontypes[i].description);
-        list.push(type);
-    }
-    addSubitemSelect(id, "type", list, "Type", programinstruction.type);
-    addSubitemTextInput(id, "name", programinstruction.name, "Name");
-
-    var list = [];
-    for (i = 0; i < sensors.length; i++) {
-        var sensor = [];
-        sensor.push(sensors[i].id);
-        var name = "" + sensors[i].id + "." + sensors[i].name + "(" + sensors[i].type + ")";
-        sensor.push(name);
-        list.push(sensor);
-    }
-    addSubitemSelect(id, "actuatorid", list, "actuatorid", programinstruction.actuatorid);
-    addSubitemNumInput(id, "targetvalue", programinstruction.targetvalue, "targetvalue", 0, 30, "0.01");
-    var zonelist = [];
-    for (i = 0; i < zones.length; i++) {
-        var zone = [];
-        zone.push(zones[i].id);
-        var name = "" + zones[i].id + "." + zones[i].name;
-        zone.push(name);
-        zonelist.push(zone);
-    }
-    addSubitemSelect(id, "zoneid", zonelist, "zoneid", programinstruction.zoneid);
-    addSubitemTimeInput(id, "time", programinstruction.time, "Time");
-    addSubitemCheckInput(id, "schedule", programinstruction.schedule, "Data");
-    addSubitemCheckInput(id, "sunday", programinstruction.sunday, "S");
-    addSubitemCheckInput(id, "monday", programinstruction.monday, "M");
-    addSubitemCheckInput(id, "tuesday", programinstruction.tuesday, "T");
-    addSubitemCheckInput(id, "wednesday", programinstruction.wednesday, "W");
-    addSubitemCheckInput(id, "thursday", programinstruction.sunday, "T");
-    addSubitemCheckInput(id, "friday", programinstruction.friday, "Venerdì", function (checked) {
-    });
-    addSubitemCheckInput(id, "saturday", programinstruction.saturday, "Sabato", function (checked) {
-    });
-    addSubitemNumInput(id, "priority", programinstruction.priority, "priorità", 0, 99);
 }
 
 function zoneForm(zone, sensors) {
@@ -348,7 +271,6 @@ function setZoneSensorElement(element, sensor) {
 
 }
 
-
 function loadDashboard() {
 
     $("#result").load("dashboard.html", function () {
@@ -376,7 +298,7 @@ function loadDashboard() {
 
 function loadShields() {
 
-    $("#result").load("shields2.html", function () {
+    $("#result").load("shields.html", function () {
         var panel = $(this).find('div[id="panel"]');
         var row = panel.find('tr[name="row"]');
 
@@ -509,11 +431,39 @@ function setSensorElement(element, sensor) {
     // subaddress
     element.find('td[name="subaddress"]').text(sensor.subaddress);
 
-    element.click(function () {
+    var detailButton = element.find('button[name="detailbutton"]');
+    detailButton.text(label);
+    detailButton.click(function () {
         loadHeater(sensor);
+
     });
 
-    // status
+    var statusButton = element.find('button[name="statusbutton"]');
+    statusButton.text(label);
+    statusButton.click(function () {
+
+        var command = 'updatesensorstatus'
+        statusButton.text("sending" + command + " command...");
+        var json = {
+            'shieldid': sensor.shieldid,
+            'command': command,
+        };
+        postShieldData(json, function (result, response) {
+
+            statusButton.text("command sent");
+            if (result) {
+                notificationsuccess.show();
+                notificationsuccess.find('label[name="description"]').text("comando inviato" + response);
+                loadDashboard();
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
+    });
+
+
+    //
     if (sensor.type == "temperaturesensor") {
         text = "temp:" + sensor.temperature + "°C" + " av.temp:" + sensor.avtemperature + "°C";
         element.find('td[name="status"]').text(text);
@@ -544,9 +494,9 @@ function setSensorElement(element, sensor) {
                 'command': command
             };
             //sendSensorCommand(commandJson, sensor)
-            $.post( shieldServletPath, JSON.stringify(commandJson), function( data ) {
-                console.log( data.name ); // John
-                console.log( data.time ); // 2pm
+            $.post(shieldServletPath, JSON.stringify(commandJson), function (data) {
+                console.log(data.name); // John
+                console.log(data.time); // 2pm
             }, "json");
         });
 
@@ -554,22 +504,6 @@ function setSensorElement(element, sensor) {
         label = "close";
         if (!sensor.openstatus)
             label = "open";
-        var statusButton = element.find('button[name="statusbutton"]');
-        statusButton.text(label);
-        statusButton.click(function () {
-
-            var command = 'testopen'
-            if (!sensor.openstatus) {
-                command = 'testclose';
-            }
-            statusButton.text("sending" + command + " command...");
-            var commandJson = {
-                'shieldid': sensor.shieldid,
-                'actuatorid': sensor.id,
-                'command': command,
-            };
-            sendSensorCommand(commandJson, sensor)
-        });
 
 
     } else if (sensor.type == "heatersensor") {
@@ -586,8 +520,6 @@ function setSensorElement(element, sensor) {
     }
 
 }
-
-
 
 function sendShieldCommand(commandJson) {
 
@@ -692,9 +624,9 @@ function loadScenario(scenario, editmode) {
 
         $scenarioPanel.find('input[name="startdate"]').val(scenario.startdate);
         if (scenario.startdate != undefined)
-        $scenarioPanel.find('input[name="startdate"]').datepicker({
-            dateFormat: "dd/mm/yy"
-        });
+            $scenarioPanel.find('input[name="startdate"]').datepicker({
+                dateFormat: "dd/mm/yy"
+            });
         if (scenario.enddate != undefined)
             $scenarioPanel.find('input[name="enddate"]').val(scenario.enddate);
         $scenarioPanel.find('input[name="enddate"]').datepicker({
@@ -840,25 +772,6 @@ function loadScenario(scenario, editmode) {
     });
 }
 
-// SCENARIO PROGRAM
-function enableProgramEdit(savebutton, cancelbutton, editbutton) {
-    savebutton.show();
-    cancelbutton.show();
-    editbutton.hide();
-    $programPanel.find('input[name="name"]').prop('disabled', false);
-    $programPanel.find('input[name="enabled"]').prop('disabled', false);
-    $programPanel.find('textarea[name="description"]').prop('disabled', false);
-    $programPanel.find('input[name="priority"]').prop('disabled', false);
-    $programPanel.find('p[class="help-block"]').show();
-    $programPanel.find('input[name="sunday"]').prop('disabled', false);
-    $programPanel.find('input[name="monday"]').prop('disabled', false);
-    $programPanel.find('input[name="tuesday"]').prop('disabled', false);
-    $programPanel.find('input[name="wednesday"]').prop('disabled', false);
-    $programPanel.find('input[name="thursday"]').prop('disabled', false);
-    $programPanel.find('input[name="friday"]').prop('disabled', false);
-    $programPanel.find('input[name="saturday"]').prop('disabled', false);
-}
-
 function getTimeRange(id, callback) {
     $.getJSON(systemServletPath + "?requestcommand=timerange&id=" + id, function (timerange) {
         callback(timerange);
@@ -876,185 +789,6 @@ function getScenario(id, callback) {
         callback(scenario);
     });
 }
-
-
-function loadScenarioProgram(program, editmode) {
-
-    $("#result").load("scenarioprogram.html", function () {
-        // back button
-        backbutton.unbind("click");
-        backbutton.click(function () {
-            getScenario(program.scenarioid, function (scenario) {
-                loadScenario(scenario);
-            });
-        });
-
-        pagetitle.text('Programma');
-        notification.hide();
-
-        $programPanel = $(this).find('div[id="programpanel"]');
-        $programPanel.find('p[name="headingright"]').text(program.scenarioid + "." + program.id);
-
-        $programPanel.find('input[name="name"]').val(program.name);
-        $programPanel.find('textarea[name="description"]').val(program.description);
-        $programPanel.find('input[name="enabled"]').prop('checked', program.enabled);
-        $programPanel.find('input[name="priority"]').val(program.priority);
-        $programPanel.find('input[name="sunday"]').prop('checked', program.sunday);
-        $programPanel.find('input[name="monday"]').prop('checked', program.monday);
-        $programPanel.find('input[name="tuesday"]').prop('checked', program.tuesday);
-        $programPanel.find('input[name="wednesday"]').prop('checked', program.wednesday);
-        $programPanel.find('input[name="thursday"]').prop('checked', program.thursday);
-        $programPanel.find('input[name="friday"]').prop('checked', program.friday);
-        $programPanel.find('input[name="saturday"]').prop('checked', program.saturday);
-
-        // save button
-        var savebutton = $programPanel.find('button[name="save"]');
-        savebutton.hide();
-        $programPanel.find('input').prop('disabled', true);
-        $programPanel.find('textarea').prop('disabled', true);
-        $programPanel.find('select').prop('disabled', true);
-        $programPanel.find('p[class="help-block"]').hide();
-        savebutton.click(function () {
-            program.name = $programPanel.find('input[name="name"]').val();
-            program.description = $programPanel.find('textarea[name="description"]').val();
-            program.enabled = $programPanel.find('input[name="enabled"]').prop('checked');
-            program.priority = $programPanel.find('input[name="priority"]').val();
-            program.sunday = $programPanel.find('input[name="enabled"]').prop('sunday');
-            program.monday = $programPanel.find('input[name="enabled"]').prop('monday');
-            program.tuesday = $programPanel.find('input[name="enabled"]').prop('tuesday');
-            program.wednesday = $programPanel.find('input[name="enabled"]').prop('wednesday');
-            program.thursday = $programPanel.find('input[name="enabled"]').prop('thursday');
-            program.friday = $programPanel.find('input[name="enabled"]').prop('friday');
-            program.saturday = $programPanel.find('input[name="enabled"]').prop('saturday');
-            postData("program", program, function (result, response) {
-                if (result) {
-                    notification.find('label[name="description"]').text("program salvata");
-                    var json = jQuery.parseJSON(response);
-                    loadScenarioProgram(json);
-                } else {
-                    notification.show();
-                    notification.find('label[name="description"]').text(error);
-                }
-            });
-        });
-
-        var cancelbutton = $programPanel.find('button[name="cancel"]');
-        cancelbutton.hide();
-        cancelbutton.click(function () {
-            loadScenarioProgram(program);
-        });
-
-        var editbutton = $programPanel.find('button[name="edit"]');
-        editbutton.click(function () {
-            enableProgramEdit(savebutton, cancelbutton, editbutton);
-
-        });
-
-
-        //$triggerPanel = $(this).find('div[id="timerangepanel"]');
-        $timerangeRow = $programPanel.find('tr[name="timerange"]');
-        var timerangebody = $programPanel.find('tbody[name="timeranges"]');
-        timerangebody[0].innerHTML = "";
-
-
-        if (program.timeranges != undefined) {
-            $.each(program.timeranges, function (idx, elem) {
-                var newtr = $timerangeRow.clone();
-                setTimeRangeElement(newtr, elem);
-                timerangebody.append(newtr);
-            });
-
-        }
-
-        $programPanel.find('button[name="add"]').click(function () {
-            var timerange = {
-                "programid": program.id,
-                "id": 0,
-                "name": "nuovo trigger",
-                "enabled": false,
-                "priority": 0,
-            };
-            postData("timerange", timerange, function (result, response) {
-                if (result) {
-                    var json = jQuery.parseJSON(response);
-                    getProgram(json.programid, function (program) {
-                        loadScenarioProgram(program);
-                    })
-                } else {
-                    notification.show();
-                    notification.find('label[name="description"]').text(response);
-                }
-            });
-        });
-        // timerange
-        /*$timerangePanel = $(this).find('div[id="timerangepanel"]');
-         $timerange = $(this).find('div[id="timerange"]');
-         $instructionRow = $timerange.find('tr[name="instruction"]');
-         $actions = $(this).find('div[id="actions"]');
-         $timerangePanel.remove();
-         $timerange.remove();
-
-         var timerangelistdiv = $(this).find('div[name="timerangelist"]');
-         timerangelistdiv[0].innerHTML = "xxx";
-
-         var addtimerangebutton = $(this).find('button[name="addtimerange"]');
-         $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
-         $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
-         $.getJSON(systemServletPath + "?requestcommand=instructiontypes", function (instructiontypes) {
-         if (program.timeranges != null) {
-         $.each(program.timeranges, function (idx, timerange) {
-
-
-         addTimeRange(timerange, timerangelistdiv, sensors, zones, instructiontypes);
-         });
-         }
-
-         addtimerangebutton.click(function () {
-         var timerange = {
-         "programid": program.id,
-         "id": 0,
-         "name": "nuovo time range",
-         "priority": 0,
-         "enabled": false,
-         };
-         postData("timerange", timerange, function (result, response) {
-         if (result) {
-         notification.find('label[name="description"]').text("program salvata");
-         var json = jQuery.parseJSON(response);
-         getProgram(json.programid, function (program) {
-         loadScenarioProgram(program);
-         })
-         } else {
-         notification.show();
-         notification.find('label[name="description"]').text(error);
-         }
-         });
-         });
-         })
-         });
-         });*/
-    });
-}
-
-
-function enableInstructionEdit(savebutton, cancelbutton, editbutton) {
-    savebutton.show();
-    cancelbutton.show();
-    editbutton.hide();
-    $instructionPanel.find('input[name="name"]').prop('disabled', false);
-    $instructionPanel.find('textarea[name="description"]').prop('disabled', false);
-    $instructionPanel.find('select[name="zone"]').prop('disabled', false);
-    $instructionPanel.find('select[name="type"]').prop('disabled', false);
-    $instructionPanel.find('select[name="actuator"]').prop('disabled', false);
-    $instructionPanel.find('input[name="targetvalue"]').prop('disabled', false);
-    $instructionPanel.find('input[name="thresholdvalue"]').prop('disabled', false);
-    $instructionPanel.find('input[name="seconds"]').prop('disabled', false);
-    $instructionPanel.find('input[name="enabled"]').prop('disabled', false);
-    $instructionPanel.find('input[name="priority"]').prop('disabled', false);
-    $instructionPanel.find('p[class="help-block"]').show();
-}
-
-
 
 function loadScenarioTimeinterval(timeinterval) {
 
@@ -1238,221 +972,6 @@ function loadScenarioTrigger(trigger, triggertypes) {
     });
 }
 
-
-function loadScenarioProgramTimeRange(timerange) {
-
-    $("#result").load("scenarioprogramtimerange.html", function () {
-
-            // back button
-            backbutton.unbind("click");
-            backbutton.click(function () {
-                getProgram(timerange.programid, function (program) {
-                    loadScenarioProgram(program);
-                })
-            });
-            pagetitle.text('Fascia oraria programma');
-            notification.hide();
-
-            panel = $(this).find('div[id="timerangepanel"]');
-            panel.find('p[name="headingright"]').text(timerange.scenarioid + "." + timerange.id);
-            panel.find('input[name="name"]').val(timerange.name);
-            panel.find('textarea[name="description"]').val(timerange.description);
-            panel.find('input[name="enabled"]').prop('checked', timerange.enabled);
-            panel.find('input[name="starttime"]').timepicker({
-                timeFormat: 'HH:mm',
-                interval: 15,
-                minTime: '00:00',
-                maxTime: '23:59',
-                defaultTime: '00:00',
-                startTime: '00:00',
-                dynamic: true,
-                dropdown: true,
-                scrollbar: true
-            });
-            panel.find('input[name="endtime"]').timepicker({
-                timeFormat: 'HH:mm',
-                interval: 15,
-                minTime: '00:00',
-                maxTime: '23:59',
-                defaultTime: '23:59',
-                startTime: '00:00',
-                dynamic: true,
-                dropdown: true,
-                scrollbar: true
-            });
-            if (timerange.starttime != null) panel.find('input[name="starttime"]').val(timerange.starttime);
-            if (timerange.endtime != null) panel.find('input[name="endtime"]').val(timerange.endtime);
-
-            // save button
-            var savebutton = panel.find('button[name="save"]');
-            savebutton.hide();
-            panel.find('input').prop('disabled', true);
-            panel.find('textarea').prop('disabled', true);
-            panel.find('select').prop('disabled', true);
-            panel.find('p[class="help-block"]').hide();
-            savebutton.click(function () {
-                timerange.name = panel.find('input[name="name"]').val();
-                timerange.description = panel.find('textarea[name="description"]').val();
-                timerange.enabled = panel.find('input[name="enabled"]').prop('checked');
-                timerange.starttime = panel.find('input[name="starttime"]').val();
-                timerange.endtime = panel.find('input[name="endtime"]').val();
-
-                var tr = panel.find('tr[name="instruction"]');
-                $('#tbl2 > tbody  > tr').each(function (n, elem) {
-               // $.each(tr, function (n, elem) {
-                    timerange.programinstructions[n].name = $(this).find('td').find('input[name="name"]').val();
-
-
-
-
-
-                });
-                postData("timerange", timerange, function (result, response) {
-                    if (result) {
-                        notification.find('label[name="description"]').text("istruction salvata");
-                        var json = jQuery.parseJSON(response);
-                        loadScenarioProgramTimeRange(json);
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
-            });
-
-            var cancelbutton = panel.find('button[name="cancel"]');
-            cancelbutton.hide();
-            cancelbutton.click(function () {
-                loadScenarioProgramTimeRange(timerange);
-            });
-
-            var editbutton = panel.find('button[name="edit"]');
-            editbutton.click(function () {
-                savebutton.show();
-                cancelbutton.show();
-                editbutton.hide();
-                panel.find('input').prop('disabled', false);
-                panel.find('select').prop('disabled', false);
-            });
-
-            // program instructions
-            $instructionRow = panel.find('tr[name="instruction"]');
-            var tbody = panel.find('tbody[name="instructionlist"]');
-            tbody[0].innerHTML = "";
-            if (timerange.programinstructions != null) {
-                $.each(timerange.programinstructions, function (idx, elem) {
-                    var instruction = $instructionRow.clone();
-                    instruction.find('td[name="id"]').text(elem.id);
-                    //instruction.find('td[name="status"]').text(elem.status);
-                    instruction.find('input[name="type"]').text(elem.type);
-                    $.getJSON(systemServletPath + "?requestcommand=instructiontypes", function (instructiontypes) {
-                        $.each(instructiontypes, function (val, instructiontype) {
-                            instruction.find('select[name="type"]').append(new Option(instructiontype.description, instructiontype.instruction));
-                        });
-                    });
-                    instruction.find('input[name="name"]').text(elem.name);
-                    instruction.find('select[name="actuatorid"]').text(elem.actuatorid + "(" + elem.actuatorname + ")");
-                    $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
-                        $.each(sensors, function (val, sensor) {
-                            instruction.find('select[name="actuatorid"]').append(new Option(sensor.name, sensor.id));
-                        });
-                    });
-
-                    instruction.find('input[name="targetvalue"]').text(elem.targetvalue);
-                    instruction.find('input[name="zoneid"]').text(elem.zoneid + "(" + elem.zonename + ")");
-                    $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
-                        $.each(zones, function (val, zone) {
-                            instruction.find('select[name="zoneid"]').append(new Option(zone.name, zone.id));
-                        });
-                    });
-                    instruction.find('input[name="thresholdvalue"]').text(elem.thresholdvalue);
-                    instruction.find('input[name="priority"]').text(elem.priority);
-                    instruction.find('button[name="detail"]').click(function () {
-                        $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
-                            $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
-                                $.getJSON(systemServletPath + "?requestcommand=instructiontypes", function (instructiontypes) {
-                                    loadAction(elem, sensors, zones, instructiontypes);
-                                });
-                            });
-                        });
-                    });
-                    instruction.find('button[name="deleteinstruction"]').click(function () {
-
-                        postData("instruction", elem, function (result, response) {
-                            if (result) {
-                                notification.find('label[name="description"]').text("istruzione salvata");
-                                var json = jQuery.parseJSON(response);
-                                //getProgram(timerange.programid, function (program) {
-                                loadScenarioProgramTimeRange(json);
-                                //});
-                            } else {
-                                notification.show();
-                                //notification.find('label[name="description"]').text(response);
-                            }
-                        }, "delete");
-
-
-                    });
-                    tbody.append(instruction);
-                });
-            }
-
-            panel.find('button[name="addinstruction"]').click(function () {
-                var instruction = {
-                    "timerangeid": timerange.id,
-                    "id": 0,
-                    "name": "nuova instruzione",
-                    "type": "delayalarm",
-                };
-                postData("instruction", instruction, function (result, response) {
-                    if (result) {
-                        notification.find('label[name="description"]').text("istruzione salvata");
-                        var json = jQuery.parseJSON(response);
-                        getTimeRange(json.timerangeid, function (timerange) {
-                            loadScenarioProgramTimeRange(timerange);
-                        })
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
-                //setInstructionElement(instruction, elem, sensors, zones, instructiontypes);
-                //tbody.append(instruction);
-                //loadAction(instruction, sensors, zones, instructiontypes, true);
-            });
-
-
-        }
-    );
-}
-
-function setTimeRangeElement(element, timerange) {
-
-    element.find('td[name="id"]').text(timerange.id);
-    element.find('td[name="enabled"]').text(timerange.enabled);
-    element.find('td[name="starttime"]').text(timerange.starttime);
-    element.find('td[name="endtime"]').text(timerange.endtime);
-    element.find('td[name="name"]').text(timerange.name);
-    element.find('td[name="description"]').text(timerange.description);
-    element.find('td[name="status"]').text(timerange.status);
-    element.find('td[name="action"]').text(timerange.actionstatus);
-
-    element.find('button[name="edittimerange"]').click(function () {
-        loadScenarioProgramTimeRange(timerange);
-    });
-    element.find('button[name="deletetimerange"]').click(function () {
-        postData("timerange", timerange, function (result, response) {
-            if (result) {
-                notification.find('label[name="description"]').text("timeinterval eliminato");
-                var json = jQuery.parseJSON(response);
-                loadScenarioProgram(json);
-            } else {
-                notification.show();
-                notification.find('label[name="description"]').text(error);
-            }
-        }, "delete");
-    });
-}
-
 function setTimeintervalElement(element, timeinterval) {
 
     element.find('td[name="id"]').text(timeinterval.id);
@@ -1513,55 +1032,6 @@ function getDays(elem) {
     return day;
 }
 
-
-// INSTRUCTIONS
-function loadInstructions(scenarioid) {
-
-    $("#result").load("instructions.html", function () {
-        $instructionsPanel = $(this).find('div[id="instructionspanel"]');
-        $instructionRow = $instructionsPanel.find('tr[name="instruction"]');
-
-        var tbody = $instructionsPanel.find('tbody[name="instructionlist"]');
-        $.getJSON(systemServletPath + "?requestcommand=instructions&id=" + scenarioid + "&scenarioid=" + scenarioid, function (data) {
-            tbody[0].innerHTML = "";
-
-            $.each(data, function (idx, elem) {
-                var newtr = $instructionRow.clone();
-                setInstructionElement(newtr, elem);
-                tbody.append(newtr);
-            });
-        })
-            .done(function () {
-            })
-            .fail(function () {
-                alert("cannot load scenarios");
-            })
-            .always(function () {
-            });
-    });
-}
-
-function setInstructionElement(element, instruction, sensors, zones, instructiontypes) {
-
-    element.find('td[name="id"]').text(instruction.id);
-    element.find('td[name="type"]').text(instruction.type);
-    element.find('td[name="name"]').text(instruction.name);
-    element.find('td[name="actuatorid"]').text(instruction.actuatorid + "(" + instruction.actuatorname + ")");
-    element.find('td[name="targetvalue"]').text(instruction.targetvalue);
-    element.find('td[name="zoneid"]').text(instruction.zoneid + "(" + instruction.zonename + ")");
-    element.find('td[name="priority"]').text(instruction.priority);
-    /*element.click(function () {
-     loadAction(instruction, sensors, zones, instructiontypes);
-     });*/
-
-    element.find('button[name="detail"]').click(function () {
-        loadAction(instruction, sensors, zones, instructiontypes);
-    });
-    element.find('button[name="deleteinstruction"]').click(function () {
-    });
-
-}
-
 function setScenarioProgramElement(element, program/*, scenario*/) {
 
     element.find('td[name="id"]').text(program.id);
@@ -1579,13 +1049,10 @@ function setScenarioProgramElement(element, program/*, scenario*/) {
     }
 
     element.click(function () {
-        //loadScenarioProgram(program);
         loadProgram(program);
     });
 
-    element.find('button[name="details"]').click(function () {
-        loadScenarioProgram(program);
-    });
+
     element.find('button[name="delete"]').click(function () {
         postData("program", program, function (result, response) {
             if (result) {
@@ -1637,47 +1104,6 @@ function setTriggerElement(element, trigger, triggertype) {
     });
 }
 
-function getFormattedDate() {
-    var date = new Date();
-
-    var month = date.getMonth() + 1;
-    var day = date.getDate();
-    var hour = date.getHours();
-    var min = date.getMinutes();
-    var sec = date.getSeconds();
-
-    month = (month < 10 ? "0" : "") + month;
-    day = (day < 10 ? "0" : "") + day;
-    hour = (hour < 10 ? "0" : "") + hour;
-    min = (min < 10 ? "0" : "") + min;
-    sec = (sec < 10 ? "0" : "") + sec;
-
-    var str = date.getFullYear() + "-" + month + "-" + day + "_" + hour + ":" + min + ":" + sec;
-
-    /*alert(str);*/
-
-    return str;
-}
-
-function getFormattedTime(date) {
-    //var date = new Date();
-
-    var hour = date.getHours();
-    var min = date.getMinutes();
-    //var sec = date.getSeconds();
-
-    hour = (hour < 10 ? "0" : "") + hour;
-    min = (min < 10 ? "0" : "") + min;
-    //sec = (sec < 10 ? "0" : "") + sec;
-
-    var str = hour + ":" + min;// + ":" + sec;
-
-    /*alert(str);*/
-
-    return str;
-}
-
-
 var func = function (obj) {
     console.log(JSON.stringify(obj));
 };
@@ -1686,6 +1112,30 @@ $("input[type='submit']").click(function () {
     func($("form").serialize());
     return false;
 });
+
+
+function postShieldData(/*datatype, */json, callback, param) {
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            if (this.status == 200) {
+                callback(true, this.response);
+            } else if (this.status == 400) {
+                callback(false, this.response);
+            }
+        }
+    };
+
+    path = shieldServletPath/* + "?data=" + datatype*/;
+    if (param != undefined)
+        path += "&param=" + param;
+    xhttp.open("POST", path, true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    var str = JSON.stringify(json);
+    xhttp.send(str);
+}
+
 
 
 

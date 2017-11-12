@@ -84,3 +84,20 @@ function loadAction(action, sensors, zones, instructiontypes) {
         });
     });
 }
+
+function enableInstructionEdit(savebutton, cancelbutton, editbutton) {
+    savebutton.show();
+    cancelbutton.show();
+    editbutton.hide();
+    $instructionPanel.find('input[name="name"]').prop('disabled', false);
+    $instructionPanel.find('textarea[name="description"]').prop('disabled', false);
+    $instructionPanel.find('select[name="zone"]').prop('disabled', false);
+    $instructionPanel.find('select[name="type"]').prop('disabled', false);
+    $instructionPanel.find('select[name="actuator"]').prop('disabled', false);
+    $instructionPanel.find('input[name="targetvalue"]').prop('disabled', false);
+    $instructionPanel.find('input[name="thresholdvalue"]').prop('disabled', false);
+    $instructionPanel.find('input[name="seconds"]').prop('disabled', false);
+    $instructionPanel.find('input[name="enabled"]').prop('disabled', false);
+    $instructionPanel.find('input[name="priority"]').prop('disabled', false);
+    $instructionPanel.find('p[class="help-block"]').show();
+}

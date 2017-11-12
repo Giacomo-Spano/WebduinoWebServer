@@ -4,6 +4,7 @@ import com.quartz.NextScenarioProgramTimeIntervalQuartzJob;
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.TimeRange;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -80,8 +81,8 @@ public class ScenarioProgram extends DBObject {
             active = false;
         } else {
                 jobKey = JobKey.jobKey("ScenarioProgramJob"+id, "my-jobs"+id);
-                active = true;
-                triggerNextProgramTimeRange(Core.getDate());
+                //active = true;
+                triggerNextProgramTimeRange();
         }
         if (oldActiveStatus != active) {
             if (active) {
@@ -95,17 +96,25 @@ public class ScenarioProgram extends DBObject {
     public void stopProgram() {
         active = false;
         deleteNextTimeRangeJob();
+
+        for (ScenarioProgramTimeRange timeRange: timeRanges) {
+            timeRange.stop();
+        }
     }
 
-    public void triggerNextProgramTimeRange(Date currentDate) {
+    public void triggerNextProgramTimeRange() {
 
+        Date currentDate = Core.getDate();
         Instant instant = Instant.ofEpochMilli(currentDate.getTime());
         LocalTime currentTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
 
         // controlla se all'ora corrente c'è una TimeRange attiva e la avvia
         ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromDateTime(currentTime);
         if (activeTimeRange != null) {
+            active = true;
             activeTimeRange.start();
+        } else {
+            active = false;
         }
 
         // schedula il prossimo ProgramTimeRangeJob, ciò schedula la prossima data e ora
@@ -135,7 +144,22 @@ public class ScenarioProgram extends DBObject {
             cal.set(Calendar.HOUR_OF_DAY, nextTimeRange.startTime.getHour());
             cal.set(Calendar.MINUTE, nextTimeRange.startTime.getMinute());
             cal.set(Calendar.SECOND, nextTimeRange.startTime.getSecond());
-            nextTimeRangeStartDate = cal.getTime();
+
+            if(!dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
+                ScenarioProgramTimeRange tr = getFirstTimeRangeofDay();
+                cal.set(Calendar.HOUR_OF_DAY, tr.startTime.getHour());
+                cal.set(Calendar.MINUTE, tr.startTime.getMinute());
+                cal.set(Calendar.SECOND, tr.startTime.getMinute());
+                for (int i = 0;i < 7; i++) {
+                    cal.add(Calendar.HOUR, 24);
+                    if(dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
+                        nextTimeRangeStartDate = cal.getTime();
+                        break;
+                    }
+                }
+            } else {
+                nextTimeRangeStartDate = cal.getTime();
+            }
         }
 
         if (activeTimeRangeEndDate != null) {
@@ -188,6 +212,12 @@ public class ScenarioProgram extends DBObject {
                 .build();
 
         try {
+            printJobsAndTriggers(scheduler);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+
+        try {
             nextProgramTimeRangeJobDate = scheduler.scheduleJob(nextProgramTimeRangeJob, trigger);
         } catch (SchedulerException e) {
             e.printStackTrace();
@@ -208,18 +238,20 @@ public class ScenarioProgram extends DBObject {
         }
     }
 
+    // ritorna il Timerange attivo all'ora current time di oggi. Se il programma non è attivo oggi ritorna null
     public ScenarioProgramTimeRange getActiveTimeRangeFromDateTime(LocalTime currentTime) {
+
+        Calendar c = Calendar.getInstance();
+        if (!dayOfWeekActive(c.get(Calendar.DAY_OF_WEEK))) return null;
 
         if (timeRanges == null || timeRanges.size() == 0) return null;
         for (ScenarioProgramTimeRange timeRange : timeRanges) {
-            Calendar c = Calendar.getInstance();
-            if (!dayOfWeekActive(c.get(Calendar.DAY_OF_WEEK))) return null;
-
             if (timeRange.isActive(currentTime)) return timeRange;
         }
         return null;
     }
 
+    // ritorna la fascia orari attiva alla current time ssenza tenere conto del giorno della settimana
     public ScenarioProgramTimeRange getNextActiveTimeRangeFromDateTime(LocalTime currentTime) {
 
         if (timeRanges == null || timeRanges.size() == 0) return null;
@@ -234,33 +266,47 @@ public class ScenarioProgram extends DBObject {
         return timeRanges.get(0);
     }
 
+    public ScenarioProgramTimeRange getFirstTimeRangeofDay() {
+
+        if (timeRanges == null || timeRanges.size() == 0) return null;
+        return timeRanges.get(0);
+    }
+
     boolean dayOfWeekActive(int dayOfWeek) {
 
         switch (dayOfWeek) {
             case Calendar.SUNDAY:
                 if (sunday)
                     return true;
+                break;
             case Calendar.MONDAY:
                 if (monday)
                     return true;
+                break;
             case Calendar.TUESDAY:
                 if (tuesday)
                     return true;
+                break;
             case Calendar.WEDNESDAY:
                 if (wednesday)
                     return true;
+                break;
             case Calendar.THURSDAY:
                 if (thursday)
                     return true;
+                break;
             case Calendar.FRIDAY:
                 if (friday)
                     return true;
+                break;
             case Calendar.SATURDAY:
                 if (saturday)
                     return true;
+                break;
             default:
-                return false;
+                break;
         }
+        return false;
     }
 
     @Override
@@ -334,6 +380,9 @@ public class ScenarioProgram extends DBObject {
                 JSONObject jo = jsonArray.getJSONObject(i);
                 ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(jo);
                 if (timeRange != null) {
+
+                    if (i > 0 && timeRanges.get(timeRanges.size()-1).endTime.compareTo(timeRange.startTime) < 0)
+                        throw new Exception("time range " + i + "cannot start before time range "+ (i-1));
                     timeRanges.add(timeRange);
                 }
             }
@@ -398,6 +447,13 @@ public class ScenarioProgram extends DBObject {
         name = programsResultset.getString("name");
         description = programsResultset.getString("description");
         scenarioId = programsResultset.getInt("scenarioid");
+        sunday = programsResultset.getBoolean("sunday");
+        monday = programsResultset.getBoolean("monday");
+        tuesday = programsResultset.getBoolean("tuesday");
+        wednesday = programsResultset.getBoolean("wednesday");
+        thursday = programsResultset.getBoolean("thursday");
+        friday = programsResultset.getBoolean("friday");
+        saturday = programsResultset.getBoolean("saturday");
         this.timeRanges = readProgramTimeRanges(conn, id);
     }
 
@@ -406,7 +462,7 @@ public class ScenarioProgram extends DBObject {
         List<ScenarioProgramTimeRange> list = new ArrayList<>();
         String sql;
         Statement stmt = conn.createStatement();
-        sql = "SELECT * FROM scenarios_programtimeranges WHERE programid=" + programid + " ;";
+        sql = "SELECT * FROM scenarios_programtimeranges WHERE programid=" + programid + " ORDER BY scenarios_programtimeranges.index ASC;";
         ResultSet resultSet = stmt.executeQuery(sql);
         while (resultSet.next()) {
             ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(conn, programid, resultSet);

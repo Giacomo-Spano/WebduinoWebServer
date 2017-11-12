@@ -33,7 +33,7 @@ public class ReleDataLog extends DataLog {
                 getStrDate() + ",'" +
                 event + "'," +
                 heaterActuator.releStatus + ",'" +
-                heaterActuator.getStatus() + "'," +
+                heaterActuator.getDoorStatus() + "'," +
                 heaterActuator.getAvTemperature() + "," +
                 heaterActuator.getRemoteTemperature() + "," +
                 heaterActuator.targetTemperature + "," +

@@ -6,7 +6,6 @@ import org.json.JSONObject;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.server.webduino.core.sensors.SensorBase.SensorListener.SensorEvents;
 import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
 
 public class TemperatureSensor extends SensorBase {
@@ -18,7 +17,7 @@ public class TemperatureSensor extends SensorBase {
 
     public interface TemperatureSensorListener extends SensorBase.SensorListener {
         public String TemperatureEvents = "temperature event";
-        void changeTemperature(int sensorId, double temperature, double oldtemperature);
+        void onUpdateTemperature(int sensorId, double temperature, double oldtemperature);
         void changeAvTemperature(int sensorId, double avTemperature);
     }
 
@@ -41,15 +40,16 @@ public class TemperatureSensor extends SensorBase {
         double oldtemperature = this.temperature;
         this.temperature = temperature;
 
-        if (temperature != oldtemperature) {
+        //if (temperature != oldtemperature) {
             TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
             dl.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (SensorListener listener : listeners) {
-                //TemperatureSensorListener l = (TemperatureSensorListener) listener;
-                listener.onChangeTemperature(getId(),temperature,oldtemperature);
+                if (listener instanceof TemperatureSensorListener) {
+                    ((TemperatureSensorListener)listener).onUpdateTemperature(getId(), temperature, oldtemperature);
+                }
             }
-        }
+        //}
     }
 
     public void setAvTemperature(double avTemperature) {

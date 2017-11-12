@@ -40,7 +40,7 @@ public class DoorSensor extends SensorBase {
         dl.writelog(event, this);
     }
 
-    public boolean getStatus() {
+    public boolean getDoorStatus() {
         return open;
     }
 

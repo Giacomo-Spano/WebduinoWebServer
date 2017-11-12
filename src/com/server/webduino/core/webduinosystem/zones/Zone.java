@@ -2,7 +2,10 @@ package com.server.webduino.core.webduinosystem.zones;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
+import com.server.webduino.core.Shield;
+import com.server.webduino.core.Shields;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.TemperatureSensor;
 import com.server.webduino.core.webduinosystem.WebduinoTrigger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,29 +13,35 @@ import org.json.JSONObject;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 /**
  * Created by giaco on 12/05/2017.
  */
-public class Zone implements SensorBase.SensorListener {
+public class Zone implements SensorBase.SensorListener, TemperatureSensor.TemperatureSensorListener {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     public interface WebduinoZoneListener {
         void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature);
         void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus);
     }
-    protected List<WebduinoZoneListener> listeners = new ArrayList<WebduinoZoneListener>();
+    protected List<WebduinoZoneListener> listeners = new CopyOnWriteArrayList<>();
     public void addListener(WebduinoZoneListener toAdd) {
         listeners.add(toAdd);
     }
 
     public void removeListener(WebduinoZoneListener toRemove) {
-        for (WebduinoZoneListener listener: listeners) {
-            if (listener == toRemove)
-                listeners.remove(toRemove);
+
+        Iterator<WebduinoZoneListener> it = listeners.iterator();
+        while(it.hasNext()){
+            WebduinoZoneListener value = it.next();
+            //System.out.println("List Value:"+value);
+            if(value == toRemove) listeners.remove(value);
         }
+
     }
 
     private int id;
@@ -52,6 +61,22 @@ public class Zone implements SensorBase.SensorListener {
 
     public Zone(JSONObject json) {
         fromJson(json);
+    }
+
+    public void requestSensorStatusUpdate() {
+
+        LOGGER.info("requestSensorStatusUpdate:");
+
+        for (ZoneSensor zoneSensor : zoneSensors) {
+
+            SensorBase sensor = Core.getSensorFromId(zoneSensor.getSensorId());
+            if (sensor != null) {
+                Shield shield = Core.getShieldFromId(sensor.getShieldId());
+                if (shield != null) {
+                    shield.requestSensorStatusUpdate();
+                }
+            }
+        }
     }
 
     public boolean fromJson(JSONObject json) {
@@ -157,7 +182,7 @@ public class Zone implements SensorBase.SensorListener {
     }
 
     @Override
-    public void onChangeTemperature(int sensorId, double temperature, double oldtemperature) {
+    public void onUpdateTemperature(int sensorId, double temperature, double oldtemperature) {
         for(WebduinoZoneListener listener: listeners) {
             listener.onTemperatureChange(id,temperature,oldtemperature);
         }
@@ -180,6 +205,11 @@ public class Zone implements SensorBase.SensorListener {
 
     @Override
     public void changeOnlineStatus(int sensorId, boolean online) {
+
+    }
+
+    @Override
+    public void onChangeStatus(String newStatus, String oldStatus) {
 
     }
 

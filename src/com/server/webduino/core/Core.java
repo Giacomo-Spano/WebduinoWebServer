@@ -77,14 +77,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         listeners.remove(toRemove);
     }
 
-    static public class Result {
-        public boolean result = false;
-        public String error = "";
-
-        public Result() {
-
-        }
-    }
 
     public Core() {
         production_envVar = System.getenv("PRODUCTION");
@@ -165,15 +157,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return jsonArray;
     }
 
-    public JSONArray getTimeIntervalsJSONArray(int id) {
-        JSONArray jsonArray = new JSONArray();
-        Scenario.ScenarioCalendar calendar = scenarios.getScenarioFromId(id).calendar;
-        for (ScenarioTimeInterval timeinterval : calendar.timeIntervals) {
-            jsonArray.put(timeinterval.toJson());
-        }
-        return jsonArray;
-    }
-
     public static JSONArray getZonesJSONArray() {
         JSONArray jsonArray = new JSONArray();
         for (Zone zone : zones) {
@@ -206,7 +189,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         // Le schede ed isensori devono essere caricati prima degli scenari e zone altrimenti non funzionano i listener
         mShields = new Shields();
         mShields.init();
-        mSchedule = new Schedule(); // DA ELIMINARE
+        //mSchedule = new Schedule(); // DA ELIMINARE
 
         // caricamento dati scernari e zone
         readWebduinoSystems();
@@ -249,7 +232,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             Statement stmt = conn.createStatement();
             String sql;
-            sql = "SELECT * FROM swversion";//" WHERE systemid=" + systemid;
+            sql = "SELECT * FROM swversions";//" WHERE systemid=" + systemid;
             ResultSet swversionsResultSet = stmt.executeQuery(sql);
             // Extract data from result set
             swversions.clear();
@@ -384,7 +367,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             Statement stmt = conn.createStatement();
             String sql;
-            sql = "SELECT * FROM keys";
+            sql = "SELECT * FROM webduino.keys";
             ResultSet rs = stmt.executeQuery(sql);
             keys = new ArrayList<>();
             while (rs.next()) {
@@ -592,30 +575,30 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mSchedule.getActiveProgramList();
     }
 
-    public static Program getProgramFromId(int id) {
+    /*public static Program getProgramFromId(int id) {
         return mSchedule.getProgramFromId(id);
-    }
+    }*/
 
-    public ActiveProgram getActiveProgram(int id) {
+    /*public ActiveProgram getActiveProgram(int id) {
         SensorBase sensor = getSensorFromId(id);
         return sensor.getActiveProgram();
-    }
+    }*/
 
-    public Date getLastActiveProgramUpdate() {
+    /*public Date getLastActiveProgramUpdate() {
         return mSchedule.getLastActiveProgramUpdate();
-    }
+    }*/
 
     public static SensorBase getSensorFromId(int id) {
         return mShields.getSensorFromId(id);
     }
 
-    public int deleteProgram(int id) {
+    /*public int deleteProgram(int id) {
         return mSchedule.delete(id);
     }
 
     public int updatePrograms(Program program) {
         return mSchedule.insert(program);
-    }
+    }*/
 
     public JSONArray getShieldsJsonArray() {
         return mShields.getShieldsJsonArray();

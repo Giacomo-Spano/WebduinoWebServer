@@ -21,37 +21,25 @@ public class DoorSensorCommand extends Command {
     public String status;
 
     public DoorSensorCommand(String command, int shieldid, int actuatorid, String status) {
-        super(command,shieldid,actuatorid);
+        super(command, shieldid, actuatorid);
         this.status = status;
     }
 
-    public DoorSensorCommand(JSONObject json) {
+    public DoorSensorCommand(JSONObject json) throws JSONException {
         super(json);
     }
 
     @Override
-    public boolean fromJson(JSONObject json) {
+    public void fromJson(JSONObject json) throws JSONException {
 
-        try {
-            if (!json.has("actuatorid"))
-                return false;
+        if (json.has("actuatorid"))
             actuatorid = json.getInt("actuatorid");
-
-            if (!json.has("shieldid"))
-                return false;
+        if (json.has("shieldid"))
             shieldid = json.getInt("shieldid");
-
-            if (json.has("command"))
-                command = json.getString("command");
-            if (json.has("status"))
-                status = json.getString("status");
-            return true;
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            LOGGER.info("json error: " + e.toString());
-            return false;
-        }
+        if (json.has("command"))
+            command = json.getString("command");
+        if (json.has("status"))
+            status = json.getString("status");
     }
 
     @Override
@@ -60,7 +48,7 @@ public class DoorSensorCommand extends Command {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("uuid",uuid);
+            json.put("uuid", uuid);
             json.put("actuatorid", actuatorid);
             json.put("command", command);
             /*if (command.equals(DoorSensorCommand.Command_Test)) {

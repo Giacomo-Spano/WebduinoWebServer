@@ -51,7 +51,7 @@ public class PIRSensor extends SensorBase {
         dl.writelog(event, this);
     }
 
-    public boolean getStatus() {
+    public boolean getMotionStatus() {
         return motionDetected;
     }
 

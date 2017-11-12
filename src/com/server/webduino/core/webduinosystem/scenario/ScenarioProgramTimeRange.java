@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.ejb.Local;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,6 +33,7 @@ public class ScenarioProgramTimeRange extends DBObject {
     public LocalTime startTime;
     public LocalTime endTime;
     public boolean enabled;
+    public int index;
 
 
     public List<ProgramAction> programActionList = new ArrayList<>();
@@ -40,15 +42,11 @@ public class ScenarioProgramTimeRange extends DBObject {
         fromResultSet(conn,programid,resultSet);
     }
 
-    /*public ScenarioProgramTimeRange(int id, int programid, String name, String description, LocalTime startTime, LocalTime endTime, boolean enabled, List<ProgramAction> actions) {
-        start(id, programid, name, description, startTime, endTime, enabled, actions);
-    }*/
-
     public ScenarioProgramTimeRange(JSONObject json) throws Exception {
         fromJson(json);
     }
 
-    private void init(int id, int programid, String name, String description, LocalTime startTime, LocalTime endTime, boolean enabled, List<ProgramAction> actions) {
+    private void init(int id, int programid, String name, String description, LocalTime startTime, LocalTime endTime, boolean enabled, List<ProgramAction> actions, int index) {
         this.id = id;
         this.programid = programid;
         this.name = name;
@@ -57,6 +55,7 @@ public class ScenarioProgramTimeRange extends DBObject {
         this.endTime = endTime;
         this.enabled = enabled;
         this.programActionList = actions;
+        this.index = index;
     }
 
     public void start() {
@@ -79,7 +78,7 @@ public class ScenarioProgramTimeRange extends DBObject {
             if (!first)
                 status += "; ";
             first = false;
-            status += action.name + ": " + action.getStatus();
+            status += "Action: " + action.id + "." + action.name + " - Status: [" + action.getStatus() + "]";
         }
         return status;
     }
@@ -95,7 +94,7 @@ public class ScenarioProgramTimeRange extends DBObject {
             return false;
 
 
-        if (!endTime.equals(LocalTime.MIDNIGHT) && time.compareTo(endTime) > 0) // timerange è già finita
+        if (/*!endTime.equals(LocalTime.MIDNIGHT) && */time.compareTo(endTime) > 0) // timerange è già finita
             return false;
 
         return true;
@@ -113,6 +112,7 @@ public class ScenarioProgramTimeRange extends DBObject {
             json.put("starttime", startTime.toString());
             json.put("endtime", endTime.toString());
             json.put("enabled", enabled);
+            json.put("index", index);
 
             JSONArray jarray = new JSONArray();
             if (programActionList != null) {
@@ -146,16 +146,22 @@ public class ScenarioProgramTimeRange extends DBObject {
         if (json.has("description"))
             description = json.getString("description");
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
-        if (json.has("starttime")) {
+        if (json.has("starttime") && json.has("endtime")) {
             String str = json.getString("starttime");
             startTime = LocalTime.parse(str, DateTimeFormatter.ISO_LOCAL_TIME);
-        }
-        if (json.has("endtime")) {
-            String str = json.getString("endtime");
+            str = json.getString("endtime");
             endTime = LocalTime.parse(str, DateTimeFormatter.ISO_LOCAL_TIME);
+            if (endTime.compareTo(startTime) < 0)
+                throw new Exception("start time " + startTime.toString() + "must be before end time " + endTime.toString());
+            if (endTime.equals(LocalTime.MIDNIGHT))
+                throw new Exception("max end time 23:59");
+        } else {
+            throw new Exception("missing start/end time");
         }
         if (json.has("enabled"))
             enabled = json.getBoolean("enabled");
+        if (json.has("index"))
+            index = json.getInt("index");
 
         if (json.has("actions")) {
 
@@ -169,7 +175,7 @@ public class ScenarioProgramTimeRange extends DBObject {
                     programActionList.add(action);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    throw new Exception("action error");
+                    throw new Exception(e.toString());
                 }
             }
         }
@@ -193,7 +199,7 @@ public class ScenarioProgramTimeRange extends DBObject {
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_programtimeranges (id, programid, name, description, starttime, endtime, enabled)" +
+        sql = "INSERT INTO scenarios_programtimeranges (id, programid, name, description, starttime, endtime, scenarios_programtimeranges.index, enabled)" +
                 " VALUES ("
                 + id + ","
                 + programid + ","
@@ -201,6 +207,7 @@ public class ScenarioProgramTimeRange extends DBObject {
                 + "\"" + description + "\","
                 + "'" + startTime.toString() + "',"
                 + "'" + endTime.toString() + "',"
+                + index + ","
                 + "" + Core.boolToString(enabled) + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "id=" + id + ","
@@ -209,6 +216,7 @@ public class ScenarioProgramTimeRange extends DBObject {
                 + "description=\"" + description + "\","
                 + "starttime='" + startTime.toString() + "',"
                 + "endtime='" + endTime.toString() + "',"
+                + "scenarios_programtimeranges.index=" + index + ","
                 + "enabled=" + Core.boolToString(enabled) + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -243,9 +251,10 @@ public class ScenarioProgramTimeRange extends DBObject {
         LocalTime endTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
 
         Boolean enabled = resultSet.getBoolean("enabled");
+        int index = resultSet.getInt("index");
 
         List<ProgramAction> actions = readProgramActions(conn, id);
-        init(id, programid, name, description, startTime, endTime, enabled, actions);
+        init(id, programid, name, description, startTime, endTime, enabled, actions, index);
     }
 
     private static List<ProgramAction> readProgramActions(Connection conn, int programtimerangeid) throws Exception {

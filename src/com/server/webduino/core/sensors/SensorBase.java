@@ -36,11 +36,15 @@ public class SensorBase extends /*httpClient,*/ DBObject {
     protected boolean testMode;
     protected String statusUpdatePath = "/sensorstatus"; // può essere overidden a seconda del tipo
 
+    protected String status = "";
+    protected String oldStatus = "";
+
     /// schedulatorer programm
     public Schedule sensorSchedule = null;
     protected ActiveProgram activeProgram = null;
 
     //protected JSONObject json = null;
+    protected List<SensorListener> listeners = new ArrayList<>();
 
     public List<SensorBase> childSensors = new ArrayList<SensorBase>();
 
@@ -104,19 +108,14 @@ public class SensorBase extends /*httpClient,*/ DBObject {
 
     public interface SensorListener {
         static public String SensorEvents = "sensor event";
-
-        void onChangeTemperature(int sensorId, double temperature, double oldtemperature);
-
-        void changeAvTemperature(int sensorId, double avTemperature);
-
         void changeOnlineStatus(boolean online);
-
         void changeOnlineStatus(int sensorId, boolean online);
+        void onChangeStatus(String newStatus, String oldStatus);
 
-        void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
+        public abstract void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
     }
 
-    protected List<SensorListener> listeners = new ArrayList<SensorListener>();
+    //protected List<SensorListener> listeners = new ArrayList<SensorListener>();
 
     public void addListener(SensorListener toAdd) {
         listeners.add(toAdd);
@@ -213,6 +212,19 @@ public class SensorBase extends /*httpClient,*/ DBObject {
         this.enabled = enabled;
     }
 
+    public void setStatus(String status) {
+        oldStatus = this.status;
+        this.status = status;
+
+        for (SensorListener listener: listeners)
+            listener.onChangeStatus(status,oldStatus);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+
     public String getPin() {
         return pin;
     }
@@ -289,14 +301,14 @@ public class SensorBase extends /*httpClient,*/ DBObject {
 
         JSONObject json = new JSONObject();
         try {
-            json.put("id", getId());
+            json.put("id", id);
             json.put("shieldid", shieldid);
             json.put("parentid", parentid);
             json.put("online", online);
             json.put("subaddress", subaddress);
             json.put("lastupdate", Core.getStrLastUpdate(lastUpdate));
             json.put("type", type);
-            json.put("name", getName());
+            json.put("name", name);
             json.put("description", description);
             json.put("enabled", Core.boolToString(enabled));
             json.put("pin", pin);

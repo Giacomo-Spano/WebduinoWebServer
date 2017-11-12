@@ -79,10 +79,15 @@ public class Shield extends DBObject/*httpClient*/ {
     public boolean requestSensorStatusUpdate() { //
 
         LOGGER.info("requestStatusUpdate:");
-
         sensorStatus = updateStatus_updating;
+        return Core.publish("fromServer/shield/" + MACAddress + "/updatesensorstatusrequest", "requestSensorsStatusUpdate");
+    }
 
-        return Core.publish("fromServer/shield/" + MACAddress + "/updatesensorstatusrequest", "requestSensorStatusUpdate");
+    public boolean requestReboot() { //
+
+        LOGGER.info("requestStatusUpdate:");
+        sensorStatus = updateStatus_updating;
+        return Core.publish("fromServer/shield/" + MACAddress + "/reboot", "immediate");
     }
 
     public boolean requestSettingUpdate() { //

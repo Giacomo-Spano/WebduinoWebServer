@@ -22,11 +22,6 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
         type = "releactuator";
     }
 
-    @Override
-    public void addListener(ActuatorListener toAdd) {
-        listeners.add((HeaterActuatorListener) toAdd);
-    }
-
     public boolean getReleStatus() {
         return on;
     }
@@ -109,8 +104,8 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
 
         if (on != oldOn) {
             // Notify everybody that may be interested.
-            for (ActuatorListener hl : listeners) {
-                ((HeaterActuatorListener) hl).changeReleStatus(on, oldOn);
+            for (SensorListener hl : listeners) {
+                ((ReleListener) hl).changeReleStatus(on, oldOn);
             }
         }
 
@@ -138,9 +133,7 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
         return json;
     }
 
-    interface HeaterActuatorListener extends ActuatorListener {
-        void changeStatus(String newStatus, String oldStatus);
-
+    interface ReleListener extends SensorListener {
         void changeReleStatus(boolean newReleStatus, boolean oldReleStatus);
     }
 

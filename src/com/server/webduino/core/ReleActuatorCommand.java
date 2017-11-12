@@ -118,10 +118,10 @@ public class ReleActuatorCommand extends ActuatorCommand {
                 json.put("sensors",activeSensorID);
                 //json.put("program",activeProgramID);
                 //json.put("timerange",activeTimeRangeID);
-                TemperatureSensor tempSensor = (TemperatureSensor) Core.getSensorFromId(activeSensorID);
-                if (tempSensor != null) {
+                //TemperatureSensor tempSensor = (TemperatureSensor) Core.getSensorFromId(activeSensorID);
+                /*if (tempSensor != null) {
                     activeSensorTemperature = tempSensor.getTemperature();
-                }
+                }*/
                 json.put("temperature", activeSensorTemperature);
 
             } else if (command.equals(ReleActuatorCommand.Command_Manual_Off)) {

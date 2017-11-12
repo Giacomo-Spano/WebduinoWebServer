@@ -91,12 +91,27 @@ public class ShieldServlet extends HttpServlet {
                     handleSaveSettingEvent(json);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
-                } else if (json.getString("command").equals("reboot") && json.has("shieldid")) {
-                    //sendRestartCommand(json);
-                    //response.setStatus(HttpServletResponse.SC_OK);
+                } /*else if (json.getString("command").equals("reboot") && json.has("shieldid")) {
                     ShieldCommand cmd = new ShieldCommand(json);
-                    String result = cmd.send();
-                    return;
+                    Command.CommandResult result = cmd.send();
+                    if (result.success) {
+                        out.print(result);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                    } else {
+                        out.print("errore");
+                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    }
+
+                } */else if (json.getString("command").equals("reboot")) {
+
+                    if (json.has("shieldid")) {
+                        int id = json.getInt("shieldid");
+                        Shield shield = Core.getShieldFromId(id);
+                        shield.requestReboot();
+                        out.print("command sent");
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        return;
+                    }
                 } else if (json.getString("command").equals("teststart") || json.getString("command").equals("teststop")
                         || json.getString("command").equals("testopen") || json.getString("command").equals("testclose")) {
 
@@ -106,10 +121,34 @@ public class ShieldServlet extends HttpServlet {
 
                         //DoorSensorCommand cmd = new DoorSensorCommand(json);
                         DoorSensorCommand cmd = new DoorSensorCommand(json.getString("command"), actuator.getShieldId(), id, "close");
-                        String result = cmd.send();
-                        //cmd = new DoorSensorCommand("test",actuator.getShieldId(),id,"open");
-                        //result = cmd.send();
+                        Command.CommandResult result = cmd.send();
+                        if (result.success) {
+                            out.print(result);
+                            response.setStatus(HttpServletResponse.SC_OK);
+                        } else {
+                            out.print("errore");
+                            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        }
+                        return;
+                    }
+                } else if (json.getString("command").equals("updatesensorstatus")) {
 
+                    if (json.has("shieldid")) {
+                        int id = json.getInt("shieldid");
+                        Shield shield = Core.getShieldFromId(id);
+                        shield.requestSensorStatusUpdate();
+                        /*ShieldCommand cmd = new ShieldCommand(json);
+                        Command.CommandResult result = cmd.send();
+                        if (result.success) {
+                            out.print(result);
+                            response.setStatus(HttpServletResponse.SC_OK);
+                        } else {
+                            out.print("errore");
+                            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        }*/
+                        out.print("command sent");
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        return;
                     }
                 } else if (json.getString("command").equals("manual") || json.getString("command").equals("off")) {
 
@@ -117,26 +156,34 @@ public class ShieldServlet extends HttpServlet {
                         int id = json.getInt("actuatorid");
                         SensorBase actuator = Core.getSensorFromId(id);
                         if (actuator instanceof HeaterActuator) {
-                            HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
+                            try {
 
-                            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                            cmd.date = df.format(Core.getDate());
-                            Zone zone = Core.getZoneFromId(cmd.zone);
-                            if (zone != null) {
-                                cmd.temperature = zone.getTemperature();
-                                //String result = cmd.send();
-                                cmd.post(new Command.CommandListener() {
-                                    @Override
-                                    public void onCommandResponse(String response) {
+                                HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
 
+                                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                                cmd.date = df.format(Core.getDate());
+                                Zone zone = Core.getZoneFromId(cmd.zone);
+                                if (zone != null) {
+                                    cmd.temperature = zone.getTemperature();
+                                    Command.CommandResult result = cmd.send();
+                                    SensorBase sensor = Core.getSensorFromId(cmd.actuatorid);
+                                    if (result.success && sensor != null) {
+                                        out.print(sensor.toJson().toString());
+                                        response.setStatus(HttpServletResponse.SC_OK);
+                                        return;
+                                    } else {
+                                        out.print("errore");
+                                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                                        return;
                                     }
-                                });
-                                response.setStatus(HttpServletResponse.SC_OK);
-                                out.print("result");
-                                return;
-                            } else {
+                                } else {
+                                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                    out.print("Invalid zone " + cmd.zone);
+                                    return;
+                                }
+                            } catch (Exception e) {
                                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                                out.print("Invalid zone " + cmd.zone);
+                                out.print(e.toString());
                                 return;
                             }
                         }
@@ -145,6 +192,8 @@ public class ShieldServlet extends HttpServlet {
                         out.print("Invalid actuatorid");
                         return;
                     }
+
+
                 } else {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     out.print("command '" + json.getString("command") + "' not found");

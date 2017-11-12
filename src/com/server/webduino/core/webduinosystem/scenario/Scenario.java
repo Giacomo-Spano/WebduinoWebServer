@@ -383,6 +383,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     public void checkStatus() {
         boolean oldActiveStatus = active;
         active = false;
+
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
             if (timeInterval.isActive(Core.getDate())) {
                 active = true;

@@ -72,7 +72,7 @@ public class FileUploadServlet extends HttpServlet {
 
 
             if(part.getName().equals("fileName")) {
-                fileName = getFileName(part);
+                fileName = version + getFileName(part);
                 File file = new File(fileSaveDir, fileName);
                 try (InputStream input = part.getInputStream()) {
                     Files.copy(input, file.toPath());

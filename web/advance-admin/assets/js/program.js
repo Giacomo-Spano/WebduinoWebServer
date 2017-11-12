@@ -17,6 +17,7 @@ function addTimeRange(idx, elem) {
 
     timerange.find('td[name="id"]').text(elem.id);
     timerange.find('input[name="enabled"]').prop('checked', elem.enabled);
+
     var start = timerange.find('input[name="starttime"]').timepicker({
         timeFormat: 'HH:mm',
         interval: 15,
@@ -71,6 +72,7 @@ function addTimeRange(idx, elem) {
             "name": "nuovo timerange",
             "enabled": false,
             "priority": 0,
+            "index": 0,
         };
         if ($program.timeranges == undefined) {
             var emptyArray = [];
@@ -152,7 +154,7 @@ function loadProgram(program) {
 
                 program.name = $programPanel.find('input[name="name"]').val();
                 program.description = $programPanel.find('textarea[name="description"]').val();
-                program.enabled = $programPanel.find('input[name="enabled"]').prop('checked');
+                program.enabled = $programPanel.find('input[name="programenabled"]').prop('checked');
                 program.priority = $programPanel.find('input[name="priority"]').val();
                 program.sunday = $programPanel.find('input[name="sunday"]').prop('checked');
                 program.monday = $programPanel.find('input[name="monday"]').prop('checked');
@@ -213,6 +215,7 @@ function loadProgram(program) {
                     "name": "nuovo timerange",
                     "enabled": false,
                     "priority": 0,
+                    "index": 0,
                 };
                 if (program.timeranges == undefined) {
                     var emptyArray = [];
@@ -238,6 +241,7 @@ function updateTimerangeData() {
             elem.endtime = $(this).find('td input[name="endtime"]').val();
             elem.name = $(this).find('td input[name="name"]').val();
             elem.description = $(this).find('td input[name="description"]').val();
+            elem.index = i;
             i++;
         });
     }

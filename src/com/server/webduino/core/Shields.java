@@ -107,7 +107,7 @@ public class Shields {
     public void init() {
 
         read();
-        requestSensorStatusUpdate();
+        requestSensorsStatusUpdate();
     }
 
     public List<SensorBase> getLastSensorData() {
@@ -236,7 +236,7 @@ public class Shields {
         return false;
     }
 
-    public void requestSensorStatusUpdate() {
+    public void requestSensorsStatusUpdate() {
 
         for (Shield shield : getShields()) {
             boolean res = shield.requestSensorStatusUpdate();
@@ -573,16 +573,16 @@ public class Shields {
                 if (rs.getString("description") != null)
                     shield.description = rs.getString("description");
                 shield.enabled = rs.getBoolean("enabled");
-                if (rs.getInt("port") <= 0) continue;
-                shield.port = rs.getInt("port");
-                if (rs.getString("server") == null) continue;
-                shield.server = rs.getString("server");
-                if (rs.getInt("serverport") <= 0) continue;
-                shield.serverport = rs.getInt("serverport");
+                if (rs.getInt("port") > 0)
+                    shield.port = rs.getInt("port");
+                if (rs.getString("server") != null)
+                    shield.server = rs.getString("server");
+                if (rs.getInt("serverport") > 0)
+                    shield.serverport = rs.getInt("serverport");
                 if (rs.getString("mqttserver") != null)
                     shield.mqttserver = rs.getString("mqttserver");
-                if (rs.getInt("mqttport") <= 0) continue;
-                shield.mqttport = rs.getInt("mqttport");
+                if (rs.getInt("mqttport") > 0)
+                    shield.mqttport = rs.getInt("mqttport");
 
                 shield.sensors = SensorBase.readSensors(conn, shield.id, 0);
                 addShield(shield);

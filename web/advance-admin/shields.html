@@ -1,55 +1,51 @@
-<!-- /. ROW  SENSORS-->
-<div id="shieldspanel" class="row">
+<!-- /. ROW  SCENARIOS-->
+<div id="panel" class="row">
     <div class="col-md-12">
         <!--   Stato sensori -->
-        <div class="panel panel-default">
+        <div class="panel panel-info">
             <div class="panel-heading">
-                Stato Schede
+                Scenari
             </div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table id="tbl" class="table table-striped table-bordered table-hover">
-                        <thead>
-                        <tr name="header">
-                            <th>id</th>
-                            <th>Ultimo aggiornamento</th>
-                            <th>boardname</th>
-                            <th>Indirizzo</th>
-                            <th>MAC Address</th>
-                            <th>MQTT Server</th>
-                            <th>SW Version</th>
-                            <th>command</th>
-                            <th>edit</th>
-                        </tr>
-                        </thead>
-                        <tbody name="shieldlist">
-                        <tr name="shield">
-                            <td name="id"><a href="." name="link">333</a></td>
-                            <td name="date">Ultimo aggiornamento</td>
-                            <td name="name">--</td>
-                            <td name="url">--</td>
-                            <td name="MACAddress">--</td>
-                            <td name="mqttserver">--</td>
-                            <td name="swversion">--</td>
-                            <td name="command">
-                                <button type="button" name="restartbutton" class="btn btn-sm btn-primary">
-                                    Restart
-                                </button>
-                                <button type="button" name="swupdatebutton" class="btn btn-sm btn-primary">
-                                    SW pdate
-                                </button>
-                                <button type="button" name="statusupdatebutton" class="btn btn-sm btn-primary">
-                                    Status update
-                                </button>
-
-                            </td>
-                            <td ><button type="button" id="edit" class="btn btn-sm btn-primary">edit</button></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <form role="form">
+                    <div class="table-responsive">
+                        <table id="tbl" class="table table-striped table-bordered table-hover">
+                            <thead>
+                            <tr name="header">
+                                <th>id</th>
+                                <th>Ultimo aggiornamento</th>
+                                <th>Stato</th>
+                                <th>Nome</th>
+                                <th>MAC address</th>
+                                <th>MQTT server</th>
+                                <th>sw version/th>
+                                <th>Comandi</th>
+                            </tr>
+                            </thead>
+                            <tbody name="list">
+                            <tr name="row">
+                                <td name="id"></td>
+                                <td name="date"></td>
+                                <td name="status">#</td>
+                                <td name="name">#</td>
+                                <td name="macaddress">#</td>
+                                <td name="mqttserver">#</td>
+                                <td name="swversion">
+                                <td name="command">
+                                    <button type="button" name="editbutton" class="btn btn-sm btn-info">edit</button>
+                                    <button type="button" name="statusbutton" class="btn btn-sm btn-info">status</button>
+                                    <button type="button" name="deletebutton" class="btn btn-sm btn-info">rimuovi</button>
+                                    <button type="button" name="rebootbutton" class="btn btn-sm btn-info">reboot</button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="add" class="btn btn-info">Aggiungi</button>
+                    </div>
+                </form>
             </div>
-
         </div>
         <!-- End  Stato sensori -->
     </div>
@@ -57,4 +53,4 @@
 
     </div>
 </div>
-<!-- /. ROW  SENSOR-->
+<!-- /. ROW  SCENARIOS-->

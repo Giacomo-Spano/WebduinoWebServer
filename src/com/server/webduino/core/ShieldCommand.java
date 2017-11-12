@@ -16,27 +16,19 @@ public class ShieldCommand extends Command {
     //public int shieldId;
     public JSONArray sensors;
 
-    public ShieldCommand(JSONObject json) {
+    public ShieldCommand(JSONObject json) throws JSONException {
         super(json);
     }
 
-    public boolean fromJson(JSONObject json) {
+    public void fromJson(JSONObject json) throws JSONException {
         LOGGER.info("updateFromJson json=" + json.toString());
-        try {
-            if (json.has("command"))
-                command = json.getString("command");
-            if (json.has("shieldid"))
-                shieldid = json.getInt("shieldid");
-            if (json.has("sensors"))
-                sensors = json.getJSONArray("sensors");
+        if (json.has("command"))
+            command = json.getString("command");
+        if (json.has("shieldid"))
+            shieldid = json.getInt("shieldid");
+        if (json.has("sensors"))
+            sensors = json.getJSONArray("sensors");
 
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            LOGGER.info("json error: " + e.toString());
-            return false;
-        }
-        return true;
     }
 
     public JSONObject getJSON() {

@@ -19,6 +19,9 @@ function disableEdit(enabled) {
 
 }
 
+function loadData(heater) {
+
+}
 function loadHeater(heater) {
 
     //$shield = heater;
@@ -33,6 +36,7 @@ function loadHeater(heater) {
             notificationsuccess.hide();
             notification.hide();
 
+            //loadData.call(this, heater);
             var panel = $(this).find('div[id="panel"]');
             panel.find('p[name="name"]').text(heater.name);
             panel.find('p[name="temperature"]').text(heater.temperature);
@@ -79,7 +83,7 @@ function loadHeater(heater) {
 
                 //time="12:12:12";
                 tt = panel.find('input[name="duration"]').val().split(":");
-                duration=tt[0]*60+tt[1]*1/*+tt[2]*1*/;
+                duration = tt[0] * 60 + tt[1] * 1/*+tt[2]*1*/;
 
 
                 var json = {
@@ -90,17 +94,36 @@ function loadHeater(heater) {
                     'duration': duration,
                     'target': panel.find('input[name="target"]').val(),
                 };
-                $.post( shieldServletPath, JSON.stringify(json), function( data ) {
-                    notificationsuccess.show();
-                    notificationsuccess.find('label[name="description"]').text("comando inviato");
-                    getSensor(heater.id,function (sensor) {
-                        loadHeater(sensor);
-                    });
 
-                }, "json").fail(function(response) {
-                    notification.show();
-                    notification.find('label[name="description"]').text(response.responseText);
+
+                postShieldData(json, function (result, response) {
+                    if (result) {
+                        notificationsuccess.show();
+                        notificationsuccess.find('label[name="description"]').text("comando inviato" + response);
+                        var json = jQuery.parseJSON(response);
+                        //loadData(json);
+                        getSensor(heater.id, function (sensor) {
+                            loadHeater(sensor);
+                        })
+                    } else {
+                        notification.show();
+                        notification.find('label[name="description"]').text(response);
+                    }
                 });
+
+
+                /*$.post(shieldServletPath, JSON.stringify(json), function (data) {
+
+                 notificationsuccess.show();
+                 notificationsuccess.find('label[name="description"]').text("comando inviato" + data);
+                 getSensor(heater.id, function (sensor) {
+                 loadData(sensor);
+                 });
+
+                 }, "json").fail(function (response) {
+                 notification.show();
+                 notification.find('label[name="description"]').text(response.responseText);
+                 });*/
 
 
             });
@@ -115,22 +138,23 @@ function getSensor(id, callback) {
 }
 
 function toHHMM(seconds) {
-    var h, m, s, result='';
+    var h, m, s, result = '';
     // HOURs
-    h = Math.floor(seconds/3600);
-    seconds -= h*3600;
-    if(h){
-        result = h<10 ? '0'+h+':' : h+':';
+    h = Math.floor(seconds / 3600);
+    seconds -= h * 3600;
+    if (h) {
+        result = h < 10 ? '0' + h + ':' : h + ':';
     }
     // MINUTEs
-    m = Math.floor(seconds/60);
-    seconds -= m*60;
-    result += m<10 ? '0'+m+':' : m/*+':'*/;
+    m = Math.floor(seconds / 60);
+    seconds -= m * 60;
+    result += m < 10 ? '0' + m + ':' : m/*+':'*/;
     // SECONDs
     //s=seconds%60;
     //result += s<10 ? '0'+s : s;
     return result;
 }
+
 
 
 

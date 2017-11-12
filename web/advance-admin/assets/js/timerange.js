@@ -5,7 +5,7 @@ var $timerangePanel;
 var $actionRow;
 var $timerange;
 
-function getProgram(id, callback) {
+function getTimerange(id, callback) {
     $.getJSON(systemServletPath + "?requestcommand=program&id=" + id, function (program) {
         callback(program);
     });
@@ -139,36 +139,37 @@ function loadTimeRange(timerange) {
                         //$actionRow = $timerangePanel.find('tr[name="row"]').clone();
                         $actionRow = $timerangePanel.find('tr[name="row"]');
 
-                         $timerangePanel.find('p[name="headingright"]').text(timerange.programid + "." + timerange.id);
-                         $timerangePanel.find('input[name="timerangeabled"]').prop('checked', timerange.enabled);
-                         $timerangePanel.find('input[name="name"]').val(timerange.name);
-                         $timerangePanel.find('textarea[name="description"]').val(timerange.description);
-                         $timerangePanel.find('input[name="starttime"]').timepicker({
-                         timeFormat: 'HH:mm',
-                         interval: 15,
-                         minTime: '00:00',
-                         maxTime: '23:59',
-                         defaultTime: '00:00',
-                         startTime: '00:00',
-                         dynamic: true,
-                         dropdown: true,
-                         scrollbar: true
-                         });
-                         if (timerange.starttime != null) $timerangePanel.find('input[name="starttime"]').val(timerange.starttime);
-                         $timerangePanel.find('input[name="endtime"]').timepicker({
-                         timeFormat: 'HH:mm',
-                         interval: 15,
-                         minTime: '00:00',
-                         maxTime: '23:59',
-                         defaultTime: '23:59',
-                         startTime: '00:00',
-                         dynamic: true,
-                         dropdown: true,
-                         scrollbar: true
-                         });
+                        $timerangePanel.find('p[name="headingright"]').text(timerange.programid + "." + timerange.id);
+                        $timerangePanel.find('input[name="timerangeabled"]').prop('checked', timerange.enabled);
+                        $timerangePanel.find('input[name="index"]').val(timerange.index);
+                        $timerangePanel.find('input[name="name"]').val(timerange.name);
+                        $timerangePanel.find('textarea[name="description"]').val(timerange.description);
+                        $timerangePanel.find('input[name="starttime"]').timepicker({
+                            timeFormat: 'HH:mm',
+                            interval: 15,
+                            minTime: '00:00',
+                            maxTime: '23:59',
+                            defaultTime: '00:00',
+                            startTime: '00:00',
+                            dynamic: true,
+                            dropdown: true,
+                            scrollbar: true
+                        });
+                        if (timerange.starttime != null) $timerangePanel.find('input[name="starttime"]').val(timerange.starttime);
+                        $timerangePanel.find('input[name="endtime"]').timepicker({
+                            timeFormat: 'HH:mm',
+                            interval: 15,
+                            minTime: '00:00',
+                            maxTime: '23:59',
+                            defaultTime: '23:59',
+                            startTime: '00:00',
+                            dynamic: true,
+                            dropdown: true,
+                            scrollbar: true
+                        });
 
-                         if (timerange.endtime != null) $timerangePanel.find('input[name="endtime"]').val(timerange.endtime);
-                         $timerangePanel.find('input[name="priority"]').val(timerange.priority);
+                        if (timerange.endtime != null) $timerangePanel.find('input[name="endtime"]').val(timerange.endtime);
+                        $timerangePanel.find('input[name="priority"]').val(timerange.priority);
 
                         // save button
                         var savebutton = $timerangePanel.find('button[name="save"]');
@@ -199,8 +200,8 @@ function loadTimeRange(timerange) {
                         var cancelbutton = $timerangePanel.find('button[name="cancel"]');
                         cancelbutton.hide();
                         cancelbutton.click(function () {
-                            getProgram(program.id, function (timerange) {
-                                loadProgram(program);
+                            getTimerange($timerange.id, function (timerange) {
+                                loadTimeRange(timerange);
                             })
                         });
 

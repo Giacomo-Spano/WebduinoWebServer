@@ -1,11 +1,9 @@
 package com.server.webduino.core.sensors.commands;
 
 import com.server.webduino.core.Command;
-import com.server.webduino.core.Core;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
 
 /**
@@ -30,22 +28,17 @@ public class HeaterActuatorCommand extends Command {
     public int actionid;
     public String date;
 
-    public HeaterActuatorCommand(JSONObject json) {
+    public HeaterActuatorCommand(JSONObject json) throws JSONException {
         super(json);
     }
 
     @Override
-    public boolean fromJson(JSONObject json) {
+    public void fromJson(JSONObject json) throws JSONException {
 
-        try {
-            if (!json.has("actuatorid"))
-                return false;
-            actuatorid = json.getInt("actuatorid");
-
-            if (!json.has("shieldid"))
-                return false;
-            shieldid = json.getInt("shieldid");
-
+            if (json.has("actuatorid"))
+                actuatorid = json.getInt("actuatorid");
+            if (json.has("shieldid"))
+                shieldid = json.getInt("shieldid");
             if (json.has("command"))
                 command = json.getString("command");
             if (json.has("duration"))
@@ -54,24 +47,12 @@ public class HeaterActuatorCommand extends Command {
                 targetTemperature = json.getDouble("target");
             if (json.has("temperature"))
                 temperature = json.getDouble("temperature");
-            /*if (json.has("scenario"))
-                scenario = json.getInt("scenario");
-            if (json.has("timeinterval"))
-                timeInterval = json.getInt("timeinterval");*/
             if (json.has("actionid"))
                 actionid = json.getInt("actionid");
             if (json.has("zone"))
                 zone = json.getInt("zone");
             if (json.has("date"))
                 date = json.getString("date");
-
-            return true;
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            LOGGER.info("json error: " + e.toString());
-            return false;
-        }
     }
 
     @Override

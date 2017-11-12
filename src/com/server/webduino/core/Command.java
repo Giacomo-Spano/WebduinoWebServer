@@ -1,11 +1,8 @@
 package com.server.webduino.core;
 
-import com.quartz.QuartzListener;
-import com.server.webduino.core.sensors.Actuator;
-import com.server.webduino.servlet.ShieldServlet;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -33,8 +30,6 @@ public class Command {
     public int shieldid;
     public int actuatorid;
 
-    String jsonResult = "";
-
     public Command(String command, int shieldid, int actuatorid) {
         this.command = command;
         this.shieldid = shieldid;
@@ -43,29 +38,27 @@ public class Command {
 
     }
 
-    public Command(JSONObject json) {
+    public Command(JSONObject json) throws JSONException {
         fromJson(json);
         uuid = UUID.randomUUID().toString();
     }
 
-    public boolean fromJson(JSONObject json) {
-        return false;
+    public void fromJson(JSONObject json) throws JSONException {
     }
 
     public JSONObject getJSON() {
         return null;
     }
 
-    public String send() {
+    public CommandResult send() { //
 
         CommandThread commandThread = new CommandThread(this);
-
         Thread thread = new Thread(commandThread, "commandThread");
         thread.start();
 
         // il thread esegue la chiamata alla shield webduino ed aspetta una risposta (join) dal thead per x secondi
         try {
-            thread.join(1000000); // 100000 è il timeout di attesa fien thread
+            thread.join(3000); // 100000 è il timeout di attesa fine thread in millisecondi
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -73,7 +66,15 @@ public class Command {
         // recupera il risulktato della chiamamata che a questo punto è disponibile
         // forse bisiognerebbe metttere syncronized
         String json = commandThread.getResultJson();
-        return jsonResult;
+        //result = json;
+        CommandResult result = new CommandResult();
+        if (json == null) {
+            result.success = false;
+        } else {
+            result.success = true;
+            result.result = json;
+        }
+        return result;
     }
 
     class CommandThread implements Runnable, Core.CoreListener {
@@ -81,6 +82,7 @@ public class Command {
         private Command command;
         private volatile boolean execute; // variabile di sincronizzazione
         private String resultJson = null;
+        String jsonResult = null;
 
         public CommandThread(Command command/*int shieldid, String command*/) {
             this.command = command;
@@ -91,7 +93,6 @@ public class Command {
         public void run() {
             Thread t = Thread.currentThread();
             System.out.println("Thread started: " + t.getName());
-
 
             Core.addListener(this);
             Core.postCommand(command);
@@ -111,7 +112,6 @@ public class Command {
         }
 
         public String getResultJson() {
-
             return jsonResult;
         }
 
@@ -122,6 +122,13 @@ public class Command {
             this.execute = false;
         }
     }
+
+    public class CommandResult {
+        public boolean success;
+        public String result;
+    }
+
+
 
     public void post(CommandListener listener) {
         addListener(listener);

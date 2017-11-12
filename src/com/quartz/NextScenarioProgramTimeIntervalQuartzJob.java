@@ -37,7 +37,7 @@ public class NextScenarioProgramTimeIntervalQuartzJob implements Job {
             }*/
 
             LOGGER.info("NextScenarioProgramTimeIntervalQuartzJob START id="+program.id);
-            program.triggerNextProgramTimeRange(Core.getDate());
+            program.triggerNextProgramTimeRange();
             LOGGER.info("NextScenarioProgramTimeIntervalQuartzJob END id="+program.id);
 
         } catch (Exception e) {

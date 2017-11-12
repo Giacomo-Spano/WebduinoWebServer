@@ -93,12 +93,12 @@ public class SensorServlet extends HttpServlet {
 
     }
 
-    private void updateSensors(int shieldid, Date lastupdate, JSONArray jsonArray) {
+    /*private void updateSensors(int shieldid, Date lastupdate, JSONArray jsonArray) {
 
         LOGGER.info("SensorServlet:updateSensor - start");
         new UpdateSensorsThread(getServletContext(), shieldid, lastupdate, jsonArray).start();
         LOGGER.info("SensorServlet:updateSensor - end");
-    }
+    }*/
 
     private void updateShieldStatus(int shieldid, Date lastupdate, JSONObject json) {
 

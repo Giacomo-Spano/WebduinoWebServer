@@ -45,12 +45,12 @@ public class Scenarios {
     }
 
     public static void initScenarios() {
-        scenarioList.clear();
+
         for(Scenario scenario :scenarioList) {
             scenario.stop();
-
         }
 
+        scenarioList.clear();
         readScenarios();
         for (Scenario scenario: scenarioList) {
             scenario.start();

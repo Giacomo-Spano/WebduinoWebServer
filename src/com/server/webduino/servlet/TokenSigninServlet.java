@@ -86,7 +86,7 @@ public class TokenSigninServlet extends HttpServlet {
                /* if (idToken != null) {
                     Payload payload = idToken.getPayload();
                     returnVal = "User ID: " ;//+ payload.getSubject();
-                    // You can also access the following properties of the payload in order
+                    // You can also access the following properties of the payload in index
                     // for other attributes of the user. Note that these fields are only
                     // available if the user has granted the 'profile' and 'email' OAuth
                     // scopes when requested.

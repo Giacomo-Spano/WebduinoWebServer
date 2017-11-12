@@ -24,29 +24,37 @@ function setShieldElement(element, shield) {
     // last update
     element.find('td[name="date"]').text(shield.lastupdate);
     element.find('td[name="swversion"]').text(shield.swversion);
-    element.click(function () {
+
+    var editButton = element.find('button[name="editbutton"]');
+    editButton.click(function () {
         loadShield(shield);
     });
 
 
-    var restartButton = element.find('button[name="restartbutton"]');
+    var restartButton = element.find('button[name="rebootbutton"]');
     restartButton.click(function () {
 
         var command = 'reboot'
         restartButton.text("sending" + command + " command...");
-        var commandJson = {
+        var json = {
             'shieldid': shield.shieldid,
-            //'actuatorid': shield.id,
             'command': command,
         };
-        sendShieldCommand(commandJson)
+        postShieldData(json, function (result, response) {
+
+            restartButton.text("command sent");
+            if (result) {
+                notificationsuccess.show();
+                notificationsuccess.find('label[name="description"]').text("comando inviato" + response);
+                loadDashboard();
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
     });
 
-    element.find('button[id="edit"]').click(function () {
-        path = "./webduino_settings.html?id=" + shield.shieldid;
-        window.location.href = path;
-        //loadProva();
-    });
+
 }
 
 function addSensor(sensors, id, parentid, elem, sensortypes, pins) {
@@ -74,7 +82,7 @@ function addSensor(sensors, id, parentid, elem, sensortypes, pins) {
     sensor.find('button[name="delete"]').attr("subaddress", elem.subaddress);
     sensor.find('button[name="delete"]').click(function () {
         subaddress = $(this).attr("subaddress");
-        deleteSensorBySubaddress(subaddress,$shield.sensors);
+        deleteSensorBySubaddress(subaddress, $shield.sensors);
         loadSensors($shield.sensors, sensortypes, pins);
     });
     sensor.find('button[name="addchild"]').click(function () {
@@ -263,8 +271,7 @@ function updateSensor(sensor) {
     }
 }
 
-function updateSensorsData()
-{
+function updateSensorsData() {
     if ($shield.sensors != undefined) {
         $.each($shield.sensors, function (idx, elem) {
             //elem.subaddress = "" + idx + 1;
@@ -282,7 +289,7 @@ function deleteSensorBySubaddress(subaddress, sensors) {
         }
         if (sensors[i].childsensors == undefined || sensors[i].childsensors.length == 0)
             continue;
-        deleteSensorBySubaddress(subaddress,sensors[i].childsensors);
+        deleteSensorBySubaddress(subaddress, sensors[i].childsensors);
     }
 }
 

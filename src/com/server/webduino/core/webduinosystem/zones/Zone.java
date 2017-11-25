@@ -1,5 +1,6 @@
 package com.server.webduino.core.webduinosystem.zones;
 
+import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
 import com.server.webduino.core.Shield;
@@ -21,7 +22,7 @@ import java.util.logging.Logger;
 /**
  * Created by giaco on 12/05/2017.
  */
-public class Zone implements SensorBase.SensorListener, TemperatureSensor.TemperatureSensorListener {
+public class Zone extends DBObject implements SensorBase.SensorListener, TemperatureSensor.TemperatureSensorListener {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     public interface WebduinoZoneListener {
@@ -59,7 +60,7 @@ public class Zone implements SensorBase.SensorListener, TemperatureSensor.Temper
         readZoneSensors(id);
     }
 
-    public Zone(JSONObject json) {
+    public Zone(JSONObject json) throws JSONException {
         fromJson(json);
     }
 
@@ -79,11 +80,10 @@ public class Zone implements SensorBase.SensorListener, TemperatureSensor.Temper
         }
     }
 
-    public boolean fromJson(JSONObject json) {
+    public void fromJson(JSONObject json) throws JSONException {
 
-        try {
             if (json.has("id"))
-                id = json.getInt("id");
+                id = json. getInt("id");
             if (json.has("name"))
                 name = json.getString("name");
             if (json.has("type"))
@@ -102,20 +102,41 @@ public class Zone implements SensorBase.SensorListener, TemperatureSensor.Temper
                     zoneSensors.add(zoneSensor);
                 }
             }
-
-            return true;
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
-    public boolean write() {
+
+    @Override
+    public void delete(Statement stmt) throws SQLException {
+        String sql = "DELETE FROM zones WHERE id=" + id;
+        stmt.executeUpdate(sql);
+    }
+
+    public void save() throws Exception {
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            conn.setAutoCommit(false);
+            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            delete(stmt);
+            write(conn);
+            stmt.close();
+            conn.commit();
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new Exception(e.toString());
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new Exception(e.toString());
+        }
+    }
+
+    @Override
+    public void write(Connection conn) throws SQLException {
+
+            //Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             Statement stmt = null;
 
             stmt = conn.createStatement();
@@ -143,16 +164,14 @@ public class Zone implements SensorBase.SensorListener, TemperatureSensor.Temper
                         + "zoneid=" + id + ","
                         + "sensorid=" + sensor.getSensorId() + ";";
 
-                stmt.executeUpdate(sql);
+                Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) {
+                    sensor.id = rs.getInt(1);
+                }
+
                 stmt.close();
             }
-            return true;
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     public int getId() {
@@ -263,7 +282,7 @@ public class Zone implements SensorBase.SensorListener, TemperatureSensor.Temper
     public void init() {
     }
 
-    public JSONObject toJSON() {
+    public JSONObject toJson() {
 
         JSONObject json = new JSONObject();
         try {
@@ -273,11 +292,13 @@ public class Zone implements SensorBase.SensorListener, TemperatureSensor.Temper
             for(ZoneSensor zonesensor: zoneSensors) {
                 JSONObject jsonObject = new JSONObject();
                 SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
-                jsonObject.put("id",zonesensor.getId());
-                jsonObject.put("name",sensor.getName());
-                jsonObject.put("sensorid",sensor.getId());
-                jsonObject.put("type",sensor.getType());
-                jsonArray.put(jsonObject);
+                if (sensor != null) {
+                    jsonObject.put("id", zonesensor.getId());
+                    jsonObject.put("name", sensor.getName());
+                    jsonObject.put("sensorid", sensor.getId());
+                    jsonObject.put("type", sensor.getType());
+                    jsonArray.put(jsonObject);
+                }
             }
             json.put("zonesensors", jsonArray);
 

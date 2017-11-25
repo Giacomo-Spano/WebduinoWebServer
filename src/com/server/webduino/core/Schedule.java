@@ -231,7 +231,7 @@ public class Schedule {
                 .usingJobData(jobDataMap)
                 .build();
 
-        Trigger trigger = newTrigger()
+        org.quartz.Trigger trigger = newTrigger()
                 .withIdentity("NextProgramTriggerName", "Group")
                 .startAt(date)
                 .build();

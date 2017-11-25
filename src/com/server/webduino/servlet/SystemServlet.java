@@ -1,10 +1,8 @@
 package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
-import com.server.webduino.core.Core;
-import com.server.webduino.core.Shields;
+import com.server.webduino.core.*;
 import com.server.webduino.core.sensors.SensorFactory;
-import com.server.webduino.core.Shield;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
@@ -85,7 +83,7 @@ public class SystemServlet extends HttpServlet {
                     return;
                 }
 
-            } else if (data != null && data.equals("trigger")) {
+            }  else if (data != null && data.equals("scenariotrigger")) {
                 try {
                     if (param != null && param.equals("delete")) {
                         Scenario scenario = Core.removeScenarioTrigger(json);
@@ -105,7 +103,27 @@ public class SystemServlet extends HttpServlet {
                     return;
                 }
 
-            } else if (data != null && data.equals("timeinterval")) {
+            } else if (data != null && data.equals("triggers")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Triggers triggers = Core.removeTriggers(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(triggers.toJson());
+                        return;
+                    } else {
+                        Triggers triggers = Core.saveTriggers(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(triggers.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
+            }else if (data != null && data.equals("timeinterval")) {
                 try {
                     if (param != null && param.equals("delete")) {
                         Scenario scenario = Core.removeScenarioTimeinterval(json);
@@ -191,23 +209,32 @@ public class SystemServlet extends HttpServlet {
                     return;
                 }
             } else if (data != null && data.equals("zone")) {
-                if (!Core.saveZone(json)) {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    jsonResponse = new JSONObject();
-                    try {
-                        json.put("result", "failed");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                try {
+                    if (param != null && param.equals("delete")) {
+
+                        Zone zone = Core.removeZone(json);
+                        if (zone != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(zone.toJson());
+                            return;
+                        }
+                    } else {
+                        Zone zone = Core.saveZone(json);
+                        if (zone != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(zone.toJson());
+                            return;
+                        }
                     }
-                    // finally output the json string
-                    out.print(jsonResponse.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
                 }
 
             } else if (data != null && data.equals("sensor")) {
-                /*if (json.has("id")) {
-                    int id = json.getInt("id");
-                    Core.updateSensor(id, json);
-                }*/
+
                 try {
                     if (param != null && param.equals("delete")) {
                         Shield shield = removeSensor(json);
@@ -264,20 +291,8 @@ public class SystemServlet extends HttpServlet {
             return;
         }
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        JSONObject json = new JSONObject();
-        try
-
-        {
-            json.put("result", "success");
-        } catch (
-                JSONException e)
-
-        {
-            e.printStackTrace();
-        }
-        // finally output the json string
-        out.print(json.toString());
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        LOGGER.severe("BAD REQUEST");
     }
 
 
@@ -296,7 +311,10 @@ public class SystemServlet extends HttpServlet {
             int shieldid = 0;
             if (id != null)
                 shieldid = Integer.parseInt(id);
-            JSONArray jarray = Core.getSensorsJSONArray(shieldid);
+
+            String type = request.getParameter("type");
+
+            JSONArray jarray = Core.getSensorsJSONArray(shieldid, type);
             if (jarray != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
@@ -348,6 +366,15 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
+        } else if (requestCommand != null && requestCommand.equals("triggers")) {
+
+            JSONArray jarray = Core.getTriggersJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
+
         } else if (requestCommand != null && requestCommand.equals("zones")) {
 
             JSONArray jarray = Core.getZonesJSONArray();
@@ -376,7 +403,7 @@ public class SystemServlet extends HttpServlet {
             Zone zone = Core.getZoneFromId(zoneid);
             if (zone != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
-                out.print(zone.toJSON());
+                out.print(zone.toJson());
                 return;
             }
         } else if (requestCommand != null && requestCommand.equals("shields")) {

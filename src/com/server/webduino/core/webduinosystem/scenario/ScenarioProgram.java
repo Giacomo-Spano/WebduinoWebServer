@@ -381,7 +381,7 @@ public class ScenarioProgram extends DBObject {
                 ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(jo);
                 if (timeRange != null) {
 
-                    if (i > 0 && timeRanges.get(timeRanges.size()-1).endTime.compareTo(timeRange.startTime) < 0)
+                    if (i > 0 && timeRanges.get(timeRanges.size()-1).endTime.compareTo(timeRange.startTime) > 0)
                         throw new Exception("time range " + i + "cannot start before time range "+ (i-1));
                     timeRanges.add(timeRange);
                 }

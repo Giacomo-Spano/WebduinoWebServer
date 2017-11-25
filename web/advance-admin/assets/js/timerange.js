@@ -136,7 +136,7 @@ function loadTimeRange(timerange) {
 
 
                         $timerangePanel = $(this).find('div[id="panel"]');
-                        //$actionRow = $timerangePanel.find('tr[name="row"]').clone();
+                        //$zoneSensorRow = $zonePanel.find('tr[name="row"]').clone();
                         $actionRow = $timerangePanel.find('tr[name="row"]');
 
                         $timerangePanel.find('p[name="headingright"]').text(timerange.programid + "." + timerange.id);

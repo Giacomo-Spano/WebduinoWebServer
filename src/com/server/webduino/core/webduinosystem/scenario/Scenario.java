@@ -116,7 +116,12 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
         if (nextTriggerDate != null) {
             LOGGER.info("triggerNextTimeInterval id=" + id + "nextActivationDate=" + nextTriggerDate.toString());
-            scheduleNextTimeIntervalJob(activeTimeInterval.nextEndDate(nextTriggerDate));
+            Date nextEndDate = activeTimeInterval.nextEndDate(nextTriggerDate);
+            if (nextEndDate != null) {
+                scheduleNextTimeIntervalJob(nextEndDate);
+            } else {
+                LOGGER.info("nextTime interval is null");
+            }
         } else {
             LOGGER.info("no triggerNextTimeInterval id=" + id);
         }

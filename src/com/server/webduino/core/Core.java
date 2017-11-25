@@ -46,6 +46,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     private static List<WebduinoSystem> webduinoSystems = new ArrayList<>();
     private static List<Zone> zones = new ArrayList<>();
+    //private static List<Trigger> triggers = new ArrayList<>();
+    private static Triggers triggerClass = new Triggers();
     private static Scenarios scenarios = new Scenarios();
     private static List<Exit> exits = new ArrayList<>();
     private static List<Key> keys = new ArrayList<>();
@@ -141,9 +143,15 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return null;
     }
 
-    public static JSONArray getSensorsJSONArray(int shieldid) {
+    public static JSONArray getSensorsJSONArray(int shieldid, String type) {
         JSONArray jsonArray = new JSONArray();
         for (SensorBase sensor : mShields.getLastSensorData()) {
+
+            if (type != null && !type.equals("")) {
+                if (!type.equals(sensor.getType()))
+                    continue;
+            }
+
             if (shieldid <= 0) {
                 JSONObject json = sensor.toJson();
                 jsonArray.put(json);
@@ -157,10 +165,23 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return jsonArray;
     }
 
+    public static JSONArray getTriggersJSONArray()  {
+        JSONArray jsonArray = new JSONArray();
+        for (Trigger trigger : triggerClass.list) {
+            try {
+                jsonArray.put(trigger.toJson());
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        return jsonArray;
+    }
+
     public static JSONArray getZonesJSONArray() {
         JSONArray jsonArray = new JSONArray();
         for (Zone zone : zones) {
-            jsonArray.put(zone.toJSON());
+            jsonArray.put(zone.toJson());
         }
         return jsonArray;
     }
@@ -194,6 +215,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         // caricamento dati scernari e zone
         readWebduinoSystems();
         readZones();
+        readTriggers();
         readExits();
         readKeys();
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
@@ -255,7 +277,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         }
     }
 
-    public void readZones() {
+    public static void readZones() {
 
         LOGGER.info(" readZoneSensors Security zones");
 
@@ -287,6 +309,43 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             //schedule = new Schedule();
             //schedule.readZoneSensors(id);
 
+            conn.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }
+    }
+
+    public static void readTriggers() {
+
+        LOGGER.info(" readTriggers");
+
+        try {
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            // Execute SQL query
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM triggers";//" WHERE systemid=" + systemid;
+            ResultSet triggersResultSet = stmt.executeQuery(sql);
+            triggerClass.clear();
+            while (triggersResultSet.next()) {
+                ZoneFactory factory = new ZoneFactory();
+                int id = triggersResultSet.getInt("id");
+                String name = triggersResultSet.getString("name");
+                String status = triggersResultSet.getString("status");
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
+                Date date = null;
+                if (triggersResultSet.getTimestamp("lastupdate") != null)
+                    date = df.parse(String.valueOf(triggersResultSet.getTimestamp("lastupdate")));
+                Trigger trigger = new Trigger(id, name, status, date);
+                triggerClass.add(trigger);
+            }
+            // Clean-up environment
+            triggersResultSet.close();
+            stmt.close();
             conn.close();
         } catch (SQLException se) {
             //Handle errors for JDBC
@@ -423,6 +482,41 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return scenario;
     }
 
+    static public Trigger saveTrigger(JSONObject json) throws Exception {
+        Trigger trigger = new Trigger(json);
+        trigger.save();
+        scenarios.initScenarios();
+        return trigger;
+    }
+
+    static public Trigger removeTrigger(JSONObject json) throws Exception {
+
+        Trigger trigger = new Trigger(json);
+        int triggerid = trigger.id;
+        trigger.remove();
+        Core.readTriggers();
+        scenarios.initScenarios();
+        return trigger;
+    }
+
+    static public Triggers saveTriggers(JSONObject json) throws Exception {
+        Triggers triggers = new Triggers(json);
+        triggers.save();
+        Core.readTriggers();
+        scenarios.initScenarios();
+        return triggers;
+    }
+
+    static public Triggers removeTriggers(JSONObject json) throws Exception {
+
+        Triggers triggers = new Triggers(json);
+        //int triggerid = trigger.id;
+        triggers.remove();
+        Core.readTriggers();
+        scenarios.initScenarios();
+        return triggers;
+    }
+
     static public ScenarioTrigger saveScenarioTrigger(JSONObject json) throws Exception {
         ScenarioTrigger trigger = new ScenarioTrigger(json);
         trigger.save();
@@ -491,19 +585,23 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return timerange;
     }
 
-
-    static public boolean saveZone(JSONObject json) {
+    static public Zone saveZone(JSONObject json) throws Exception {
         Zone zone = new Zone(json);
-        zone.write();
-        return true;
+        zone.save();
+        readZones();
+        scenarios.initScenarios();
+        return zone;
     }
 
-    /*static public boolean saveSensor(JSONObject json) {
-        SensorBase zone = new Zone(json);
-        zone.save();
-        return true;
-    }*/
 
+
+    static public Zone removeZone(JSONObject json) throws Exception {
+        Zone zone = new Zone(json);
+        zone.remove();
+        readZones();
+        scenarios.initScenarios();
+        return zone;
+    }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
 
@@ -591,6 +689,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static SensorBase getSensorFromId(int id) {
         return mShields.getSensorFromId(id);
     }
+    public static Trigger getTriggerFromId(int id) {
+        return triggerClass.getFromId(id);
+    }
+
 
     /*public int deleteProgram(int id) {
         return mSchedule.delete(id);

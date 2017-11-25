@@ -17,7 +17,8 @@ public abstract class DBObject {
             conn.commit();
     }
 
-    public void remove() throws SQLException {
+
+    public void remove() throws SQLException, Exception {
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             conn.setAutoCommit(false);
             Statement stmt = conn.createStatement();
@@ -26,7 +27,7 @@ public abstract class DBObject {
             conn.commit();
     }
 
-    abstract public JSONObject toJson();
+    abstract public JSONObject toJson() throws JSONException;
     abstract public void fromJson(JSONObject json) throws Exception;
     abstract protected void delete(Statement stmt) throws SQLException;
     abstract protected void write(Connection conn) throws SQLException, Exception;

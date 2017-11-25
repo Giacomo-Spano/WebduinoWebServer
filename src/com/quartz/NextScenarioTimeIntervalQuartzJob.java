@@ -36,7 +36,7 @@ public class NextScenarioTimeIntervalQuartzJob implements Job {
             //LOGGER.info("execute" + e.getStackTrace());
             //e.printStackTrace();
 
-            LOGGER.info("--- Error in job!");
+            LOGGER.info("--- Error in job!" + e.toString());
             JobExecutionException e2 =
                     new JobExecutionException(e);
             // this job will refire immediately

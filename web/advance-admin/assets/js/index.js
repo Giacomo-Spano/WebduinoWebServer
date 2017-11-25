@@ -122,6 +122,13 @@ function load() {
         loadShields();
         return false;
     });
+
+    $('a[id="item_triggers"]').click(function () {
+        deactivatemenuitems();
+        $('a[id="item_triggers"]').attr("class", "active-menu");
+        loadTriggers();
+        return false;
+    });
 }
 
 function postData(datatype, json, callback, param) {
@@ -179,38 +186,13 @@ function zoneForm(zone, sensors) {
 }
 
 // ZONES
-function loadZones() {
-
-    $("#result").load("zones.html", function () {
-        $zonesPanel = $(this).find('div[id="zonespanel"]');
-        $zoneRow = $zonesPanel.find('tr[name="zone"]');
-
-        var tbody = $zonesPanel.find('tbody[name="zonelist"]');
-        $.getJSON(systemServletPath + "?requestcommand=zones", function (data) {
-            tbody[0].innerHTML = "";
-            $.each(data, function (idx, elem) {
-                var newtr = $zoneRow.clone();
-                setZoneElement(newtr, elem);
-                tbody.append(newtr);
-            });
-        })
-            .done(function () {
-            })
-            .fail(function () {
-                alert("cannot load zones");
-            })
-            .always(function () {
-            });
-    });
-}
-
-function setZoneElement(element, zone) {
+/*function setZoneElement(element, zone) {
     element.find('td[name="id"]').text(zone.id);
     element.find('td[name="name"]').text(zone.name);
     element.click(function () {
         loadZone(zone.id)
     });
-}
+}*/
 
 // ZONE
 function loadZone(id) {
@@ -553,7 +535,7 @@ function setScenarioElement(element, scenario) {
     element.find('td[name="status"]').text(scenario.status);
 
     element.click(function () {
-        loadScenario(scenario)
+        loadScenario(scenario);
     });
     element.find('button[name="delete"]').click(function () {
         postData("scenario", scenario, function (result, response) {
@@ -583,7 +565,7 @@ function enableScenarioEdit(savebutton, cancelbutton, editbutton) {
     $scenarioPanel.find('p[class="help-block"]').show();
 }
 
-function loadScenario(scenario, editmode) {
+function _loadScenario(scenario, editmode) {
 
     if (editmode == undefined) {
         editmode = false;
@@ -604,15 +586,15 @@ function loadScenario(scenario, editmode) {
         $scenarioPanel.find('p[name="headingright"]').text(scenario.id);
 
         $calendarPanel = $(this).find('div[id="calendarpanel"]');
-        $calendarRow = $calendarPanel.find('tr[name="timeinterval"]');
+        $calendarRow = $calendarPanel.find('tr[name="calendarrow"]');
         var calendartbody = $calendarPanel.find('tbody[name="timeintervallist"]');
 
         $triggerPanel = $(this).find('div[id="triggerpanel"]');
-        $triggerRow = $triggerPanel.find('tr[name="trigger"]');
+        $triggerRow = $triggerPanel.find('tr[name="triggerrow"]');
         var triggertbody = $triggerPanel.find('tbody[name="triggerlist"]');
 
         $programPanel = $(this).find('div[id="programpanel"]');
-        $programRow = $programPanel.find('tr[name="program"]');
+        $programRow = $programPanel.find('tr[name="programrow"]');
         var programstbody = $(this).find('div[id="programpanel"]').find('tbody[name="programlist"]');
 
         // dati generali

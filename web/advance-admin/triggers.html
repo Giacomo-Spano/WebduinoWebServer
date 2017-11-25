@@ -2,45 +2,21 @@
     <div class="col-md-12">
         <div class="panel panel-info">
             <div class="panel-heading">
-                Zona <p style="display: inline-block;" name="headingleft"></p>
+                Fascia oraria programmma <p style="display: inline-block;" name="headingleft"></p>
                 <p style="float: right;" name="headingright">xx.xx</p>
             </div>
             <div class="panel-body" name="body">
 
                 <form role="form">
 
-
-                    <div class="form-group col-md-10">
-                        <label>Nome</label>
-                        <input class="form-control" name="name" type="text">
-                        <p class="help-block">Help text here.</p>
-                    </div>
-
-                    <div class="form-group col-md-2">
-                        <label>Abilitato</label>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="zoneenabled" checked data-toggle="toggle">Abilitato
-                            </label>
-                        </div>
-                    </div>
-
                     <div class="form-group col-md-12">
-                        <label>Descrizione</label>
-                        <textarea class="form-control" rows="3" name="description"></textarea>
-                        <p class="help-block">Help text here.</p>
-                    </div>
-
-                    <div class="form-group col-md-12">
-                        <label>Sensori</label>
+                        <label>Trigger</label>
                         <div id="programinstructions" class="table-responsive">
                             <table id="tbl2" class="table table-striped table-bordered table-hover">
                                 <thead>
                                 <tr name="header">
                                     <th>Id</th>
-                                    <th>Tipo</th>
-                                    <th>Sensore</th>
-                                    <th>Name</th>
+                                    <th>Nome</th>
                                     <th>Stato</th>
                                     <th>comandi</th>
                                 </tr>
@@ -48,22 +24,21 @@
                                 <tbody name="list">
                                 <tr name="row">
                                     <td name="id"></td>
-                                    <td><select class="form-control" name="type"></select></td>
-                                    <td><select class="form-control" name="sensor"></select></td>
-                                    <td name="name"></td>
+                                    <td><input class="form-control" name="name"></td>
                                     <td name="status"></td>
                                     <td name="command">
-                                        <button type="button" name="deleteaction" class="btn btn-sm btn-info">
+
+                                        <button type="button" name="deletetrigger" class="btn btn-sm btn-info">
                                             rimuovi
                                         </button>
                                         <button type="button" name="update" class="btn btn-sm btn-info">
-                                            aggiorna
+                                            aggiungi
                                         </button>
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
-                            <button type="button" name="add" class="btn btn-info">Aggiungi sensore
+                            <button type="button" name="add" class="btn btn-info">Aggiungi action
                             </button>
                         </div>
                     </div>

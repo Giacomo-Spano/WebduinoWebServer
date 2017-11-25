@@ -1,6 +1,7 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.Trigger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +20,7 @@ public class ScenarioTrigger {
 
     public int id;
     public int scenarioid;
+    public int triggerid;
     public String type;
     public String name;
     public String description;
@@ -46,8 +48,13 @@ public class ScenarioTrigger {
         SimpleDateFormat df = new SimpleDateFormat("HH:mm");
 
         json.put("id", id);
+        json.put("triggerid", triggerid);
         json.put("scenarioid", scenarioid);
-        json.put("name", name);
+        //json.put("name", name);
+        Trigger trigger = Core.getTriggerFromId(triggerid);
+        if (trigger != null)
+            json.put("name", trigger.name);
+
         json.put("description", description);
         json.put("type", type);
         json.put("enabled", enabled);
@@ -66,6 +73,7 @@ public class ScenarioTrigger {
 
         if (json.has("id")) id = json.getInt("id");
         if (json.has("scenarioid")) scenarioid = json.getInt("scenarioid");
+        if (json.has("triggerid")) triggerid = json.getInt("triggerid");
         if (json.has("name")) name = json.getString("name");
         if (json.has("description")) description = json.getString("description");
         if (json.has("type")) type = json.getString("type");
@@ -173,6 +181,7 @@ public class ScenarioTrigger {
     private void fromResultSet(ResultSet timeintervalsResultSet) throws SQLException {
         id = timeintervalsResultSet.getInt("id");
         scenarioid = timeintervalsResultSet.getInt("scenarioid");
+        triggerid = timeintervalsResultSet.getInt("triggerid");
         name = timeintervalsResultSet.getString("name");
         description = timeintervalsResultSet.getString("description");
         type = timeintervalsResultSet.getString("type");

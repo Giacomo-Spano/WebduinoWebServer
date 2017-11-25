@@ -41,8 +41,23 @@ function addTimeRange(idx, elem) {
         dropdown: true,
         scrollbar: true
     });
+    /*timerange.find('input[name="endtime"]').change(function() {
+        alert($(this).val());
+    });*/
+    timerange.find('input[name="endtime"]').on('changeTime', function() {
+
+    });
+    /*timerange.find('input[name="endtime"]').bind('input', function() {
+        $(this).val() // get the current value of the input field.
+    });*/
+
     timerange.find('input[name="endtime"]').val(elem.endtime);
     timerange.find('input[name="name"]').val(elem.name);
+    /*timerange.find('input[name="name"]').on('input', function() {
+        $(this).val() // get the current value of the input field.
+    });*/
+
+
     timerange.find('input[name="description"]').val(elem.description);
     timerange.find('td[name="status"]').val(elem.status);
     timerange.find('td[name="action"]').val(elem.actionstatus);

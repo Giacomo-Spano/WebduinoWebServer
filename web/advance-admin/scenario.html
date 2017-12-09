@@ -19,7 +19,7 @@
                         <label>Abilitato</label>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" name="enabled" value="">Abilitato
+                                <input type="checkbox" name="scenarioenabled" value="">Abilitato
                             </label>
                         </div>
                     </div>
@@ -64,27 +64,48 @@
                                     <tr name="header">
                                         <th>id</th>
                                         <th>Nome</th>
-                                        <th>Giorni</th>
+                                        <th>Descrizione</th>
                                         <th>Data inizio</th>
                                         <th>Data fine</th>
-                                        <th>Priorità</th>
+                                        <th>Giorni</th>
+                                        <th>Abilitato</th>
                                         <th>Stato</th>
                                         <th>Comandi</th>
                                     </tr>
                                     </thead>
                                     <tbody name="calendarlist">
                                     <tr name="calendarrow">
-                                        <td name="id"><a href="." name="link"></a></td>
-                                        <td name="name">#</td>
-                                        <td name="days">#</td>
-                                        <td name="starttime">#</td>
-                                        <td name="endtime">#</td>
-                                        <td name="priority">#</td>
-                                        <td name="status">#</td>
-                                        <td name="command">
-                                            <button type="button" name="editcalendar" class="btn btn-sm btn-primary">
-                                                modifica
-                                            </button>
+                                        <td name="calendarid"><a href="." name="link"></a></td>
+                                        <td ><input class="form-control" name="calendarname" type="text"></td>
+                                        <td ><input class="form-control" name="calendardescription" type="text"></td>
+                                        <td ><input class="form-control" name="calendarstartdate"></td>
+                                        <td ><input class="form-control" name="calendarenddate"></td>
+                                        <td name="calendardays">
+                                            <label>
+                                                <input type="checkbox" name="calendarmonday">L
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="calendartuesday">Ma
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="calendarwednesday">Me
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="calendarthursday">G
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="calendarfriday">V
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="calendarsaturday">S
+                                            </label>
+                                            <label>
+                                                <input type="checkbox" name="calendarsunday">D
+                                            </label>
+                                        </td>
+                                        <td ><input type="checkbox" name="calendarenabled"></td>
+                                        <td name="calendarstatus">#</td>
+                                        <td name="calendarcommand">
                                             <button type="button" name="deletecalendar" class="btn btn-sm btn-primary">
                                                 rimuovi
                                             </button>
@@ -104,21 +125,22 @@
                                     <thead>
                                     <tr name="header">
                                         <th>id</th>
-                                        <th>Nome</th>
+                                        <th>Abilitato</th>
+                                        <th>Trigger</th>
+                                        <th>Priority</th>
                                         <th>Stato</th>
                                         <th>comandi</th>
                                     </tr>
                                     </thead>
                                     <tbody name="triggerlist">
                                     <tr name="triggerrow">
-                                        <td name="id"><a href="." name="link"></a></td>
-                                        <td name="name">#</td>
+                                        <td name="id"></td>
+                                        <td ><input type="checkbox" name="triggerenabled" value="">Abilitato</td>
+                                        <td ><select class="form-control" name="triggerid">
+                                            </select></td>
+                                        <td ><input class="form-control" type="number" name="triggerpriority" value="0" min="0" max="30" step="1"></td>
                                         <td name="status">#</td>
                                         <td name="command">
-                                            <button type="button" name="edittrigger"
-                                                    class="btn btn-sm btn-primary">
-                                                modifica
-                                            </button>
                                             <button type="button" name="deletetrigger"
                                                     class="btn btn-sm btn-primary">
                                                 rimuovi
@@ -144,6 +166,7 @@
                                         <th>Descrizione</th>
                                         <th>Giorni</th>
                                         <th>Abilitato</th>
+                                        <th>Priorità</th>
                                         <th>Stato</th>
                                         <th>Nextjob</th>
                                         <th>Timerange</th>
@@ -155,32 +178,33 @@
                                     <tr name="programrow">
                                         <td name="id">#</td>
                                         <td name="scenarioid">#</td>
-                                        <td ><input class="form-control" name="name" type="text"></td>
-                                        <td ><input class="form-control" name="description" type="text"></td>
+                                        <td ><input class="form-control" name="programname" type="text"></td>
+                                        <td ><input class="form-control" name="programdescription" type="text"></td>
                                         <td >
                                             <label>
-                                                <input type="checkbox" name="monday">L
+                                                <input type="checkbox" name="programmonday">L
                                             </label>
                                             <label>
-                                                <input type="checkbox" name="tuesday">Ma
+                                                <input type="checkbox" name="programtuesday">Ma
                                             </label>
                                             <label>
-                                                <input type="checkbox" name="wednesday">Me
+                                                <input type="checkbox" name="programwednesday">Me
                                             </label>
                                             <label>
-                                                <input type="checkbox" name="thursday">G
+                                                <input type="checkbox" name="programthursday">G
                                             </label>
                                             <label>
-                                                <input type="checkbox" name="friday">V
+                                                <input type="checkbox" name="programfriday">V
                                             </label>
                                             <label>
-                                                <input type="checkbox" name="saturday">S
+                                                <input type="checkbox" name="programsaturday">S
                                             </label>
                                             <label>
-                                                <input type="checkbox" name="sunday">D
+                                                <input type="checkbox" name="programsunday">D
                                             </label>
                                         </td>
-                                        <td name="enabled"><input type="checkbox" name="enabled" value="">Abilitato</td>
+                                        <td ><input type="checkbox" name="programenabled" value="">Abilitato</td>
+                                        <td ><input class="form-control" type="number" name="programpriority" value="0" min="0" max="30" step="1"></td>
                                         <td name="status">#</td>
                                         <td name="nextjob">#</td>
                                         <td name="timerange">#</td>
@@ -203,6 +227,61 @@
                         </div>
 
                     </div>
+
+                    <!-- /. ROW  -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    Programmi
+                                </div>
+                                <div class="panel-body">
+                                    <div class="panel-group" id="accordion">
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" class="collapsed">Collapsible Group Item #1</a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseOne" class="panel-collapse collapse" style="height: 0px;">
+                                                <div class="panel-body">
+                                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">Collapsible Group Item #2</a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseTwo" class="panel-collapse in" style="height: auto;">
+                                                <div class="panel-body">
+                                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="panel panel-default">
+                                            <div class="panel-heading">
+                                                <h4 class="panel-title">
+                                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree" class="collapsed">Collapsible Group Item #3</a>
+                                                </h4>
+                                            </div>
+                                            <div id="collapseThree" class="panel-collapse collapse">
+                                                <div class="panel-body">
+                                                    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /. ROW  -->
+
+
+
                     <div class="form-group col-md-4">
                         <button type="button" name="save" class="btn btn-info">Salva</button>
                         <button type="button" name="cancel" class="btn btn-info">Annulla</button>

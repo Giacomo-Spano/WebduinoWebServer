@@ -116,4 +116,11 @@ public class Trigger extends DBObject {
         }
     }
 
+    public void enable(boolean enabled) throws Exception {      
+        if(enabled)
+            status = "enabled";
+        else
+            status = "disabled";
+        saveStatus();
+    }
 }

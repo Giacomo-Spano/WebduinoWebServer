@@ -489,6 +489,12 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return trigger;
     }
 
+    static public void enableTrigger(int id, boolean enable) throws Exception {
+        Trigger trigger = getTriggerFromId(id);
+        trigger.enable(enable);
+        scenarios.initScenarios();
+    }
+
     static public Trigger removeTrigger(JSONObject json) throws Exception {
 
         Trigger trigger = new Trigger(json);

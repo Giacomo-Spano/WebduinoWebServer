@@ -5,7 +5,6 @@ var $programPanel;
 var $timerangeRow;
 var $program;
 
-
 function getScenario(id, callback) {
     $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (scenario) {
         callback(scenario);
@@ -16,49 +15,39 @@ function addTimeRange(idx, elem) {
     var timerange = $timerangeRow.clone();
 
     timerange.find('td[name="id"]').text(elem.id);
-    timerange.find('input[name="enabled"]').prop('checked', elem.enabled);
+    timerange.find('td input[name="enabled"]').prop('checked', elem.enabled);
 
-    var start = timerange.find('input[name="starttime"]').timepicker({
+    timerange.find('input[name="starttime"]').timepicker({
         timeFormat: 'HH:mm',
         interval: 15,
         minTime: '00:00',
         maxTime: '23:59',
         defaultTime: '00:00',
-        startTime: '00:01',
+        startTime: '00:00',
         dynamic: true,
         dropdown: true,
         scrollbar: true
     });
-    timerange.find('input[name="starttime"]').val(elem.starttime);
-    var end = timerange.find('input[name="endtime"]').timepicker({
+    if (elem.starttime != null) timerange.find('input[name="starttime"]').val(elem.starttime);
+
+    timerange.find('input[name="endtime"]').timepicker({
         timeFormat: 'HH:mm',
         interval: 15,
         minTime: '00:00',
         maxTime: '23:59',
         defaultTime: '00:00',
-        startTime: '00:01',
+        startTime: '00:00',
         dynamic: true,
         dropdown: true,
         scrollbar: true
     });
-    /*timerange.find('input[name="endtime"]').change(function() {
-        alert($(this).val());
-    });*/
-    timerange.find('input[name="endtime"]').on('changeTime', function() {
-
-    });
-    /*timerange.find('input[name="endtime"]').bind('input', function() {
-        $(this).val() // get the current value of the input field.
-    });*/
-
-    timerange.find('input[name="endtime"]').val(elem.endtime);
-    timerange.find('input[name="name"]').val(elem.name);
-    /*timerange.find('input[name="name"]').on('input', function() {
-        $(this).val() // get the current value of the input field.
-    });*/
+    if (elem.endtime != null) timerange.find('input[name="endtime"]').val(elem.endtime);
 
 
-    timerange.find('input[name="description"]').val(elem.description);
+
+    timerange.find('td input[name="name"]').val(elem.name);
+    timerange.find('td input[name="description"]').val(elem.description);
+
     timerange.find('td[name="status"]').val(elem.status);
     timerange.find('td[name="action"]').val(elem.actionstatus);
 

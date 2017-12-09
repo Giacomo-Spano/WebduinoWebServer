@@ -83,7 +83,7 @@ public class SystemServlet extends HttpServlet {
                     return;
                 }
 
-            }  else if (data != null && data.equals("scenariotrigger")) {
+            } else if (data != null && data.equals("scenariotrigger")) {
                 try {
                     if (param != null && param.equals("delete")) {
                         Scenario scenario = Core.removeScenarioTrigger(json);
@@ -123,7 +123,7 @@ public class SystemServlet extends HttpServlet {
                     return;
                 }
 
-            }else if (data != null && data.equals("timeinterval")) {
+            } else if (data != null && data.equals("timeinterval")) {
                 try {
                     if (param != null && param.equals("delete")) {
                         Scenario scenario = Core.removeScenarioTimeinterval(json);
@@ -180,6 +180,31 @@ public class SystemServlet extends HttpServlet {
                         out.print(timerange.toJson());
                         return;
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+            } else if (data != null && data.equals("trigger")) {
+
+                try {
+                    int id = json.getInt("id");
+                    if (json.getString("status").equals("enabled")) {
+                        Core.enableTrigger(id, true);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print("trigger enabled");
+                        return;
+                    } else if (json.getString("status").equals("disabled")) {
+                        Core.enableTrigger(id, false);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print("trigger disabled");
+                        return;
+                    }
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print("bad command");
+                    return;
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

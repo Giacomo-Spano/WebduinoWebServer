@@ -25,7 +25,6 @@ public class ScenarioTrigger {
     public String name;
     public String description;
     public boolean enabled;
-    public double value;
     public String status;
     public int priority;
 
@@ -58,7 +57,6 @@ public class ScenarioTrigger {
         json.put("description", description);
         json.put("type", type);
         json.put("enabled", enabled);
-        json.put("value", value);
         json.put("status", status);
         json.put("priority", priority);
 
@@ -78,7 +76,6 @@ public class ScenarioTrigger {
         if (json.has("description")) description = json.getString("description");
         if (json.has("type")) type = json.getString("type");
         if (json.has("enabled")) enabled = json.getBoolean("enabled");
-        if (json.has("value")) value = json.getDouble("value");
         if (json.has("status")) status = json.getString("status");
         if (json.has("priority")) priority = json.getInt("priority");
     }
@@ -124,7 +121,7 @@ public class ScenarioTrigger {
 
     public void write(Connection conn) throws SQLException {
 
-        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, name, description, type, enabled, status, value, priority)" +
+        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, name, description, type, enabled, status, priority)" +
                 " VALUES ("
                 + id + ","
                 + scenarioid + ","
@@ -133,7 +130,6 @@ public class ScenarioTrigger {
                 + "\"" + type + "\","
                 + Core.boolToString(enabled) + ","
                 + "\"" + status + "\","
-                + value + ","
                 + priority
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
@@ -143,7 +139,6 @@ public class ScenarioTrigger {
                 + "type=\"" + type + "\","
                 + "enabled=" + Core.boolToString(enabled) + ","
                 + "status=\"" + status + "\","
-                + "value=" + value + ","
                 + "priority=" + priority + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -163,12 +158,13 @@ public class ScenarioTrigger {
         JSONObject json;
         try {
             json = new JSONObject();
-            json.put("trigger", "athome");
+            json.put("name", "athome");
             json.put("description", "In casa");
+            //json.put("values", "In casa");
             jsonArray.put(json);
 
             json = new JSONObject();
-            json.put("instruction", "season");
+            json.put("name", "season");
             json.put("description", "Stagione");
             jsonArray.put(json);
 
@@ -185,7 +181,6 @@ public class ScenarioTrigger {
         name = timeintervalsResultSet.getString("name");
         description = timeintervalsResultSet.getString("description");
         type = timeintervalsResultSet.getString("type");
-        value = timeintervalsResultSet.getDouble("value");
         status = timeintervalsResultSet.getString("status");
         enabled = timeintervalsResultSet.getBoolean("enabled");
         priority = timeintervalsResultSet.getInt("priority");

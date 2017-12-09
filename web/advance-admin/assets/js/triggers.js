@@ -16,15 +16,49 @@ function addTrigger(idx, elem) {
 
     trigger.find('td[name="id"]').text(elem.id);
     trigger.find('td input[name="name"]').val(elem.name);
-    trigger.find('td input[name="status"]').val(elem.status);
 
+    trigger.find('td[name="status"]').text(elem.status);
 
     trigger.find('button[name="deletetrigger"]').attr("idx", idx);
     trigger.find('button[name="deletetrigger"]').click(function () {
         var index = $(this).attr("idx");
         $triggers.splice(index, 1);
         loadTriggerList($triggers);
-        timerangeDisableEdit(false);
+        triggersDisableEdit(false);
+    });
+
+    trigger.find('button[name="enabletrigger"]').click(function () {
+        var triggerCommand = {
+            "id" : elem.id,
+            "status" : "enabled"
+        };
+        postData("trigger", triggerCommand, function (result, response) {
+            if (result) {
+                loadTriggers();
+                notification.show();
+                notification.find('label[name="description"]').text("trigger disabilitato");
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
+    });
+
+    trigger.find('button[name="disabletrigger"]').click(function () {
+        var triggerCommand = {
+            "id" : elem.id,
+            "status" : "disabled"
+        };
+        postData("trigger", triggerCommand, function (result, response) {
+            if (result) {
+                loadTriggers();
+                notification.show();
+                notification.find('label[name="description"]').text("trigger abilitato");
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
     });
 
     $triggerPanel.find('tbody[name="list"]').append(trigger);
@@ -75,9 +109,6 @@ function loadTriggers() {
                     var triggerList = {
                         "triggers" : $triggers,
                     };
-                    /*var emptyArray = [];
-                    triggerList["triggers"] = $triggers;*/
-                    //triggerList.triggers.push(trigger);
 
                     updateTriggerData();
                     postData("triggers", triggerList, function (result, response) {

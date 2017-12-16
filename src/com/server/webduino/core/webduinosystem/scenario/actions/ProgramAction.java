@@ -9,6 +9,8 @@ import org.json.JSONObject;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Date;
 
 /**
  * Created by giaco on 17/05/2017.
@@ -27,6 +29,7 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
     public int zoneId = 0;
     public int seconds = 0;
     public boolean enabled = true;
+    protected Date endDate = null;
 
     boolean active = false;
 
@@ -44,10 +47,15 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         this.zoneId = zoneId;
         this.seconds = seconds;
         this.enabled = enabled;
+
+    }
+
+    public void setEndDate(Date date) {
+        endDate = date;
     }
 
     @Override
-    public void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature) {
+    public void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature) {
     }
 
     @Override

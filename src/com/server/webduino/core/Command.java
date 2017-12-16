@@ -58,7 +58,7 @@ public class Command {
 
         // il thread esegue la chiamata alla shield webduino ed aspetta una risposta (join) dal thead per x secondi
         try {
-            thread.join(3000); // 100000 è il timeout di attesa fine thread in millisecondi
+            thread.join(5000); // 100000 è il timeout di attesa fine thread in millisecondi
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

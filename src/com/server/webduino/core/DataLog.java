@@ -31,22 +31,17 @@ public class DataLog {
 
     public void writelog(String event, SensorBase sensor) {
 
+        String sql;
         try {
-
             // Register JDBC driver
             Class.forName("com.mysql.jdbc.Driver");
             // Open a connection
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             // Execute SQL query
             Statement stmt = conn.createStatement();
-            String sql;
-            //sql = "INSERT INTO sensordatalog (shieldid, subaddress, date, temperature, avtemperature) VALUES ("+ shieldid + ",'" + subaddress + "',"  + strDate + "," + temperature + "," + avTemperature + ");";
             sql = getSQLInsert(event, sensor);
+            System.out.print(sql);
             stmt.executeUpdate(sql);
-
-            // Extract data from result set
-            // Clean-up environment
-            //rs.close();
             stmt.close();
 
             conn.close();

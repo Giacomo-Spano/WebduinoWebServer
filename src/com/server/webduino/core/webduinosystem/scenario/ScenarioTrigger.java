@@ -121,10 +121,11 @@ public class ScenarioTrigger {
 
     public void write(Connection conn) throws SQLException {
 
-        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, name, description, type, enabled, status, priority)" +
+        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, triggerid, name, description, type, enabled, status, priority)" +
                 " VALUES ("
                 + id + ","
                 + scenarioid + ","
+                + triggerid + ","
                 + "\"" + name + "\","
                 + "\"" + description + "\","
                 + "\"" + type + "\","
@@ -134,6 +135,7 @@ public class ScenarioTrigger {
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "scenarioid=" + scenarioid + ","
+                + "triggerid=" + triggerid + ","
                 + "name=\"" + name + "\","
                 + "description=\"" + description + "\","
                 + "type=\"" + type + "\","

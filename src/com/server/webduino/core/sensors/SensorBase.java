@@ -40,8 +40,8 @@ public class SensorBase extends /*httpClient,*/ DBObject {
     protected String oldStatus = "";
 
     /// schedulatorer programm
-    public Schedule sensorSchedule = null;
-    protected ActiveProgram activeProgram = null;
+    //public Schedule sensorSchedule = null;
+    //protected ActiveProgram activeProgram = null;
 
     //protected JSONObject json = null;
     protected List<SensorListener> listeners = new ArrayList<>();
@@ -63,10 +63,10 @@ public class SensorBase extends /*httpClient,*/ DBObject {
         this.enabled = enabled;
     }
 
-    public ActiveProgram getActiveProgram() {
+    /*public ActiveProgram getActiveProgram() {
 
         return activeProgram;
-    }
+    }*/
 
     public List<SensorBase> getAllChildSensors() {
 
@@ -143,9 +143,9 @@ public class SensorBase extends /*httpClient,*/ DBObject {
 
     public void startPrograms() {
 
-        sensorSchedule = new Schedule();
+        /*sensorSchedule = new Schedule();
         sensorSchedule.init(this); // passa se stesso per agganciare il listener
-        sensorSchedule.read(id);
+        sensorSchedule.read(id);*/
     }
 
     public boolean isUpdated() {
@@ -216,8 +216,10 @@ public class SensorBase extends /*httpClient,*/ DBObject {
         oldStatus = this.status;
         this.status = status;
 
-        for (SensorListener listener: listeners)
-            listener.onChangeStatus(status,oldStatus);
+        if (!status.equals(oldStatus)) {
+            for (SensorListener listener : listeners)
+                listener.onChangeStatus(status, oldStatus);
+        }
     }
 
     public String getStatus() {

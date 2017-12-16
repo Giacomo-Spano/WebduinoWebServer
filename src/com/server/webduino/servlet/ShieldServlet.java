@@ -160,27 +160,44 @@ public class ShieldServlet extends HttpServlet {
 
                                 HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
 
+                                Date startDate = Core.getDate();
                                 SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                                cmd.date = df.format(Core.getDate());
-                                Zone zone = Core.getZoneFromId(cmd.zone);
-                                if (zone != null) {
-                                    cmd.temperature = zone.getTemperature();
-                                    Command.CommandResult result = cmd.send();
-                                    SensorBase sensor = Core.getSensorFromId(cmd.actuatorid);
-                                    if (result.success && sensor != null) {
-                                        out.print(sensor.toJson().toString());
-                                        response.setStatus(HttpServletResponse.SC_OK);
-                                        return;
+                                cmd.date = df.format(startDate);
+
+                                if (json.getString("command").equals("manual") && json.has("duration")) {
+                                    int duration = json.getInt("duration");
+                                    Calendar cal = Calendar.getInstance();
+                                    cal.setTime(startDate);
+                                    cal.add(Calendar.SECOND,duration);
+                                    cmd.enddate = df.format(cal.getTime());
+
+                                    Zone zone = Core.getZoneFromId(cmd.zone);
+                                    if (zone != null) {
+                                        cmd.temperature = zone.getTemperature();
+
                                     } else {
-                                        out.print("errore");
-                                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                        out.print("Invalid zone " + cmd.zone);
                                         return;
                                     }
+                                }
+
+
+                                Command.CommandResult result = cmd.send();
+                                //SensorBase sensor = Core.getSensorFromId(cmd.actuatorid);
+                                if (result.success /*&& sensor != null*/) {
+                                    //out.print(sensor.toJson().toString());
+                                    response.setStatus(HttpServletResponse.SC_OK);
+                                    //PrintWriter out = response.getWriter();
+                                    out.print(result.result);
+                                    return;
                                 } else {
-                                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                                    out.print("Invalid zone " + cmd.zone);
+                                    out.print("errore");
+                                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                                     return;
                                 }
+
+
                             } catch (Exception e) {
                                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                                 out.print(e.toString());

@@ -62,6 +62,11 @@ public class ScenarioProgramTimeRange extends DBObject {
         active = true;
         for (ProgramAction action: programActionList) {
             action.start();
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR_OF_DAY,endTime.getHour());
+            cal.set(Calendar.MINUTE,endTime.getMinute());
+            cal.set(Calendar.SECOND,endTime.getSecond());
+            action.setEndDate(cal.getTime());
         }
     }
     public void stop() {

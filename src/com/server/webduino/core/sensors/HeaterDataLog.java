@@ -27,7 +27,7 @@ public class HeaterDataLog extends DataLog {
         HeaterActuator heaterActuator = (HeaterActuator) sensor;
         String sql;
 
-        sql = "INSERT INTO heaterdatalog (date, sensorid, relestatus, status, temperature, targettemperature, scenario, timeinterval) " +
+        sql = "INSERT INTO heaterdatalog (date, sensorid, relestatus, status, temperature, targettemperature, actionid) " +
                 " VALUES (" +
                 getStrDate() + ",'" +
                 heaterActuator.getId() + "'," +
@@ -35,8 +35,7 @@ public class HeaterDataLog extends DataLog {
                 heaterActuator.getStatus() + "'," +
                 heaterActuator.getTemperature() + "," +
                 heaterActuator.targetTemperature + "," +
-                heaterActuator.scenario + "," +
-                heaterActuator.timeInterval +
+                heaterActuator.actionId +
                 ");";
         return sql;
     }

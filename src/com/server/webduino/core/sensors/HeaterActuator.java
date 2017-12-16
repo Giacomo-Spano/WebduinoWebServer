@@ -3,17 +3,16 @@ package com.server.webduino.core.sensors;
 import com.server.webduino.core.*;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.webduinosystem.scenario.Scenario;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.Time;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -23,6 +22,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public static final String STATUS_AUTOPROGRAM = "program";
     //static final String STATUS_MANUALPROGRAM = "manualprogram";
     public static final String STATUS_MANUAL = "manual";
+    public static final String STATUS_KEEPTEMPERATURE = "keeptemperature";
     public static final String STATUS_MANUALOFF = "manualoff";
     public static final String STATUS_DISABLED = "disabled";
 
@@ -33,15 +33,20 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     protected int duration;
     protected int remaining;
     protected double targetTemperature;
+    protected Date lastTemperatureUpdate;
+    protected Date lastCommandDate;
+    protected Date endDate;
     // valori letti dal sensore (ricevutri da updatefromJson
     // possono potenzialemte essere diversi da quelli salvati ActiveProgram
-    public int scenario;
-    public int timeInterval;
-    protected int zone; //  questo valore non è letto dal sensore ma rimane solo sul server
+    public int actionId;
+    public int timeRange;
+    protected int zoneId; //  questo valore non è letto dal sensore ma rimane solo sul server
 
     public interface TemperatureSensorListener extends SensorBase.SensorListener {
         public String TemperatureEvents = "temperature event";
+
         void onUpdateTemperature(int sensorId, double temperature, double oldtemperature);
+
         void changeAvTemperature(int sensorId, double avTemperature);
     }
 
@@ -76,39 +81,40 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         this.remaining = remaining;
     }
 
-    public int getScenarioId() {
-        return scenario;
+    public int getActionId() {
+        return actionId;
     }
 
-    protected void setScenarioId(int scenaarioId) { //  questo valore non è letto dal sensore ma rimane solo sul server
-        this.scenario = scenaarioId;
+    protected void setActionId(int actionId) { //  questo valore non è letto dal sensore ma rimane solo sul server
+
+        this.actionId = actionId;
+        //Scenario scenario = Scenario.scenarioFromProgramTimeRange()
     }
 
-    public int getTimeIntervalId() {
-        return timeInterval;
+    public int getTimeRangeId() {
+        return timeRange;
     }
 
-    protected void setTimeIntervalId(int timeIntervalId) { //  questo valore non è letto dal sensore ma rimane solo sul server
-        this.timeInterval = timeIntervalId;
-    }
+    /*protected void setTimeRangeId(int timeRangeId) { //  questo valore non è letto dal sensore ma rimane solo sul server
+        this.timeRange = timeRangeId;
+    }*/
 
     public int getZoneId() {
-        return zone;
+        return zoneId;
     }
 
     protected void setZoneId(int zoneId) {
 
-        if (this.getZoneId() != zoneId) {
-            Zone zone = Core.getZoneFromId(getZoneId());
-            if (zone != null) {
-                zone.removeListener(this);
-                this.zone = zoneId;
-                zone = Core.getZoneFromId(getZoneId());
-                if (zone != null) {
-                    zone.addListener(this);
-                }
-            }
+        if (zoneId == this.zoneId)
+            return;
+
+        Zone zone = Core.getZoneFromId(getZoneId());
+        if (zone != null) {
+            zone.removeListener(this);
         }
+
+        this.zoneId = zoneId;
+
     }
 
     public double getTargetTemperature() {
@@ -142,6 +148,18 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         this.temperature = temperature;
     }
 
+    protected void setLastTemperatureUpdate(Date date) {
+        this.lastTemperatureUpdate = date;
+    }
+
+    protected void setLastCommandUpdate(Date date) {
+        this.lastCommandDate = date;
+    }
+
+    protected void setEndDate(Date date) {
+        this.endDate = date;
+    }
+
     public Boolean sendCommand(String command, long duration, double targetTemperature, int scenario, int timeInterval, int zone, double temperature) {
 
         return false;
@@ -165,10 +183,8 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         super.updateFromJson(date, json);
 
         boolean oldReleStatus = this.releStatus;
-        int oldScenario = scenario;
-        int oldTimeInterval = timeInterval;
-        int oldZoneId = zone;
-        double oldTargetId = targetTemperature;
+        //int oldScenario = scenario;
+        //int oldTimeInterval = timeInterval;
         String oldStatus = getStatus();
 
         lastUpdate = date;
@@ -179,6 +195,41 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             if (json.has("remotetemperature")) {
                 setTemperature(json.getDouble("remotetemperature"));
             }
+            if (json.has("lasttemperatureupdate") && !json.getString("lasttemperatureupdate").equals("")) {
+                String str = json.getString("lasttemperatureupdate");
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                try {
+                    Date lasttemperatureupdate = df.parse(str);
+                    setLastTemperatureUpdate(lasttemperatureupdate);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            if (json.has("lastcommanddate") && !json.getString("lastcommanddate").equals("")) {
+                String str = json.getString("lastcommanddate");
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                try {
+                    Date lastcommanddate = df.parse(str);
+                    setLastCommandUpdate(lastcommanddate);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+            if (json.has("enddate") && !json.getString("enddate").equals("")) {
+                String str = json.getString("enddate");
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                try {
+                    Date enddate = df.parse(str);
+                    setEndDate(enddate);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
             if (json.has("zoneid"))
                 setZoneId(json.getInt("zoneid"));
             if (json.has("relestatus"))
@@ -188,15 +239,15 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
                 setStatus(status);
             }
             if (json.has("duration"))
-                setDuration(duration = json.getInt("duration"));
+                setDuration(json.getInt("duration"));
             if (json.has("remaining"))
-                setRemaining(remaining = json.getInt("remaining"));
+                setRemaining(json.getInt("remaining"));
             if (json.has("target"))
-                setTargetTemperature(targetTemperature = json.getDouble("target"));
-            if (json.has("scenario"))
-                setScenarioId(json.getInt("scenario"));
-            if (json.has("timerange"))
-                setTimeIntervalId(json.getInt("timerange"));
+                setTargetTemperature(json.getDouble("target"));
+            if (json.has("actionid"))
+                setActionId(json.getInt("actionid"));
+            /*if (json.has("timerange"))
+                setTimeIntervalId(json.getInt("timerange"));*/
         } catch (JSONException e) {
             e.printStackTrace();
             LOGGER.info("json error: " + e.toString());
@@ -209,12 +260,12 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             else
                 Core.sendPushNotification(SendPushMessages.notification_relestatuschange, "titolo", "rele", "spento", getId());
         }
-        if (scenario != oldScenario || timeInterval != oldTimeInterval) {
+        /*if (scenario != oldScenario || timeInterval != oldTimeInterval) {
             //sensorSchedule.heaterProgramChange(this, activeProgramID, oldProgramId, activeTimeRangeID, oldTimerangeId);
 
-            String description = "New scenario " + scenario + "." + timeInterval + "." + " zone " + zone;
+            String description = "New scenario " + scenario + "." + timeInterval + "." + " zone " + zoneId;
             Core.sendPushNotification(SendPushMessages.notification_programchange, "Program", description, "0", getId());
-        }
+        }*/
         if (!getStatus().equals(oldStatus)) {
             // notifica Schedule che è cambiato lo stato ed invia una notifica alle app
             //sensorSchedule.checkProgram();
@@ -231,16 +282,37 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         try {
             json.put("temperature", temperature);
             json.put("status", getStatus());
-            json.put("duration", duration);
-            json.put("remaining", getRemaining());
+
+            DateFormat timeFormat = new SimpleDateFormat("HH:mm");
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.HOUR_OF_DAY,duration/3600);
+            cal.set(Calendar.MINUTE,duration%3600/60);
+            cal.set(Calendar.SECOND,duration%60);
+            String str = timeFormat.format(cal.getTime());
+            json.put("duration", str);
+
+            cal.set(Calendar.HOUR_OF_DAY,remaining/3600);
+            cal.set(Calendar.MINUTE,remaining%3600/60);
+            cal.set(Calendar.SECOND,remaining%60);
+            str = timeFormat.format(cal.getTime());
+            json.put("remaining", str);
+
             json.put("relestatus", getReleStatus());
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             if (lastUpdate != null)
                 json.put("lastupdate", df.format(lastUpdate));
+            if (lastTemperatureUpdate != null)
+                json.put("lasttemperatureupdate", df.format(lastTemperatureUpdate));
+            if (lastCommandDate != null)
+                json.put("lastcommanddate", df.format(lastCommandDate));
+            if (endDate != null)
+                json.put("enddate", df.format(endDate));
             json.put("target", targetTemperature);
-            json.put("scenario", getScenarioId());
-            json.put("timeInterval", getTimeIntervalId());
-            json.put("zone", zone);
+            json.put("action", actionId);
+            //json.put("scenario", getScenarioId());
+            //json.put("program", getActiveProgram());
+            //json.put("timerange", getTimeRangeId());
+            json.put("zone", zoneId);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -275,27 +347,22 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public void setStatus(String status) {
         //String oldStatus = status;
         super.setStatus(status);
-        if (!oldStatus.equals(status)) {
-            if (status.equals(STATUS_MANUAL)) {
-                Zone zone = Core.getZoneFromId(getZoneId());
-                if (zone != null) {
-                    zone.addListener(this/*new Zone.WebduinoZoneListener() {
-                        @Override
-                        public void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature) {
-                            sendTemperature(newTemperature);
-                        }
+        if (!oldStatus.equals(status) && status.equals(STATUS_MANUAL)) {
+            // se lo stato diventa manual si mettein ascolto sulla
+            // zona della temperatura manuale e manda una richiesta di aggiornamento temperatura alla zona
+            Zone zone = Core.getZoneFromId(getZoneId());
+            if (zone != null) {
+                zone.removeListener(this);
+                zone.addListener(this);
 
-                        @Override
-                        public void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus) {
+                temperature = 0;
+                zone.requestSensorStatusUpdate();
 
-                        }
-                    }*/);
-                }
-            } else if (oldStatus.equals(STATUS_MANUAL)) {
-                Zone zone = Core.getZoneFromId(getZoneId());
-                if (zone != null) {
-                    zone.removeListener(this);
-                }
+            }
+        } else if (!status.equals(STATUS_MANUAL)) {
+            Zone zone = Core.getZoneFromId(getZoneId());
+            if (zone != null) {
+                zone.removeListener(this);
             }
         }
     }
@@ -318,8 +385,10 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     }
 
     @Override
-    public void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature) {
-        sendTemperature(newTemperature);
+    public void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature) {
+        if (newTemperature != temperature)
+            sendTemperature(newTemperature);
+        temperature = newTemperature;
     }
 
     @Override

@@ -73,6 +73,9 @@ function addProgram(idx, elem) {
     program.find('td[name="status"]').text(elem.status);
     program.find('td[name="nextjob"]').text(elem.nextjobdate);
 
+    if (elem.activetimerange != undefined)
+        program.find('td[name="activetimerange"]').text(elem.activetimerange.actionstatus );
+
     program.find('button[name="editprogram"]').attr("idx", idx);
     program.find('button[name="editprogram"]').click(function () {
         var index = $(this).attr("idx");
@@ -97,14 +100,20 @@ function addCalendar(idx, elem) {
     calendar.find('td input[name="calendarname"]').val(elem.name);
     calendar.find('td input[name="calendardescription"]').val(elem.description);
     calendar.find('td input[name="calendarenabled"]').prop('checked', elem.enabled);
-    calendar.find('td input[name="calendarstartdate"]').val(elem.startdatetime);
+    //
     calendar.find('td input[name="calendarstartdate"]').datetimepicker({
-        dateFormat: "d/m/Y H:i"
+        //dateFormat: "d/m/Y H:i"
+        dateFormat: 'dd/mm/yyyy hh:mm'
     });
-    calendar.find('td input[name="calendarenddate"]').val(elem.enddatetime);
+    calendar.find('td input[name="calendarstartdate"]').val(elem.startdatetime);
+    //calendar.find('td input[name="calendarstartdate"]').datetimepicker("setDate",new Date()/* elem.startdatetime*/);
+
+    //calendar.find('td input[name="calendarenddate"]').val(elem.enddatetime);
     calendar.find('td input[name="calendarenddate"]').datetimepicker({
-        dateFormat: "d/m/Y H:i"
+        dateFormat: 'dd/m/yyyy hh:mm'
     });
+    //calendar.find('td input[name="calendarenddate"]').datetimepicker("setDate", elem.enddatetime);
+    calendar.find('td input[name="calendarenddate"]').val(elem.enddatetime);
 
     calendar.find('td input[name="calendarsunday"]').prop('checked', elem.sunday);
     calendar.find('td input[name="calendarmonday"]').prop('checked', elem.monday);
@@ -369,6 +378,22 @@ function loadScenario(scenario) {
     );
 }
 
+function formatDate(dateObject) {
+    var d = new Date(dateObject);
+    var day = d.getDate();
+    var month = d.getMonth() + 1;
+    var year = d.getFullYear();
+    if (day < 10) {
+        day = "0" + day;
+    }
+    if (month < 10) {
+        month = "0" + month;
+    }
+    var date = day + "/" + month + "/" + year;
+
+    return date;
+};
+
 function updateScenarioData() {
 
     if ($scenario.calendar.timeintervals != undefined) {
@@ -385,6 +410,12 @@ function updateScenarioData() {
             elem.friday = $(this).find('td input[name="calendarfriday"]').prop('checked');
             elem.saturday = $(this).find('td input[name="calendarsaturday"]').prop('checked');
             elem.sunday = $(this).find('td input[name="calendarsunday"]').prop('checked');
+            //var date = $(this).find('td input[name="calendarstartdate"]').datepicker("getDate");
+            //formatDate(date);
+            elem.startdatetime = $(this).find('td input[name="calendarstartdate"]').datepicker().val();
+            elem.enddatetime = $(this).find('td input[name="calendarenddate"]').datepicker().val();
+            //calendar.find('td input[name="calendarstartdate"]').datetimepicker("setDate", elem.startdatetime);
+
             i++;
         });
     }
@@ -423,6 +454,10 @@ function scenarioDisableEdit(enabled) {
     $scenarioPanel.find('input').prop('disabled', enabled);
     $scenarioPanel.find('textarea').prop('disabled', enabled);
     $scenarioPanel.find('select').prop('disabled', enabled);
+
+    /*$scenarioPanel.find('td input').prop('disabled', enabled);
+    $scenarioPanel.find('td textarea').prop('disabled', enabled);
+    $scenarioPanel.find('td select').prop('disabled', enabled);*/
 
     if (!enabled)
         $scenarioPanel.find('p[class="help-block"]').hide();

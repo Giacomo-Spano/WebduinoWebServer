@@ -44,6 +44,9 @@ function setZoneElement(idx, element, zone) {
 
     element.find('td[name="id"]').text(zone.id);
     element.find('td[name="name"]').text(zone.name);
+    if (zone.lasttemperatureupdate != undefined) {
+        element.find('td[name="temperature"]').text(zone.lasttemperatureupdate + " " + zone.temperature + "°C" );
+    }
 
 
     element.find('button[name="delete"]').attr("idx", idx);

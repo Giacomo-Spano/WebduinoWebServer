@@ -1,9 +1,11 @@
 package com.server.webduino.core.sensors.commands;
 
 import com.server.webduino.core.Command;
+import com.server.webduino.core.Core;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
 
 /**
@@ -27,6 +29,7 @@ public class HeaterActuatorCommand extends Command {
     public double temperature;
     public int actionid;
     public String date;
+    public String enddate;
 
     public HeaterActuatorCommand(JSONObject json) throws JSONException {
         super(json);
@@ -53,6 +56,8 @@ public class HeaterActuatorCommand extends Command {
                 zone = json.getInt("zone");
             if (json.has("date"))
                 date = json.getString("date");
+            if (json.has("enddate"))
+                enddate = json.getString("enddate");
     }
 
     @Override
@@ -68,12 +73,12 @@ public class HeaterActuatorCommand extends Command {
                 json.put("command", HeaterActuatorCommand.Command_KeepTemperature);
                 json.put("duration", duration);
                 json.put("target", targetTemperature);
-                /*json.put("scenario", scenario);
-                json.put("timeinterval", timeInterval);*/
                 json.put("zone", zone);
                 json.put("temperature", temperature);
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 json.put("actionid", actionid);
                 json.put("date", date);
+                json.put("enddate", enddate);
 
             } else if (command.equals(HeaterActuatorCommand.Command_Off)) {
 
@@ -83,7 +88,7 @@ public class HeaterActuatorCommand extends Command {
                 json.put("timeinterval", timeInterval);
                 json.put("zone", zone);
                 json.put("actionid", actionid);
-                json.put("date", date);
+                json.put("date", "");
 
             } else if (command.equals(HeaterActuatorCommand.Command_Manual)) {
 
@@ -92,8 +97,8 @@ public class HeaterActuatorCommand extends Command {
                 json.put("target", targetTemperature);
                 json.put("zone", zone);
                 json.put("temperature", temperature);
-                //json.put("actionid", actionid);
                 json.put("date", date);
+                json.put("enddate", enddate);
 
             } else if (command.equals(HeaterActuatorCommand.Command_SendTemperature)) {
 

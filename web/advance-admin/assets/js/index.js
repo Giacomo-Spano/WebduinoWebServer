@@ -484,6 +484,7 @@ function setSensorElement(element, sensor) {
 
         // test open/close button
         label = "close";
+        
         if (!sensor.openstatus)
             label = "open";
 
@@ -493,8 +494,14 @@ function setSensorElement(element, sensor) {
             + " rele: " + sensor.relestatus
             + " target: " + sensor.target
             + " temperature : " + sensor.temperature
-            + " scenario: " + sensor.scenario + "." + sensor.timeinterval + " "
-            + " zone: " + sensor.zone;
+            + " " + sensor.lasttemperatureupdate
+            + " lastcommandate" + sensor.lastcommanddate
+            + " enddate" + sensor.enddate
+            + " actionid" + sensor.action
+            + " zone: " + sensor.zone
+            + " duration: " + sensor.duration
+            + " >remaining: " + sensor.remaining
+            + " ";
 
         element.find('td[name="status"]').text(text);
     } else {

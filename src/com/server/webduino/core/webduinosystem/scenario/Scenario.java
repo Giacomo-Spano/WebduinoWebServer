@@ -207,12 +207,15 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             id = rs.getInt(1);
         }
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+            if (timeInterval.scenarioid == 0) timeInterval.scenarioid = id;
             timeInterval.write(conn);
         }
         for (ScenarioTrigger trigger : triggers) {
+            if (trigger.scenarioid == 0) trigger.scenarioid = id;
             trigger.write(conn);
         }
         for (ScenarioProgram program : programs) {
+            if (program.scenarioId == 0) program.scenarioId = id;
             program.write(conn);
         }
     }
@@ -351,21 +354,19 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             dateEnabled = json.getBoolean("dateenabled");
         if (json.has("calendar"))
             calendar = new ScenarioCalendar(json.getJSONObject("calendar"));
+        if (json.has("triggers")) {
+            JSONArray jArray = json.getJSONArray("triggers");
+            for (int k = 0; k < jArray.length(); k++) {
+                ScenarioTrigger trigger = new ScenarioTrigger(jArray.getJSONObject(k));
+                triggers.add(trigger);
+            }
+        }
         if (json.has("priority"))
             priority = json.getInt("priority");
         if (json.has("programs")) {
             JSONArray jArray = json.getJSONArray("programs");
             for (int k = 0; k < jArray.length(); k++) {
                 ScenarioProgram program = new ScenarioProgram(jArray.getJSONObject(k));
-                if (jArray.getJSONObject(k).has("timeranges")) {
-                    JSONArray jsonArray = jArray.getJSONObject(k).getJSONArray("timeranges");
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject j = jsonArray.getJSONObject(i);
-                        ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(j);
-                        if (timeRange != null)
-                            program.timeRanges.add(timeRange);
-                    }
-                }
                 programs.add(program);
             }
         }
@@ -376,6 +377,40 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             if (program.id == programid) {
                 return program;
             }
+        }
+        return null;
+    }
+
+    public static Scenario scenarioFromProgramTimeRange(int programTimeRangeId) {
+        LOGGER.info("scenarioFromProgramTimeRange");
+        try {
+            //Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            conn.setAutoCommit(false);
+            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+            String sql;
+            sql = "SELECT *\n" +
+                    "FROM scenarios\n" +
+                    "INNER JOIN scenarios_programs ON scenarios_programs.scenarioid=scenarios.id\n" +
+                    "INNER JOIN scenarios_programtimeranges ON scenarios_programs.id=scenarios_programtimeranges.programid where scenarios_programtimeranges.id = " + programTimeRangeId + ";";
+            ResultSet scenariosResultSet = stmt.executeQuery(sql);
+            if (scenariosResultSet.next()) {
+                Scenario scenario = new Scenario();
+                scenario.fromResulSet(conn, scenariosResultSet);
+                scenariosResultSet.close();
+                stmt.close();
+                conn.close();
+                return scenario;
+            } else {
+                stmt.close();
+                conn.close();
+                return null;
+            }
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -486,3 +521,5 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 }
+
+

@@ -4,18 +4,16 @@ import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
 import com.server.webduino.core.Shield;
-import com.server.webduino.core.Shields;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.TemperatureSensor;
-import com.server.webduino.core.webduinosystem.WebduinoTrigger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
@@ -26,7 +24,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     public interface WebduinoZoneListener {
-        void onTemperatureChange(int zoneId, double newTemperature, double oldTemperature);
+        void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature);
         void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus);
     }
     protected List<WebduinoZoneListener> listeners = new CopyOnWriteArrayList<>();
@@ -52,6 +50,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
 
     private double temperature = 0.0;
     private boolean doorStatusOpen = false;
+    public Date lastTemperatureUpdate = null;
 
     public Zone(int id, String name, String type) {
         this.id = id;
@@ -202,8 +201,10 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
 
     @Override
     public void onUpdateTemperature(int sensorId, double temperature, double oldtemperature) {
+
+        lastTemperatureUpdate = Core.getDate();
         for(WebduinoZoneListener listener: listeners) {
-            listener.onTemperatureChange(id,temperature,oldtemperature);
+            listener.onUpdateTemperature(id,temperature,oldtemperature);
         }
         this.temperature = temperature;
     }
@@ -288,6 +289,13 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
         try {
             json.put("id", id);
             json.put("name", name);
+
+            if (lastTemperatureUpdate != null) {
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                json.put("lasttemperatureupdate", df.format(lastTemperatureUpdate));
+                json.put("temperature", temperature);
+            }
+
             JSONArray jsonArray = new JSONArray();
             for(ZoneSensor zonesensor: zoneSensors) {
                 JSONObject jsonObject = new JSONObject();

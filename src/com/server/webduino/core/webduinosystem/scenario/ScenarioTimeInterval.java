@@ -213,7 +213,7 @@ public class ScenarioTimeInterval extends DBObject {
     public JSONObject toJson() {
 
         JSONObject json = new JSONObject();
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
         try {
             json.put("id", id);
@@ -256,7 +256,7 @@ public class ScenarioTimeInterval extends DBObject {
         if (json.has("priority")) priority = json.getInt("priority");
         if (json.has("startdatetime")) {
             String time = json.getString("startdatetime");
-            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
             try {
                 startDateTime = df.parse(time);
             } catch (ParseException e) {
@@ -265,7 +265,7 @@ public class ScenarioTimeInterval extends DBObject {
         }
         if (json.has("enddatetime")) {
             String time = json.getString("enddatetime");
-            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
             try {
                 endDateTime = df.parse(time);
             } catch (ParseException e) {

@@ -1,5 +1,7 @@
 package com.server.webduino.core.webduinosystem.zones;
 
+import java.util.Date;
+
 /**
  * Created by giaco on 12/05/2017.
  */
@@ -7,6 +9,7 @@ public class ZoneSensor {
     int id;
     private int sensorId;
     public String name;
+
 
     int getId() {
         return id;

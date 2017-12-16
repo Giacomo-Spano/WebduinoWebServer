@@ -1,7 +1,8 @@
 /**
  * Created by giaco on 27/10/2017.
  */
-//var $shieldsPanel;
+var $heater;
+var $panel;
 
 
 function disableEdit(enabled) {
@@ -22,12 +23,32 @@ function disableEdit(enabled) {
 function loadData(heater) {
 
 }
+
+function setDurationandTarget() {
+    if ($panel.find('select[name="program"]').val() == "auto") {
+        $panel.find('input[name="target"]').prop('disabled', true);
+        $panel.find('input[name="duration"]').prop('disabled', true);
+
+        if ($heater.duration != undefined && $heater.duration != "")
+            $panel.find('input[name="duration"]').val($heater.duration);
+        $panel.find('input[name="target"]').val($heater.target);
+
+    } else {
+        $panel.find('input[name="target"]').prop('disabled', false);
+        $panel.find('input[name="duration"]').prop('disabled', false);
+        $panel.find('input[name="duration"]').val("00:30");
+        $panel.find('input[name="target"]').val("22");
+
+    }
+}
+
 function loadHeater(heater) {
 
-    //$shield = heater;
+    $heater = heater;
 
     $("#result").load("heater.html", function () {
-            // back button
+
+        // back button
             backbutton.unbind("click");
             backbutton.click(function () {
                 loadDashboard();
@@ -37,29 +58,32 @@ function loadHeater(heater) {
             notification.hide();
 
             //loadData.call(this, heater);
-            var panel = $(this).find('div[id="panel"]');
-            panel.find('p[name="name"]').text(heater.name);
-            panel.find('p[name="temperature"]').text(heater.temperature);
-            panel.find('p[name="target"]').text(heater.target);
-            panel.find('p[name="status"]').text(heater.status);
-            panel.find('p[name="date"]').text(heater.lastupdate);
+            $panel = $(this).find('div[id="panel"]');
+            $panel.find('p[name="name"]').text(heater.name);
+            $panel.find('p[name="temperature"]').text(heater.temperature);
+            $panel.find('p[name="status"]').text(heater.status);
+            $panel.find('p[name="date"]').text(heater.lastupdate);
             if (heater.action != undefined)
-                panel.find('p[name="action"]').text(heater.action);
-            panel.find('p[name="rele"]').text(heater.relestatus);
-            panel.find('p[name="pin"]').text(heater.pin);
-            panel.find('p[name="shieldid"]').text(heater.shieldid);
-            panel.find('p[name="id"]').text(heater.id);
+                $panel.find('p[name="action"]').text(heater.action);
+            $panel.find('p[name="rele"]').text(heater.relestatus);
+            $panel.find('p[name="pin"]').text(heater.pin);
+            $panel.find('p[name="shieldid"]').text(heater.shieldid);
+            $panel.find('p[name="id"]').text(heater.id);
 
+
+            $('select[name="program"]').on('change', function () {
+                setDurationandTarget.call();
+            });
 
             if (heater.program != undefined)
-                panel.find('p[name="program"]').text(heater.program);
+                $panel.find('p[name="program"]').text(heater.program);
             $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
                 $.each(zones, function (val, zone) {
-                    panel.find('select[name="zoneid"]').append(new Option(zone.name, zone.id));
+                    $panel.find('select[name="zoneid"]').append(new Option(zone.name, zone.id));
                 });
             });
-            //panel.find('select[name="pin"]').val(heater.pin);
-            var duration = panel.find('input[name="duration"]').timepicker({
+
+            var duration = $panel.find('input[name="duration"]').timepicker({
                 timeFormat: 'HH:mm',
                 interval: 15,
                 minTime: '00:00',
@@ -70,29 +94,32 @@ function loadHeater(heater) {
                 dropdown: true,
                 scrollbar: true
             });
-            if (heater.duration != undefined && heater.duration != 0)
-                panel.find('input[name="duration"]').val(toHHMM(heater.duration));
 
+            if (heater.status == "manual")
+                $panel.find('select[name="program"]').val("manual");
+            else
+                $panel.find('select[name="program"]').val("auto");
+            setDurationandTarget();
 
             // save button
-            var savebutton = panel.find('button[name="save"]');
+            var savebutton = $panel.find('button[name="save"]');
             savebutton.click(function () {
                 var command = 'off';
-                if (panel.find('select[name="program"]').val() == 'manual')
+                if ($panel.find('select[name="program"]').val() == 'manual')
                     command = 'manual';
 
                 //time="12:12:12";
-                tt = panel.find('input[name="duration"]').val().split(":");
-                duration = tt[0] * 60 + tt[1] * 1/*+tt[2]*1*/;
+                tt = $panel.find('input[name="duration"]').val().split(":");
+                duration = (parseInt(tt[0]) * 60 + parseInt(tt[1])) * 60; //urata in secondi
 
 
                 var json = {
                     'shieldid': heater.shieldid,
                     'actuatorid': heater.id,
                     'command': command,
-                    'zone': panel.find('select[name="zoneid"]').val(),
+                    'zone': $panel.find('select[name="zoneid"]').val(),
                     'duration': duration,
-                    'target': panel.find('input[name="target"]').val(),
+                    'target': $panel.find('input[name="target"]').val(),
                 };
 
 
@@ -111,21 +138,6 @@ function loadHeater(heater) {
                     }
                 });
 
-
-                /*$.post(shieldServletPath, JSON.stringify(json), function (data) {
-
-                 notificationsuccess.show();
-                 notificationsuccess.find('label[name="description"]').text("comando inviato" + data);
-                 getSensor(heater.id, function (sensor) {
-                 loadData(sensor);
-                 });
-
-                 }, "json").fail(function (response) {
-                 notification.show();
-                 notification.find('label[name="description"]').text(response.responseText);
-                 });*/
-
-
             });
         }
     );
@@ -137,23 +149,6 @@ function getSensor(id, callback) {
     });
 }
 
-function toHHMM(seconds) {
-    var h, m, s, result = '';
-    // HOURs
-    h = Math.floor(seconds / 3600);
-    seconds -= h * 3600;
-    if (h) {
-        result = h < 10 ? '0' + h + ':' : h + ':';
-    }
-    // MINUTEs
-    m = Math.floor(seconds / 60);
-    seconds -= m * 60;
-    result += m < 10 ? '0' + m + ':' : m/*+':'*/;
-    // SECONDs
-    //s=seconds%60;
-    //result += s<10 ? '0'+s : s;
-    return result;
-}
 
 
 

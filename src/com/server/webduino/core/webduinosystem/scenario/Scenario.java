@@ -3,6 +3,7 @@ package com.server.webduino.core.webduinosystem.scenario;
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +24,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * Created by giaco on 18/05/2017.
  */
-public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener {
+public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ActionListener*/ {
 
     private static final Logger LOGGER = Logger.getLogger(NextScenarioTimeIntervalQuartzJob.class.getName());
 
@@ -44,6 +45,29 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     private Date nextJobDate = null;
     private Date startDate = null;
     private Date endDate = null;
+
+    /*protected List<Scenario.ActionListener> listeners = new ArrayList<>();
+
+    @Override
+    public void onStart(ProgramAction action, int timerangeIndex) {
+
+    }
+
+    @Override
+    public void onStop(ProgramAction action) {
+
+    }*/
+
+    /*public interface ActionListener {
+        void onStart(ProgramAction action, int timerangeIndex, int programPriority, int ScenarioPriority);
+        void onStop(ProgramAction action);
+    }
+    public void addListener(Scenario.ActionListener toAdd) {
+        listeners.add(toAdd);
+    }
+    public void deleteListener(Scenario.ActionListener toRemove) {
+        listeners.remove(toRemove);
+    }*/
 
     public Scenario() {
     }
@@ -93,6 +117,17 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     }
 
     public void triggerNextTimeInterval(Date currentDate) {
+
+        // questa funzione non la capisco. Dovrebbe mettere active a true o false quando viene chiamata ????
+        // sembra che non faccia nulla a parte impostare la prossima chiamata al termine dell'activetimeintervalfrromdate
+        // oppure alla nextstartdate.
+        // Secondo me non funziona. Funziona all'inizio ma se si pèasssa da un calendar ad un altro non funziona. Dovrebbe
+        // chiamare la checkStatus()
+        //
+        // forse ho capito. Non serve a nulla questa chiamata, si potrebbe eliminare. La checkStatus è chiamata dagli eventi dei timeinterval
+        // onChangeStatus
+
+
         ScenarioTimeInterval activeTimeInterval = null;
         Date nextTriggerDate = null;
         activeTimeInterval = calendar.getActiveTimeIntervalFromDateTime(currentDate);
@@ -127,7 +162,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
-    // schedula la prossima chiamata al joj NextScenarioTimeIntervalQuartzJob e
+    // schedula la prossima chiamata al job NextScenarioTimeIntervalQuartzJob e
     // memorizza la data in nextJobDate
     // Se esiste già lo cancella e lo sostituisce
     private void scheduleNextTimeIntervalJob(Date date) {
@@ -220,6 +255,13 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
+    public void setActionListener(ProgramAction.ActionListener listener) {
+        if (programs != null)
+            for (ScenarioProgram program: programs) {
+                program.setActionListener(listener);
+            }
+    }
+
     public void fromResulSet(Connection conn, ResultSet scenariosResultSet) throws Exception {
 
         //Scenario scenario = new Scenario();
@@ -269,6 +311,25 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         while (programsResultset.next()) {
             ScenarioProgram program = new ScenarioProgram(conn, programsResultset);
             this.programs.add(program);
+
+            //program.setActionListener(this);
+            /*program.addListener(new ScenarioProgram.ActionListener() {
+                @Override
+                public void onStart(ProgramAction action, int timerangeIndex, int programPriority) {
+                    for (ActionListener listener: listeners) {
+                        listener.onStart(action,timerangeIndex,programPriority,priority);
+                    }
+                }
+
+                @Override
+                public void onStop(ProgramAction action) {
+                    for (ActionListener listener: listeners) {
+                        listener.onStop(action);
+                    }
+                }
+
+            });*/
+
         }
         programsResultset.close();
         stmt.close();
@@ -381,7 +442,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         return null;
     }
 
-    public static Scenario scenarioFromProgramTimeRange(int programTimeRangeId) {
+    /*public static Scenario scenarioFromProgramTimeRange(int programTimeRangeId) {
         LOGGER.info("scenarioFromProgramTimeRange");
         try {
             //Class.forName("com.mysql.jdbc.Driver");
@@ -413,23 +474,28 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 
     @Override
     public void onChangeStatus(boolean active) {
         checkStatus();
     }
 
+    // controlla lo stato 'active' dello scenario
+    // è chiamata all'inizio e poi dall'evento onChangeStatus dei timeInterval del calendario dello scenario
     public void checkStatus() {
         boolean oldActiveStatus = active;
         active = false;
 
+        // controlla se c'è almeno un timeinterval attivo
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
             if (timeInterval.isActive(Core.getDate())) {
                 active = true;
+                break;
             }
         }
 
+        // se lo scenario è attivo avvia i programmi
         for (ScenarioProgram program : programs) {
             if (active) {
                 program.startProgram();
@@ -437,6 +503,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
                 program.stopProgram();
             }
         }
+
         if (oldActiveStatus != active) {
             if (active) {
                 startDate = Core.getDate();
@@ -445,6 +512,12 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             }
         }
     }
+
+    /*public void setActionsListener(ProgramAction.ActionListener listener) {
+        for (ScenarioProgram program : programs) {
+            program.setActionsListener(listener);
+        }
+    }*/
 
     public class ScenarioCalendar {
         //public boolean dateEnabled;

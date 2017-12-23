@@ -1,5 +1,6 @@
 package com.server.webduino.core;
 
+import com.server.webduino.core.sensors.commands.Command;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

@@ -1,6 +1,8 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.Program;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import org.json.JSONArray;
 
 import java.sql.*;
@@ -16,7 +18,7 @@ public class Scenarios {
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
     private static List<Scenario> scenarioList = new ArrayList<>();
 
-    private static void readScenarios() {
+    private void readScenarios() {
         LOGGER.info("readScenarios");
         try {
             //Class.forName("com.mysql.jdbc.Driver");
@@ -25,14 +27,26 @@ public class Scenarios {
             Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             String sql;
-            sql = "SELECT * FROM scenarios" + " ORDER BY priority ASC;";;
+            sql = "SELECT * FROM scenarios" + " ORDER BY priority ASC;";
+            ;
             ResultSet scenariosResultSet = stmt.executeQuery(sql);
             scenarioList = new ArrayList<>();
             while (scenariosResultSet.next()) {
                 Scenario scenario = new Scenario();
                 scenario.fromResulSet(conn, scenariosResultSet);
-                scenarioList.add(scenario);
+                scenario.setActionListener(new ProgramAction.ActionListener() {
 
+                    @Override
+                    public void onStart(ProgramAction action) {
+                        checkConflict(action);
+                    }
+
+                    @Override
+                    public void onStop(ProgramAction action) {
+                        removeConflict(action);
+                    }
+                });
+                scenarioList.add(scenario);
             }
             scenariosResultSet.close();
             stmt.close();
@@ -44,22 +58,146 @@ public class Scenarios {
         }
     }
 
-    public static void initScenarios() {
+    private void checkConflict(ProgramAction action/*, int timerangeIndex, int programPriority, int scenarioPriority*/) {
 
-        for(Scenario scenario :scenarioList) {
+        Conflict conflict = getActionConfictDataFromActionId(action.id);
+
+        // Scorre tutte le action di tutti gli scenari e se ne trova una con priorità inferiore aggiunge un conflic alla action trovata
+        if (scenarioList != null)
+            for (Scenario scenario : scenarioList) {
+                if (scenario.programs != null)
+                    for (ScenarioProgram program : scenario.programs) {
+                        if (program.timeRanges != null)
+                            for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
+                                if (timeRange.programActionList != null)
+                                    for (ProgramAction programAction : timeRange.programActionList) {
+
+                                        // se è la stessa action passa alla successiva
+                                        if (action.id == programAction.id)
+                                            continue;
+
+
+                                        if (conflict.scenario.id == scenario.id) {
+                                            if (conflict.program.id == program.id) {
+                                                if (conflict.timerange.id == timeRange.id) {
+                                                    if (conflict.action.id < action.id) {
+                                                        programAction.addConflict(conflict);
+                                                    }
+                                                } else {
+                                                    if (conflict.timerange.index < timeRange.index ||
+                                                            (conflict.timerange.index == timeRange.index && conflict.timerange.id < timeRange.id)) {
+                                                        programAction.addConflict(conflict);
+                                                    }
+                                                }
+                                            } else {
+                                                if (conflict.program.priority < program.priority ||
+                                                        (conflict.program.priority == program.priority &&conflict.program.id < program.id)) {
+                                                    programAction.addConflict(conflict);
+                                                }
+                                            }
+
+                                        } else {
+                                            if (conflict.scenario.priority < scenario.priority ||
+                                                    (conflict.scenario.priority == scenario.priority && conflict.scenario.id < scenario.id)) {
+                                                programAction.addConflict(conflict);
+                                            }
+                                        }
+
+
+
+
+                                        /*if (conflict.scenario.priority < scenario.priority) {
+
+                                            programAction.addConflict(conflict);
+
+                                        } else if (conflict.scenario.priority == scenario.priority) {
+
+                                            if (conflict.program.priority < program.priority) {
+
+                                                programAction.addConflict(conflict);
+
+                                            } else if (conflict.program.priority == program.priority) {
+
+                                                // controlla se è lo stesso scenario, program e timerange
+                                                if (conflict.scenario.id == scenario.id &&
+                                                        conflict.program.id == program.id &&
+                                                        conflict.timerange.id == timeRange.id) {
+
+                                                    if (conflict.timerange.index <= timeRange.index) {
+                                                        programAction.addConflict(conflict);
+                                                    }
+
+                                                } else {
+                                                    programAction.addConflict(conflict);
+                                                }
+
+                                            }
+                                        }*/
+                                    }
+                            }
+                    }
+            }
+    }
+
+    private Conflict getActionConfictDataFromActionId(int actionId) {
+
+        for (Scenario scenario : scenarioList) {
+            if (scenario.programs == null) return null;
+            for (ScenarioProgram program : scenario.programs) {
+                if (program.timeRanges == null) return null;
+                for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
+                    if (timeRange.programActionList == null) return null;
+                    for (ProgramAction action : timeRange.programActionList) {
+                        if (action.id == actionId) {
+                            Conflict conflict = new Conflict(action,timeRange,program,scenario);
+                            return conflict;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static void removeConflict(ProgramAction action) {
+        if (action == null) return;
+
+        if (scenarioList != null)
+            for (Scenario scenario : scenarioList) {
+                if (scenario.programs != null)
+                    for (ScenarioProgram program : scenario.programs) {
+                        if (program.timeRanges != null)
+                            for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
+                                if (timeRange.programActionList != null)
+                                    for (ProgramAction programAction : timeRange.programActionList) {
+
+                                        if (action.id == programAction.id) continue;
+
+                                        if (action.actuatorid != action.actuatorid) continue;
+
+                                        programAction.removeConflict(action);
+                                    }
+                            }
+                    }
+            }
+    }
+
+    public void initScenarios() {
+
+        for (Scenario scenario : scenarioList) {
             scenario.stop();
         }
 
         scenarioList.clear();
         readScenarios();
-        for (Scenario scenario: scenarioList) {
+        for (Scenario scenario : scenarioList) {
             scenario.start();
         }
     }
 
     public static JSONArray getScenariosJSONArray() {
         JSONArray jsonArray = new JSONArray();
-        for(Scenario scenario : scenarioList) {
+        for (Scenario scenario : scenarioList) {
             jsonArray.put(scenario.toJson());
         }
         return jsonArray;
@@ -103,8 +241,6 @@ public class Scenarios {
         }
         return null;
     }
-
-
 
 
 }

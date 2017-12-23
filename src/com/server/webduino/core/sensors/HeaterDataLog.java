@@ -1,7 +1,7 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.DataLog;
+import com.server.webduino.core.datalog.DataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 

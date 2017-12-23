@@ -2,6 +2,7 @@ package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.TemperatureSensor;
+import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONArray;
 import org.json.JSONException;

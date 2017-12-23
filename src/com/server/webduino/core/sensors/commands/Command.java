@@ -1,5 +1,7 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors.commands;
 
+import com.server.webduino.core.Core;
+import com.server.webduino.core.datalog.HeaterCommandDataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,9 +28,10 @@ public class Command {
 
     private static final Logger LOGGER = Logger.getLogger(Command.class.getName());
     public String command;
-    protected String uuid;
+    public String uuid;
     public int shieldid;
     public int actuatorid;
+    public CommandResult result;
 
     public Command(String command, int shieldid, int actuatorid) {
         this.command = command;
@@ -58,7 +61,7 @@ public class Command {
 
         // il thread esegue la chiamata alla shield webduino ed aspetta una risposta (join) dal thead per x secondi
         try {
-            thread.join(5000); // 100000 è il timeout di attesa fine thread in millisecondi
+            thread.join(15000); // 100000 è il timeout di attesa fine thread in millisecondi
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -66,14 +69,16 @@ public class Command {
         // recupera il risulktato della chiamamata che a questo punto è disponibile
         // forse bisiognerebbe metttere syncronized
         String json = commandThread.getResultJson();
-        //result = json;
-        CommandResult result = new CommandResult();
+        /*CommandResult*/ result = new CommandResult();
         if (json == null) {
             result.success = false;
+            result.result = "timeout";
         } else {
             result.success = true;
             result.result = json;
         }
+        HeaterCommandDataLog dl = new HeaterCommandDataLog();
+        dl.writelog("send",this);
         return result;
     }
 

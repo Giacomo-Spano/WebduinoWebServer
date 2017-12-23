@@ -1,9 +1,10 @@
 package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.datalog.CurrentSensorDataLog;
+import com.server.webduino.core.datalog.PIRSensorDataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

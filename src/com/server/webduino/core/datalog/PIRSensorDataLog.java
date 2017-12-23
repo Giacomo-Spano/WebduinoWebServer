@@ -1,7 +1,8 @@
-package com.server.webduino.core.sensors;
+package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.DataLog;
+import com.server.webduino.core.sensors.PIRSensor;
+import com.server.webduino.core.sensors.SensorBase;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -19,7 +20,7 @@ public class PIRSensorDataLog extends DataLog {
         PIRSensor pirSensor = (PIRSensor) sensor;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
-                + pirSensor.id + ",'" + pirSensor.subaddress + "',"  + getStrDate() + "," + pirSensor.getStatus() + ");";
+                + pirSensor.getId() + ",'" + pirSensor.getSubaddress() + "',"  + getStrDate() + "," + pirSensor.getStatus() + ");";
         return sql;
     }
 

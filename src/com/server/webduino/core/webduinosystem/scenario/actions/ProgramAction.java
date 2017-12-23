@@ -1,7 +1,9 @@
 package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.Program;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.scenario.Conflict;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,6 +35,19 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
 
     boolean active = false;
 
+    protected List<ActionListener> listeners = new ArrayList<>();
+    public interface ActionListener {
+        void onStart(ProgramAction action);
+        void onStop(ProgramAction action);
+    }
+    public void addListener(ActionListener toAdd) {
+        listeners.add(toAdd);
+    }
+    public void deleteListener(ActionListener toRemove) {
+        listeners.remove(toRemove);
+    }
+
+
     public ProgramAction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
                          int zoneId, int seconds, boolean enabled) {
         this.id = id;
@@ -47,7 +62,37 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         this.zoneId = zoneId;
         this.seconds = seconds;
         this.enabled = enabled;
+    }
 
+    List<Conflict> conflictList = new ArrayList<>();
+
+    public void addConflict(Conflict newconflict) {
+
+        // controlla che non ci sia già nella lista altrimenti
+        for (Conflict conflict: conflictList) {
+            if (conflict.action.id == newconflict.action.id) {
+                return;
+            }
+        }
+
+        // se la action ha lo stesso actuator aggiunge il conflitto
+        if (newconflict.action.actuatorid == this.actuatorid) {
+            if ((newconflict.action instanceof KeepTemperatureProgramAction || newconflict.action instanceof KeepOffProgramActions ) &&
+                    (this instanceof KeepTemperatureProgramAction || this instanceof KeepOffProgramActions ) ) {
+
+                //Conflict conflict = new Conflict(action, timerangeIndex, programPriority, scenarioPriority);
+                conflictList.add(newconflict);
+            }
+        }
+    }
+
+    public void removeConflict(ProgramAction action) {
+        for (Conflict conflict: conflictList) {
+            if (conflict.action.id == action.id) {
+                conflictList.remove(conflict);
+                break;
+            }
+        }
     }
 
     public void setEndDate(Date date) {
@@ -66,10 +111,19 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
     }
 
     public void start() {
+        if (!enabled) return;
+
         active = true;
+        for (ActionListener listener: listeners) {
+            listener.onStart(this);
+        }
     }
     public void stop() {
+
         active = false;
+        for (ActionListener listener: listeners) {
+            listener.onStop(this);
+        }
     }
 
     public String getStatus() {
@@ -96,6 +150,8 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
             json.put("seconds", seconds);
             json.put("enabled", enabled);
             json.put("priority", priority);
+
+            json.put("status", getStatus());
 
         } catch (JSONException e) {
             e.printStackTrace();

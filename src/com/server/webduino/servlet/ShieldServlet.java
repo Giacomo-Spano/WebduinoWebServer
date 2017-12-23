@@ -4,6 +4,7 @@ import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.webduinosystem.scenario.Scenarios;

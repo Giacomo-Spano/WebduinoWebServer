@@ -1,25 +1,26 @@
-package com.server.webduino.core.sensors;
+package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.DataLog;
+import com.server.webduino.core.sensors.HumiditySensor;
+import com.server.webduino.core.sensors.SensorBase;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class PressureSensorDataLog extends DataLog {
+public class HumiditySensorDataLog extends DataLog {
 
-    public Double pressure = 0.0;
+    public int humidity = 0;
     public String tableName = "currentdatalog";
 
     @Override
     public String getSQLInsert(String event, SensorBase sensor) {
 
-        PressureSensor pressureSensor = (PressureSensor) sensor;
+        HumiditySensor humiditySensor = (HumiditySensor) sensor;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
-                + pressureSensor.id + ",'" + pressureSensor.subaddress + "',"  + getStrDate() + "," + pressureSensor.getPressure() + ");";
+                + humiditySensor.getId() + ",'" + humiditySensor.getSubaddress() + "',"  + getStrDate() + "," + humiditySensor.getHumidity() + ");";
         return sql;
     }
 
@@ -45,10 +46,10 @@ public class PressureSensorDataLog extends DataLog {
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                PressureSensorDataLog data = new PressureSensorDataLog();
+                HumiditySensorDataLog data = new HumiditySensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.pressure = rs.getDouble("pressure");
+                data.humidity = rs.getInt("humidity");
                 list.add(data);
             }
             // Clean-up environment

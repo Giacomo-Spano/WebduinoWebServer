@@ -1,25 +1,26 @@
-package com.server.webduino.core.sensors;
+package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.DataLog;
+import com.server.webduino.core.sensors.DoorSensor;
+import com.server.webduino.core.sensors.SensorBase;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class HumiditySensorDataLog extends DataLog {
+public class DoorSensorDataLog extends DataLog {
 
-    public int humidity = 0;
-    public String tableName = "currentdatalog";
+    public boolean open = false;
+    public String tableName = "doordatalog";
 
     @Override
     public String getSQLInsert(String event, SensorBase sensor) {
 
-        HumiditySensor humiditySensor = (HumiditySensor) sensor;
+        DoorSensor doorSensor = (DoorSensor) sensor;
         String sql;
-        sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
-                + humiditySensor.id + ",'" + humiditySensor.subaddress + "',"  + getStrDate() + "," + humiditySensor.getHumidity() + ");";
+        sql = "INSERT INTO " + tableName + " (id, sensorid, date, open) VALUES ("
+                + doorSensor.getId() + "," + doorSensor.getId() + ","  + getStrDate() + "," + doorSensor.getDoorStatus() + ");";
         return sql;
     }
 
@@ -45,10 +46,10 @@ public class HumiditySensorDataLog extends DataLog {
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                HumiditySensorDataLog data = new HumiditySensorDataLog();
+                DoorSensorDataLog data = new DoorSensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.humidity = rs.getInt("humidity");
+                data.open = rs.getBoolean("open");
                 list.add(data);
             }
             // Clean-up environment

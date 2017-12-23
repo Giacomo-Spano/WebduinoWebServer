@@ -1,6 +1,7 @@
 package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.exits.Exit;
 import com.server.webduino.core.webduinosystem.exits.ExitFactory;
@@ -632,7 +633,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.updateShieldSensor(id, json);
     }
 
-    boolean updateShieldStatus(int shieldid, JSONObject json) {
+    static public boolean updateShieldStatus(int shieldid, JSONObject json) {
         return mShields.updateShieldStatus(shieldid, json);
     }
 

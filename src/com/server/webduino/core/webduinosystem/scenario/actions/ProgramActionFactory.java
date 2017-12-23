@@ -49,8 +49,8 @@ public class ProgramActionFactory {
         String name = resultSet.getString("name");
         String description = resultSet.getString("description");
         int actuatorid = resultSet.getInt("actuatorid");
-        float targetvalue = resultSet.getFloat("targetvalue");
-        float thresholdvalue = resultSet.getFloat("thresholdvalue");
+        double targetvalue = (double) resultSet.getDouble("targetvalue");
+        double thresholdvalue = resultSet.getDouble("thresholdvalue");
         int zoneId = resultSet.getInt("zoneid");
         int seconds = 0;
         Time time = resultSet.getTime("time");

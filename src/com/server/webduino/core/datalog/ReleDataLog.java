@@ -1,7 +1,8 @@
-package com.server.webduino.core.sensors;
+package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.DataLog;
+import com.server.webduino.core.sensors.HeaterActuator;
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONException;
 import org.json.JSONObject;
 

@@ -1,6 +1,8 @@
-package com.server.webduino.core;
+package com.server.webduino.core.datalog;
 
+import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.commands.Command;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,9 +25,10 @@ public class DataLog {
     }
 
     public String getSQLInsert(String event, SensorBase sensor) {
-        /*String sql;
-        sql = "INSERT INTO sensordatalog (shieldid, subaddress, date, temperature, avtemperature) VALUES ("+ shieldid + ",'" + subaddress + "',"  + strDate + "," + temperature + "," + avTemperature + ");";
-        return sql;*/
+        return "";
+    }
+
+    public String getSQLInsert(String event, Command command) {
         return "";
     }
 
@@ -33,11 +36,8 @@ public class DataLog {
 
         String sql;
         try {
-            // Register JDBC driver
             Class.forName("com.mysql.jdbc.Driver");
-            // Open a connection
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-            // Execute SQL query
             Statement stmt = conn.createStatement();
             sql = getSQLInsert(event, sensor);
             System.out.print(sql);
@@ -54,6 +54,30 @@ public class DataLog {
             e.printStackTrace();
         }
     }
+
+    public void writelog(String event, Command command) {
+
+        String sql;
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            sql = getSQLInsert(event, command);
+            System.out.print(sql);
+            stmt.executeUpdate(sql);
+            stmt.close();
+
+            conn.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }
+    }
+
     public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
         return null;
     }

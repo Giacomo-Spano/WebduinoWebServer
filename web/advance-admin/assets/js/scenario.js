@@ -58,21 +58,19 @@ function addProgram(idx, elem) {
     program.find('td input[name="programname"]').val(elem.name);
     program.find('td input[name="programdescription"]').val(elem.description);
     program.find('td input[name="programenabled"]').prop('checked', elem.enabled);
-    program.find('td input[name="programstartdate"]').val(elem.startdate);
-    program.find('td input[name="programenddate"]').val(elem.enddate);
-
+    if (elem.startdate != undefined)
+        program.find('td input[name="programstartdate"]').val(elem.startdate);
+    if (elem.enddate != undefined)
+        program.find('td input[name="programenddate"]').val(elem.enddate);
     program.find('td input[name="programsunday"]').prop('checked', elem.sunday);
     program.find('td input[name="programmonday"]').prop('checked', elem.monday);
     program.find('td input[name="programtuesday"]').prop('checked', elem.tuesday);
     program.find('td input[name="programwednesday"]').prop('checked', elem.wednesday);
     program.find('td input[name="programthursday"]').prop('checked', elem.thursday);
-    program.find('td input[name="programfridayd"]').prop('checked', elem.friday);
-    program.find('td input[name="programenabled"]').prop('checked', elem.saturday);
-
-
+    program.find('td input[name="programfriday"]').prop('checked', elem.friday);
+    program.find('td input[name="programsaturday"]').prop('checked', elem.saturday);
     program.find('td[name="status"]').text(elem.status);
     program.find('td[name="nextjob"]').text(elem.nextjobdate);
-
     if (elem.activetimerange != undefined)
         program.find('td[name="activetimerange"]').text(elem.activetimerange.actionstatus );
 
@@ -120,8 +118,8 @@ function addCalendar(idx, elem) {
     calendar.find('td input[name="calendartuesday"]').prop('checked', elem.tuesday);
     calendar.find('td input[name="calendarwednesday"]').prop('checked', elem.wednesday);
     calendar.find('td input[name="calendarthursday"]').prop('checked', elem.thursday);
-    calendar.find('td input[name="calendarfridayd"]').prop('checked', elem.friday);
-    calendar.find('td input[name="calendarenabled"]').prop('checked', elem.saturday);
+    calendar.find('td input[name="calendarfriday"]').prop('checked', elem.friday);
+    calendar.find('td input[name="calendarsaturday"]').prop('checked', elem.saturday);
 
 
     calendar.find('td[name="calendarstatus"]').text(elem.status);
@@ -284,9 +282,7 @@ function loadScenario(scenario) {
             // back button
             backbutton.unbind("click");
             backbutton.click(function () {
-                getProgram(scenario.programid, function (program) {
-                    loadProgram(program);
-                })
+                loadScenarios();
             });
             pagetitle.text('Scenario');
             notification.hide();
@@ -454,11 +450,6 @@ function scenarioDisableEdit(enabled) {
     $scenarioPanel.find('input').prop('disabled', enabled);
     $scenarioPanel.find('textarea').prop('disabled', enabled);
     $scenarioPanel.find('select').prop('disabled', enabled);
-
-    /*$scenarioPanel.find('td input').prop('disabled', enabled);
-    $scenarioPanel.find('td textarea').prop('disabled', enabled);
-    $scenarioPanel.find('td select').prop('disabled', enabled);*/
-
     if (!enabled)
         $scenarioPanel.find('p[class="help-block"]').hide();
     else

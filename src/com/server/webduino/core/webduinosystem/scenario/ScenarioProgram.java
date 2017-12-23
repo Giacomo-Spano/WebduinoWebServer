@@ -5,6 +5,7 @@ import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.TimeRange;
+import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -59,10 +60,29 @@ public class ScenarioProgram extends DBObject {
     private Date endDate = null;
     private Date programLastEndDate = null;
 
+    /*protected List<ActionListener> listeners = new ArrayList<>();
+
+    public interface ActionListener {
+        void onStart(ProgramAction action, int timerangeIndex, int programPriority);
+        void onStop(ProgramAction action);
+    }
+    public void addListener(ActionListener toAdd) {
+        listeners.add(toAdd);
+    }
+    public void deleteListener(ActionListener toRemove) {
+        listeners.remove(toRemove);
+    }*/
+    public void setActionListener(ProgramAction.ActionListener toAdd) {
+
+        for(ScenarioProgramTimeRange timeRange: timeRanges) {
+            timeRange.setActionListener(toAdd);
+        }
+    }
+
     public List<ScenarioProgramTimeRange> timeRanges = new ArrayList<>();
 
     public ScenarioProgram(Connection conn, ResultSet resultSet) throws Exception {
-        fromResultSet(conn,resultSet);
+        fromResultSet(conn, resultSet);
     }
 
 
@@ -80,13 +100,13 @@ public class ScenarioProgram extends DBObject {
         if (!enabled) {
             active = false;
         } else {
-                jobKey = JobKey.jobKey("ScenarioProgramJob"+id, "my-jobs"+id);
-                //active = true;
-                triggerNextProgramTimeRange();
+            jobKey = JobKey.jobKey("ScenarioProgramJob" + id, "my-jobs" + id);
+            //active = true;
+            triggerNextProgramTimeRange();
         }
         if (oldActiveStatus != active) {
             if (active) {
-               startDate = Core.getDate();
+                startDate = Core.getDate();
             } else {
                 endDate = Core.getDate();
             }
@@ -97,9 +117,10 @@ public class ScenarioProgram extends DBObject {
         active = false;
         deleteNextTimeRangeJob();
 
-        for (ScenarioProgramTimeRange timeRange: timeRanges) {
-            timeRange.stop();
-        }
+        if (timeRanges != null)
+            for (ScenarioProgramTimeRange timeRange : timeRanges) {
+                timeRange.stop();
+            }
     }
 
     public void triggerNextProgramTimeRange() {
@@ -117,12 +138,13 @@ public class ScenarioProgram extends DBObject {
             active = false;
         }
 
-        // schedula il prossimo ProgramTimeRangeJob, ciò schedula la prossima data e ora
+        // schedula il prossimo ProgramTimeRangeJob, cioè schedula la prossima data e ora
         // in cui verrà fatto il prossimo controllo per vedere qual è il timerange attivo
         Date nexJobDate = null;
 
         Date activeTimeRangeEndDate = null;
-        if (activeTimeRange != null) { // se esiste un time raneg attivo lo imposta alla sua fine
+        // questa sezione andrebbe spostata nell'if precedente, nella parte != null
+        if (activeTimeRange != null) { // se esiste un time raneg attivo imposta la data di fine
             Calendar cal = Calendar.getInstance();
             cal.set(Calendar.HOUR_OF_DAY, activeTimeRange.endTime.getHour());
             cal.set(Calendar.MINUTE, activeTimeRange.endTime.getMinute());
@@ -131,8 +153,9 @@ public class ScenarioProgram extends DBObject {
         }
 
         // controlla qual è il prossimo time range attivo e se esiste imposta
-        // il prossimo ProgramTimeRange alla prima data tra la fine del timerange attivo
-        // e l'inizio del prossimo
+        // il prossimo nextTimeRangeStartDate alla prima data tra la fine del timerange attivo
+        // e l'inizio del prossimo. Alla data nextTimeRangeStartDate sarà chiamato il prossimo Job che
+        // chiamerà lo Stop del time range (
         Date nextTimeRangeStartDate = null;
         ScenarioProgramTimeRange nextTimeRange = getNextActiveTimeRangeFromDateTime(currentTime);
         if (nextTimeRange != null) {
@@ -145,14 +168,14 @@ public class ScenarioProgram extends DBObject {
             cal.set(Calendar.MINUTE, nextTimeRange.startTime.getMinute());
             cal.set(Calendar.SECOND, nextTimeRange.startTime.getSecond());
 
-            if(!dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
+            if (!dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
                 ScenarioProgramTimeRange tr = getFirstTimeRangeofDay();
                 cal.set(Calendar.HOUR_OF_DAY, tr.startTime.getHour());
                 cal.set(Calendar.MINUTE, tr.startTime.getMinute());
                 cal.set(Calendar.SECOND, tr.startTime.getMinute());
-                for (int i = 0;i < 7; i++) {
+                for (int i = 0; i < 7; i++) {
                     cal.add(Calendar.HOUR, 24);
-                    if(dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
+                    if (dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
                         nextTimeRangeStartDate = cal.getTime();
                         break;
                     }
@@ -162,6 +185,8 @@ public class ScenarioProgram extends DBObject {
             }
         }
 
+        // imposta il prossimo job alla fine dell'activeTimeRange oppure alla start date del prossimo
+        // se la data è precedente oppure se l'active non esiste
         if (activeTimeRangeEndDate != null) {
             if (nextTimeRangeStartDate.compareTo(activeTimeRangeEndDate) <= 0)
                 nexJobDate = nextTimeRangeStartDate;
@@ -228,12 +253,12 @@ public class ScenarioProgram extends DBObject {
         LOGGER.info("Quartz Scheduler: {}" + scheduler.getSchedulerName());
         for (String group : scheduler.getJobGroupNames()) {
             for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.<JobKey>groupEquals(group))) {
-                LOGGER.info("Found job identified by {} " +  jobKey);
+                LOGGER.info("Found job identified by {} " + jobKey);
             }
         }
         for (String group : scheduler.getTriggerGroupNames()) {
             for (TriggerKey triggerKey : scheduler.getTriggerKeys(GroupMatcher.<TriggerKey>groupEquals(group))) {
-                LOGGER.info("Found trigger identified by {} " +  triggerKey);
+                LOGGER.info("Found trigger identified by {} " + triggerKey);
             }
         }
     }
@@ -381,8 +406,8 @@ public class ScenarioProgram extends DBObject {
                 ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(jo);
                 if (timeRange != null) {
 
-                    if (i > 0 && timeRanges.get(timeRanges.size()-1).endTime.compareTo(timeRange.startTime) > 0)
-                        throw new Exception("time range " + i + "cannot start before time range "+ (i-1));
+                    if (i > 0 && timeRanges.get(timeRanges.size() - 1).endTime.compareTo(timeRange.startTime) > 0)
+                        throw new Exception("time range " + i + "cannot start before time range " + (i - 1));
                     timeRanges.add(timeRange);
                 }
             }
@@ -457,7 +482,7 @@ public class ScenarioProgram extends DBObject {
         this.timeRanges = readProgramTimeRanges(conn, id);
     }
 
-    private static List<ScenarioProgramTimeRange> readProgramTimeRanges(Connection conn, int programid) throws Exception {
+    private /*static*/ List<ScenarioProgramTimeRange> readProgramTimeRanges(Connection conn, int programid) throws Exception {
 
         List<ScenarioProgramTimeRange> list = new ArrayList<>();
         String sql;
@@ -467,6 +492,21 @@ public class ScenarioProgram extends DBObject {
         while (resultSet.next()) {
             ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(conn, programid, resultSet);
             if (timeRange != null) {
+                /*timeRange.addListener(new ScenarioProgramTimeRange.ActionListener() {
+                    @Override
+                    public void onStart(ProgramAction action, int timerangeIndex) {
+                        for (ActionListener listener : listeners) {
+                            listener.onStart(action, timerangeIndex, priority);
+                        }
+                    }
+
+                    @Override
+                    public void onStop(ProgramAction action) {
+                        for (ActionListener listener : listeners) {
+                            listener.onStop(action);
+                        }
+                    }
+                });*/
                 list.add(timeRange);
             }
         }
@@ -476,4 +516,5 @@ public class ScenarioProgram extends DBObject {
             return null;
         return list;
     }
+
 }

@@ -1,5 +1,6 @@
 package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.datalog.DoorSensorDataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 

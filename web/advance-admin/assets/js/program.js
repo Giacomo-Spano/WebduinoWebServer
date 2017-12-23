@@ -44,12 +44,19 @@ function addTimeRange(idx, elem) {
     if (elem.endtime != null) timerange.find('input[name="endtime"]').val(elem.endtime);
 
 
-
     timerange.find('td input[name="name"]').val(elem.name);
     timerange.find('td input[name="description"]').val(elem.description);
 
-    timerange.find('td[name="status"]').val(elem.status);
-    timerange.find('td[name="action"]').val(elem.actionstatus);
+    timerange.find('td[name="status"]').text(elem.status);
+
+    var status = "";
+    if (elem.actions != undefined)
+        for (var i = 0; i < elem.actions.length; i++) {
+            status += elem.actions[i].status
+            status += ";<br>";
+        }
+
+    timerange.find('td[name="action"]').text(status);
 
     timerange.find('button[name="edittimerange"]').attr("idx", idx);
     timerange.find('button[name="edittimerange"]').click(function () {
@@ -71,8 +78,8 @@ function addTimeRange(idx, elem) {
         var timerange = {
             "programid": $program.id,
             "id": 0,
-            "starttime" : "00:00",
-            "endtime" : "00:00",
+            "starttime": "00:00",
+            "endtime": "00:00",
             "name": "nuovo timerange",
             "enabled": false,
             "priority": 0,
@@ -124,7 +131,7 @@ function loadProgram(program) {
             // back button
             backbutton.unbind("click");
             backbutton.click(function () {
-                getScenario(program.scenarioid,function (scenario) {
+                getScenario(program.scenarioid, function (scenario) {
                     loadScenario(scenario);
                 })
 
@@ -214,8 +221,8 @@ function loadProgram(program) {
                 var timerange = {
                     "programid": program.id,
                     "id": 0,
-                    "starttime" : "00:00",
-                    "endtime" : "00:00",
+                    "starttime": "00:00",
+                    "endtime": "00:00",
                     "name": "nuovo timerange",
                     "enabled": false,
                     "priority": 0,

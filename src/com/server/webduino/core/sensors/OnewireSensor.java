@@ -1,8 +1,7 @@
 package com.server.webduino.core.sensors;
 
-import org.json.JSONException;
+import com.server.webduino.core.datalog.TemperatureSensorDataLog;
 import org.json.JSONObject;
-import sun.management.Sensor;
 
 import java.util.ArrayList;
 import java.util.Date;

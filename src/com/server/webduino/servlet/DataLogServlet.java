@@ -1,8 +1,8 @@
 package com.server.webduino.servlet;
 
-import com.server.webduino.core.*;
+import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.HeaterDataLog;
-import com.server.webduino.core.sensors.TemperatureSensorDataLog;
+import com.server.webduino.core.datalog.TemperatureSensorDataLog;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

@@ -39,7 +39,7 @@ public class ScenarioProgramTimeRange extends DBObject {
     public List<ProgramAction> programActionList = new ArrayList<>();
 
     public ScenarioProgramTimeRange(Connection conn, int programid, ResultSet resultSet) throws Exception {
-        fromResultSet(conn,programid,resultSet);
+        fromResultSet(conn, programid, resultSet);
     }
 
     public ScenarioProgramTimeRange(JSONObject json) throws Exception {
@@ -60,26 +60,31 @@ public class ScenarioProgramTimeRange extends DBObject {
 
     public void start() {
         active = true;
-        for (ProgramAction action: programActionList) {
+        for (ProgramAction action : programActionList) {
             action.start();
             Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.HOUR_OF_DAY,endTime.getHour());
-            cal.set(Calendar.MINUTE,endTime.getMinute());
-            cal.set(Calendar.SECOND,endTime.getSecond());
+            cal.set(Calendar.HOUR_OF_DAY, endTime.getHour());
+            cal.set(Calendar.MINUTE, endTime.getMinute());
+            cal.set(Calendar.SECOND, endTime.getSecond());
             action.setEndDate(cal.getTime());
+
+
         }
     }
+
     public void stop() {
         active = false;
-        for (ProgramAction action: programActionList) {
+        for (ProgramAction action : programActionList) {
             action.stop();
+
+
         }
     }
 
     public String getActionStatus() {
         String status = "";
         boolean first = true;
-        for (ProgramAction action: programActionList) {
+        for (ProgramAction action : programActionList) {
             if (!first)
                 status += "; ";
             first = false;
@@ -198,9 +203,9 @@ public class ScenarioProgramTimeRange extends DBObject {
         myCal.set(Calendar.SECOND, 0);
 
         if (startTime == null)
-            startTime = LocalTime.parse("00:00",DateTimeFormatter.ISO_LOCAL_TIME);
+            startTime = LocalTime.parse("00:00", DateTimeFormatter.ISO_LOCAL_TIME);
         if (endTime == null)
-            endTime = LocalTime.parse("00:00",DateTimeFormatter.ISO_LOCAL_TIME);
+            endTime = LocalTime.parse("00:00", DateTimeFormatter.ISO_LOCAL_TIME);
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
@@ -238,8 +243,8 @@ public class ScenarioProgramTimeRange extends DBObject {
 
     @Override
     public void delete(Statement stmt) throws SQLException {
-            String sql = "DELETE FROM scenarios_programtimeranges WHERE id=" + id;
-            stmt.executeUpdate(sql);
+        String sql = "DELETE FROM scenarios_programtimeranges WHERE id=" + id;
+        stmt.executeUpdate(sql);
     }
 
     private void fromResultSet(Connection conn, int programid, ResultSet resultSet) throws Exception {
@@ -279,5 +284,12 @@ public class ScenarioProgramTimeRange extends DBObject {
         instructionsResultset.close();
         stmt4.close();
         return list;
+    }
+
+    public void setActionListener(ProgramAction.ActionListener toAdd) {
+
+        for (ProgramAction action : programActionList) {
+            action.addListener(toAdd);
+        }
     }
 }

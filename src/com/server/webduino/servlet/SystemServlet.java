@@ -60,18 +60,20 @@ public class SystemServlet extends HttpServlet {
         }
 
         try {
+            Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+
             JSONObject json = new JSONObject(jb.toString());
             if (data != null && data.equals("scenario")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        JSONArray jarray = Core.removeScenario(json);
+                        JSONArray jarray = core.removeScenario(json);
                         if (jarray != null) {
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print(jarray.toString());
                             return;
                         }
                     } else {
-                        Scenario scenario = Core.saveScenario(json);
+                        Scenario scenario = core.saveScenario(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
                         return;
@@ -86,12 +88,12 @@ public class SystemServlet extends HttpServlet {
             } else if (data != null && data.equals("scenariotrigger")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        Scenario scenario = Core.removeScenarioTrigger(json);
+                        Scenario scenario = core.removeScenarioTrigger(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
                         return;
                     } else {
-                        ScenarioTrigger trigger = Core.saveScenarioTrigger(json);
+                        ScenarioTrigger trigger = core.saveScenarioTrigger(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(trigger.toJson());
                         return;
@@ -106,12 +108,12 @@ public class SystemServlet extends HttpServlet {
             } else if (data != null && data.equals("triggers")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        Triggers triggers = Core.removeTriggers(json);
+                        Triggers triggers = core.removeTriggers(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(triggers.toJson());
                         return;
                     } else {
-                        Triggers triggers = Core.saveTriggers(json);
+                        Triggers triggers = core.saveTriggers(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(triggers.toJson());
                         return;
@@ -126,12 +128,12 @@ public class SystemServlet extends HttpServlet {
             } else if (data != null && data.equals("timeinterval")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        Scenario scenario = Core.removeScenarioTimeinterval(json);
+                        Scenario scenario = core.removeScenarioTimeinterval(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
                         return;
                     } else {
-                        ScenarioTimeInterval timeInterval = Core.saveScenarioTimeinterval(json);
+                        ScenarioTimeInterval timeInterval = core.saveScenarioTimeinterval(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(timeInterval.toJson());
                         return;
@@ -146,12 +148,12 @@ public class SystemServlet extends HttpServlet {
             } else if (data != null && data.equals("program")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        Scenario scenario = Core.removeScenarioProgram(json);
+                        Scenario scenario = core.removeScenarioProgram(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
                         return;
                     } else {
-                        ScenarioProgram program = Core.saveScenarioProgram(json);
+                        ScenarioProgram program = core.saveScenarioProgram(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(program.toJson());
                         return;
@@ -168,14 +170,14 @@ public class SystemServlet extends HttpServlet {
 
                 try {
                     if (param != null && param.equals("delete")) {
-                        ScenarioProgram program = Core.removeScenarioProgramTimeRange(json);
+                        ScenarioProgram program = core.removeScenarioProgramTimeRange(json);
                         if (program != null) {
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print(program.toJson());
                             return;
                         }
                     } else {
-                        ScenarioProgramTimeRange timerange = Core.saveScenarioProgramTimeRange(json);
+                        ScenarioProgramTimeRange timerange = core.saveScenarioProgramTimeRange(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(timerange.toJson());
                         return;
@@ -191,12 +193,12 @@ public class SystemServlet extends HttpServlet {
                 try {
                     int id = json.getInt("id");
                     if (json.getString("status").equals("enabled")) {
-                        Core.enableTrigger(id, true);
+                        core.enableTrigger(id, true);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print("trigger enabled");
                         return;
                     } else if (json.getString("status").equals("disabled")) {
-                        Core.enableTrigger(id, false);
+                        core.enableTrigger(id, false);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print("trigger disabled");
                         return;
@@ -215,14 +217,14 @@ public class SystemServlet extends HttpServlet {
 
                 try {
                     if (param != null && param.equals("delete")) {
-                        ScenarioProgramTimeRange timeRange = Core.removeScenarioProgramTimeRangeInstruction(json);
+                        ScenarioProgramTimeRange timeRange = core.removeScenarioProgramTimeRangeInstruction(json);
                         if (timeRange != null) {
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print(timeRange.toJson());
                             return;
                         }
                     } else {
-                        ProgramAction instruction = Core.saveScenarioProgramTimeRangeInstruction(json);
+                        ProgramAction instruction = core.saveScenarioProgramTimeRangeInstruction(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(instruction.toJson());
                         return;
@@ -237,14 +239,14 @@ public class SystemServlet extends HttpServlet {
                 try {
                     if (param != null && param.equals("delete")) {
 
-                        Zone zone = Core.removeZone(json);
+                        Zone zone = core.removeZone(json);
                         if (zone != null) {
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print(zone.toJson());
                             return;
                         }
                     } else {
-                        Zone zone = Core.saveZone(json);
+                        Zone zone = core.saveZone(json);
                         if (zone != null) {
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print(zone.toJson());
@@ -402,30 +404,16 @@ public class SystemServlet extends HttpServlet {
 
         } else if (requestCommand != null && requestCommand.equals("zones")) {
 
-            JSONArray jarray = Core.getZonesJSONArray();
+            JSONArray jarray = core.getZonesJSONArray();
             if (jarray != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
                 return;
             }
 
-        } /*else if (requestCommand != null && requestCommand.equals("temperaturesensors")) {
-
-
-            List<SensorBase> list = Shields.getTemperatureSensorList();
-            JSONArray jarray = new JSONArray();
-            for(SensorBase sensor : list) {
-                jarray.put(sensor.toJson());
-            }
-            if (jarray != null) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                out.print(jarray.toString());
-                return;
-            }
-
-        }*/ else if (requestCommand != null && requestCommand.equals("zone") && id != null) {
+        } else if (requestCommand != null && requestCommand.equals("zone") && id != null) {
             int zoneid = Integer.parseInt(id);
-            Zone zone = Core.getZoneFromId(zoneid);
+            Zone zone = core.getZoneFromId(zoneid);
             if (zone != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(zone.toJson());

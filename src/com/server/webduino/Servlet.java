@@ -58,29 +58,7 @@ public class Servlet extends javax.servlet.http.HttpServlet {
                 "<h1 align=\"center\">" + title + "</h1>\n");
 
 
-        //Schedule prgms = new Schedule();
-        //prgms.readZoneSensors();
-        Core core = (Core)getServletContext().getAttribute(QuartzListener.CoreClass);
-        ArrayList<Program> programs = core.mSchedule.getProgramList();
 
-        for (int i=0; i < programs.size(); i++) {
-
-            Program program = programs.get(i);
-            out.println("id:"+ program.id + " start:"+ program.startDate + " " + program.startTime +
-                    " end:"+ program.endDate + " " + program.endTime +
-                    " S" + program.Sunday + " M"+ program.Monday +
-                    " TU" + program.Tuesday + " WE"+ program.Wednesday +
-                    " THS" + program.Thursday + " FR"+ program.Friday +
-                    " SA" + program.Saturday  + "<br>");
-
-            for (int k= 0; k < program.mTimeRanges.size(); k++) {
-
-                TimeRange tr = program.mTimeRanges.get(k);
-                out.println("-> id:"+ tr.ID + " end:"+ tr.endTime +
-                        " temperature" + tr.temperature + " sensors" + tr.sensorId + "<br>");
-
-            }
-        }
 
 
 

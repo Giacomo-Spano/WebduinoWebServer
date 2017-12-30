@@ -2,6 +2,7 @@ package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.*;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
+import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.webduinosystem.scenario.Scenario;
 import com.server.webduino.core.webduinosystem.zones.Zone;
@@ -378,6 +379,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             json.put("temperature", temperature);
             HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
             Core.postCommand(cmd);
+            Command.CommandResult result = cmd.send();
         } catch (JSONException e) {
             e.printStackTrace();
         }

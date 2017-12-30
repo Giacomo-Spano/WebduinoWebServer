@@ -10,13 +10,15 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 //import java.Time;
 
 /**
  * Created by Giacomo Span� on 07/11/2015.
  */
-public class ScenarioTrigger {
+public class ScenarioTrigger implements Trigger.TriggerListener {
 
     public int id;
     public int scenarioid;
@@ -25,10 +27,38 @@ public class ScenarioTrigger {
     public String name;
     public String description;
     public boolean enabled;
-    public String status;
+    //public boolean status;
     public int priority;
 
     public boolean active = false;
+
+    @Override
+    public void onChangeStatus(boolean status) {
+        for (ScenarioTriggerListener listener: listeners) {
+            listener.onChangeStatus(status);
+        }
+    }
+
+    public boolean getStatus() {
+        Trigger trigger = Core.getTriggerFromId(triggerid);
+        if (trigger != null)
+            return trigger.status;
+        return false;
+    }
+
+    public interface ScenarioTriggerListener {
+        void onChangeStatus(boolean active);
+    }
+
+    protected List<ScenarioTriggerListener> listeners = new ArrayList<ScenarioTriggerListener>();
+
+    public void addListener(ScenarioTriggerListener toAdd) {
+        listeners.add(toAdd);
+    }
+
+    public void deleteListener(ScenarioTriggerListener toRemove) {
+        listeners.remove(toRemove);
+    }
 
     public ScenarioTrigger() {
     }
@@ -57,13 +87,10 @@ public class ScenarioTrigger {
         json.put("description", description);
         json.put("type", type);
         json.put("enabled", enabled);
-        json.put("status", status);
+        //json.put("status", status);
+        json.put("status", trigger.status);
         json.put("priority", priority);
 
-        if (active)
-            json.put("status", "Attivo");
-        else
-            json.put("status", "Non attivo");
         return json;
     }
 
@@ -76,7 +103,7 @@ public class ScenarioTrigger {
         if (json.has("description")) description = json.getString("description");
         if (json.has("type")) type = json.getString("type");
         if (json.has("enabled")) enabled = json.getBoolean("enabled");
-        if (json.has("status")) status = json.getString("status");
+        //if (json.has("status")) status = json.getBoolean("status");
         if (json.has("priority")) priority = json.getInt("priority");
     }
 
@@ -121,7 +148,7 @@ public class ScenarioTrigger {
 
     public void write(Connection conn) throws SQLException {
 
-        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, triggerid, name, description, type, enabled, status, priority)" +
+        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, triggerid, name, description, type, enabled/*, status*/, priority)" +
                 " VALUES ("
                 + id + ","
                 + scenarioid + ","
@@ -129,8 +156,8 @@ public class ScenarioTrigger {
                 + "\"" + name + "\","
                 + "\"" + description + "\","
                 + "\"" + type + "\","
-                + Core.boolToString(enabled) + ","
-                + "\"" + status + "\","
+                + enabled + ","
+                //+ status + ","
                 + priority
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
@@ -139,8 +166,8 @@ public class ScenarioTrigger {
                 + "name=\"" + name + "\","
                 + "description=\"" + description + "\","
                 + "type=\"" + type + "\","
-                + "enabled=" + Core.boolToString(enabled) + ","
-                + "status=\"" + status + "\","
+                + "enabled=" + enabled + ","
+                //+ "status=" + status + ","
                 + "priority=" + priority + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -179,11 +206,15 @@ public class ScenarioTrigger {
     private void fromResultSet(ResultSet timeintervalsResultSet) throws SQLException {
         id = timeintervalsResultSet.getInt("id");
         scenarioid = timeintervalsResultSet.getInt("scenarioid");
+
         triggerid = timeintervalsResultSet.getInt("triggerid");
+        Trigger trigger = Core.triggerFromId(triggerid);
+        if (trigger != null)
+            trigger.addListener(this);
         name = timeintervalsResultSet.getString("name");
         description = timeintervalsResultSet.getString("description");
         type = timeintervalsResultSet.getString("type");
-        status = timeintervalsResultSet.getString("status");
+        //status = timeintervalsResultSet.getBoolean("status");
         enabled = timeintervalsResultSet.getBoolean("enabled");
         priority = timeintervalsResultSet.getInt("priority");
     }

@@ -6,6 +6,7 @@ import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.quartz.TriggerListener;
 
 import java.sql.*;
 import java.sql.Date;
@@ -20,10 +21,32 @@ public class Trigger extends DBObject {
 
     public int id = 0;
     public String name = "";
-    public String status = "";
+    public boolean status = false;
     public java.util.Date date;
 
-    public Trigger(int id, String name, String status, java.util.Date date) {
+    //final public String STATUS_ENABLED ="enabled";
+    //final public String STATUS_DISABLED ="disabled";
+
+    public interface TriggerListener {
+        void onChangeStatus(boolean status);
+    }
+
+    protected List<TriggerListener> listeners = new ArrayList<TriggerListener>();
+
+    public void addListener(TriggerListener toAdd) {
+        for (TriggerListener listener : listeners) {
+            if (listener == toAdd)
+                return;
+        }
+        listeners.add(toAdd);
+    }
+
+    public void deleteListener(TriggerListener toRemove) {
+        listeners.remove(toRemove);
+    }
+
+
+    public Trigger(int id, String name, boolean status, java.util.Date date) {
         this.id = id;
         this.name = name;
         this.status = status;
@@ -41,12 +64,12 @@ public class Trigger extends DBObject {
 
     public JSONObject toJson() throws JSONException {
         JSONObject json = new JSONObject();
-            json.put("id", id);
-            json.put("name", name);
-            json.put("status", status);
-            SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-            if (date != null)
-                json.put("nextjobdate", df.format(date));
+        json.put("id", id);
+        json.put("name", name);
+        json.put("status", status);
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        if (date != null)
+            json.put("nextjobdate", df.format(date));
 
         return json;
     }
@@ -59,7 +82,7 @@ public class Trigger extends DBObject {
         if (json.has("name"))
             name = json.getString("name");
         if (json.has("status"))
-            status = json.getString("status");
+            status = json.getBoolean("status");
     }
 
     @Override
@@ -67,7 +90,6 @@ public class Trigger extends DBObject {
         String sql = "DELETE FROM triggers WHERE id=" + id;
         stmt.executeUpdate(sql);
     }
-
 
 
     public void saveStatus() throws Exception {
@@ -101,11 +123,11 @@ public class Trigger extends DBObject {
                 " VALUES ("
                 + id + ","
                 + "\"" + name + "\","
-                + "\"" + status + "\","
+                + status + ","
                 + "'" + df.format(date) + "' "
                 + ") ON DUPLICATE KEY UPDATE "
                 + "name=\"" + name + "\","
-                + "status=\"" + status + "\","
+                + "status=" + status + ","
                 + "lastupdate='" + df.format(date) + "' "
                 + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -116,11 +138,14 @@ public class Trigger extends DBObject {
         }
     }
 
-    public void enable(boolean enabled) throws Exception {      
-        if(enabled)
-            status = "enabled";
-        else
-            status = "disabled";
-        saveStatus();
+    public void enable(boolean enabled) throws Exception {
+
+        if (enabled != status) {
+            status = enabled;
+            saveStatus();
+            for (TriggerListener listener : listeners) {
+                listener.onChangeStatus(status);
+            }
+        }
     }
 }

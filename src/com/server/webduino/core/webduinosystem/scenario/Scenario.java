@@ -24,7 +24,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * Created by giaco on 18/05/2017.
  */
-public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ActionListener*/ {
+public class Scenario extends DBObject /*implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ActionListener*/ {
 
     private static final Logger LOGGER = Logger.getLogger(NextScenarioTimeIntervalQuartzJob.class.getName());
 
@@ -46,28 +46,19 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     private Date startDate = null;
     private Date endDate = null;
 
-    /*protected List<Scenario.ActionListener> listeners = new ArrayList<>();
+    private ScenarioTimeInterval.ScenarioTimeIntervalListener timeIntervalListener = new ScenarioTimeInterval.ScenarioTimeIntervalListener() {
+        @Override
+        public void onChangeStatus(boolean active) {
+            checkStatus();
+        }
+    };
 
-    @Override
-    public void onStart(ProgramAction action, int timerangeIndex) {
-
-    }
-
-    @Override
-    public void onStop(ProgramAction action) {
-
-    }*/
-
-    /*public interface ActionListener {
-        void onStart(ProgramAction action, int timerangeIndex, int programPriority, int ScenarioPriority);
-        void onStop(ProgramAction action);
-    }
-    public void addListener(Scenario.ActionListener toAdd) {
-        listeners.add(toAdd);
-    }
-    public void deleteListener(Scenario.ActionListener toRemove) {
-        listeners.remove(toRemove);
-    }*/
+    private ScenarioTrigger.ScenarioTriggerListener triggerListener = new ScenarioTrigger.ScenarioTriggerListener() {
+        @Override
+        public void onChangeStatus(boolean active) {
+            checkStatus();
+        }
+    };
 
     public Scenario() {
     }
@@ -84,7 +75,11 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
 
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-            timeInterval.addListener(this);
+            timeInterval.addListener(timeIntervalListener);
+        }
+
+        for (ScenarioTrigger trigger : triggers) {
+            trigger.addListener(triggerListener);
         }
 
         checkStatus();
@@ -100,7 +95,9 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     }
 
     public void stop() {
-        removeListeners();
+        removeTimeIntervalListeners();
+
+        removeTriggerListeners();
 
         deleteNextTimeRangeJob();
 
@@ -110,11 +107,17 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
     }
 
-    private void removeListeners() {
+    private void removeTimeIntervalListeners() {
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-            timeInterval.deleteListener(this);
+            timeInterval.deleteListener(timeIntervalListener);
         }
     }
+    private void removeTriggerListeners() {
+        for (ScenarioTrigger trigger : triggers) {
+            trigger.deleteListener(triggerListener);
+        }
+    }
+
 
     public void triggerNextTimeInterval(Date currentDate) {
 
@@ -442,44 +445,10 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         return null;
     }
 
-    /*public static Scenario scenarioFromProgramTimeRange(int programTimeRangeId) {
-        LOGGER.info("scenarioFromProgramTimeRange");
-        try {
-            //Class.forName("com.mysql.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-            conn.setAutoCommit(false);
-            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-            String sql;
-            sql = "SELECT *\n" +
-                    "FROM scenarios\n" +
-                    "INNER JOIN scenarios_programs ON scenarios_programs.scenarioid=scenarios.id\n" +
-                    "INNER JOIN scenarios_programtimeranges ON scenarios_programs.id=scenarios_programtimeranges.programid where scenarios_programtimeranges.id = " + programTimeRangeId + ";";
-            ResultSet scenariosResultSet = stmt.executeQuery(sql);
-            if (scenariosResultSet.next()) {
-                Scenario scenario = new Scenario();
-                scenario.fromResulSet(conn, scenariosResultSet);
-                scenariosResultSet.close();
-                stmt.close();
-                conn.close();
-                return scenario;
-            } else {
-                stmt.close();
-                conn.close();
-                return null;
-            }
-        } catch (SQLException se) {
-            se.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }*/
-
-    @Override
+    /*@Override
     public void onChangeStatus(boolean active) {
         checkStatus();
-    }
+    }*/
 
     // controlla lo stato 'active' dello scenario
     // è chiamata all'inizio e poi dall'evento onChangeStatus dei timeInterval del calendario dello scenario
@@ -487,13 +456,29 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         boolean oldActiveStatus = active;
         active = false;
 
-        // controlla se c'è almeno un timeinterval attivo
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-            if (timeInterval.isActive(Core.getDate())) {
-                active = true;
-                break;
+        if (calendar.timeIntervals.size() == 0) {
+            active = true;
+        } else {
+            // controlla se c'è almeno un timeinterval attivo
+            for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+                if (timeInterval.isActive(Core.getDate())) {
+                    active = true;
+                    break;
+                }
             }
         }
+
+        if (active && triggers.size() > 0) {
+            active = false;
+            // controlla se c'è almeno un ttrigger attivo
+            for (ScenarioTrigger trigger : triggers) {
+                if (trigger.getStatus()) {
+                    active = true;
+                    break;
+                }
+            }
+        }
+
 
         // se lo scenario è attivo avvia i programmi
         for (ScenarioProgram program : programs) {
@@ -513,14 +498,8 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
-    /*public void setActionsListener(ProgramAction.ActionListener listener) {
-        for (ScenarioProgram program : programs) {
-            program.setActionsListener(listener);
-        }
-    }*/
-
     public class ScenarioCalendar {
-        //public boolean dateEnabled;
+
         public List<ScenarioTimeInterval> timeIntervals = new ArrayList<>();
         private int priority;
 

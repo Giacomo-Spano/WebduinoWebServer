@@ -1,5 +1,6 @@
 package com.server.webduino.core.webduinosystem.scenario.actions;
 
+import com.quartz.QuartzListener;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.HeaterActuator;
@@ -53,6 +54,7 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
     }
 
     private void requestZoneStatusUpdate() {
+
         Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
             zone.addListener(this);
@@ -217,11 +219,9 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
                     lastSent = Core.getDate();
                     lastSentResult = "successful";
 
-
                     JSONObject jsonObject = new JSONObject(result.result);
                     if (jsonObject.has("shieldid"))
                         Core.updateShieldStatus(jsonObject.getInt("shieldid"), jsonObject);
-
 
                     return;
                 } else {

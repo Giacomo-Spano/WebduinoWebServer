@@ -45,15 +45,15 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static String APP_DNS_OPENSHIFT = "webduinocenter.rhcloud.com";
     public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
 
-    private static List<WebduinoSystem> webduinoSystems = new ArrayList<>();
+    private List<WebduinoSystem> webduinoSystems = new ArrayList<>();
     private static List<Zone> zones = new ArrayList<>();
     //private static List<Trigger> triggers = new ArrayList<>();
     private static Triggers triggerClass = new Triggers();
-    private static Scenarios scenarios = new Scenarios();
-    private static List<Exit> exits = new ArrayList<>();
-    private static List<Key> keys = new ArrayList<>();
+    private Scenarios scenarios = new Scenarios();
+    private List<Exit> exits = new ArrayList<>();
+    private List<Key> keys = new ArrayList<>();
     public static Shields mShields; // rendere private
-    public static Schedule mSchedule;// DA ELIMINARE
+    //public static Schedule mSchedule;// DA ELIMINARE
 
     private static List<SWVersion> swversions = new ArrayList<>();
 
@@ -63,6 +63,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public static boolean sendRestartCommand(JSONObject json) {
         return mShields.sendRestartCommand(json);
+    }
+
+    public static Trigger triggerFromId(int triggerid) {
+        for(Trigger trigger: triggerClass.list) {
+            if (trigger.id == triggerid)
+                return trigger;
+        }
+        return null;
     }
 
 
@@ -179,7 +187,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return jsonArray;
     }
 
-    public static JSONArray getZonesJSONArray() {
+    public JSONArray getZonesJSONArray() {
         JSONArray jsonArray = new JSONArray();
         for (Zone zone : zones) {
             jsonArray.put(zone.toJson());
@@ -278,7 +286,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         }
     }
 
-    public static void readZones() {
+    public void readZones() {
 
         LOGGER.info(" readZoneSensors Security zones");
 
@@ -336,7 +344,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 ZoneFactory factory = new ZoneFactory();
                 int id = triggersResultSet.getInt("id");
                 String name = triggersResultSet.getString("name");
-                String status = triggersResultSet.getString("status");
+                boolean status = triggersResultSet.getBoolean("status");
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 Date date = null;
                 if (triggersResultSet.getTimestamp("lastupdate") != null)
@@ -450,14 +458,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         }
     }
 
-    static public Scenario saveScenario(JSONObject json) throws Exception {
+    public Scenario saveScenario(JSONObject json) throws Exception {
         Scenario scenario = new Scenario(json);
         scenario.save();
         scenarios.initScenarios();
         return scenario;
     }
 
-    static public JSONArray removeScenario(JSONObject json) throws Exception {
+    public JSONArray removeScenario(JSONObject json) throws Exception {
 
         Scenario scenario = new Scenario(json);
         scenario.remove();
@@ -466,14 +474,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return jarray;
     }
 
-    static public ScenarioProgram saveScenarioProgram(JSONObject json) throws Exception {
+    public ScenarioProgram saveScenarioProgram(JSONObject json) throws Exception {
         ScenarioProgram program = new ScenarioProgram(json);
         program.save();
         scenarios.initScenarios();
         return program;
     }
 
-    static public Scenario removeScenarioProgram(JSONObject json) throws Exception {
+    public Scenario removeScenarioProgram(JSONObject json) throws Exception {
 
         ScenarioProgram program = new ScenarioProgram(json);
         int scenarioid = program.scenarioId;
@@ -483,20 +491,20 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return scenario;
     }
 
-    static public Trigger saveTrigger(JSONObject json) throws Exception {
+    public Trigger saveTrigger(JSONObject json) throws Exception {
         Trigger trigger = new Trigger(json);
         trigger.save();
         scenarios.initScenarios();
         return trigger;
     }
 
-    static public void enableTrigger(int id, boolean enable) throws Exception {
+    public void enableTrigger(int id, boolean enable) throws Exception {
         Trigger trigger = getTriggerFromId(id);
         trigger.enable(enable);
         scenarios.initScenarios();
     }
 
-    static public Trigger removeTrigger(JSONObject json) throws Exception {
+    public Trigger removeTrigger(JSONObject json) throws Exception {
 
         Trigger trigger = new Trigger(json);
         int triggerid = trigger.id;
@@ -506,7 +514,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return trigger;
     }
 
-    static public Triggers saveTriggers(JSONObject json) throws Exception {
+    public Triggers saveTriggers(JSONObject json) throws Exception {
         Triggers triggers = new Triggers(json);
         triggers.save();
         Core.readTriggers();
@@ -514,7 +522,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return triggers;
     }
 
-    static public Triggers removeTriggers(JSONObject json) throws Exception {
+    public Triggers removeTriggers(JSONObject json) throws Exception {
 
         Triggers triggers = new Triggers(json);
         //int triggerid = trigger.id;
@@ -524,14 +532,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return triggers;
     }
 
-    static public ScenarioTrigger saveScenarioTrigger(JSONObject json) throws Exception {
+    public ScenarioTrigger saveScenarioTrigger(JSONObject json) throws Exception {
         ScenarioTrigger trigger = new ScenarioTrigger(json);
         trigger.save();
         scenarios.initScenarios();
         return trigger;
     }
 
-    static public Scenario removeScenarioTrigger(JSONObject json) throws Exception {
+    public Scenario removeScenarioTrigger(JSONObject json) throws Exception {
 
         ScenarioTrigger trigger = new ScenarioTrigger(json);
         int scenarioid = trigger.scenarioid;
@@ -541,14 +549,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return scenario;
     }
 
-    static public ScenarioTimeInterval saveScenarioTimeinterval(JSONObject json) throws Exception {
+    public ScenarioTimeInterval saveScenarioTimeinterval(JSONObject json) throws Exception {
         ScenarioTimeInterval timeInterval = new ScenarioTimeInterval(json);
         timeInterval.save();
         scenarios.initScenarios();
         return timeInterval;
     }
 
-    static public Scenario removeScenarioTimeinterval(JSONObject json) throws Exception {
+    public Scenario removeScenarioTimeinterval(JSONObject json) throws Exception {
 
         ScenarioTimeInterval timeInterval = new ScenarioTimeInterval(json);
         int scenarioid = timeInterval.scenarioid;
@@ -558,14 +566,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return scenario;
     }
 
-    static public ScenarioProgramTimeRange saveScenarioProgramTimeRange(JSONObject json) throws Exception {
+    public ScenarioProgramTimeRange saveScenarioProgramTimeRange(JSONObject json) throws Exception {
         ScenarioProgramTimeRange timerange = new ScenarioProgramTimeRange(json);
         timerange.save();
         scenarios.initScenarios();
         return timerange;
     }
 
-    static public ScenarioProgram removeScenarioProgramTimeRange(JSONObject json) throws Exception {
+    public ScenarioProgram removeScenarioProgramTimeRange(JSONObject json) throws Exception {
         ScenarioProgramTimeRange timerange = new ScenarioProgramTimeRange(json);
         int programid = timerange.programid;
         timerange.remove();
@@ -574,7 +582,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return program;
     }
 
-    static public ProgramAction saveScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
+    public ProgramAction saveScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
         ProgramActionFactory factory = new ProgramActionFactory();
         ProgramAction action = factory.fromJson(json);
         action.save();
@@ -582,7 +590,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return action;
     }
 
-    static public ScenarioProgramTimeRange removeScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
+    public ScenarioProgramTimeRange removeScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
         ProgramActionFactory factory = new ProgramActionFactory();
         ProgramAction instruction = factory.fromJson(json);
         int timerangeid = instruction.timerangeid;
@@ -592,7 +600,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return timerange;
     }
 
-    static public Zone saveZone(JSONObject json) throws Exception {
+    public Zone saveZone(JSONObject json) throws Exception {
         Zone zone = new Zone(json);
         zone.save();
         readZones();
@@ -600,9 +608,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return zone;
     }
 
-
-
-    static public Zone removeZone(JSONObject json) throws Exception {
+    public Zone removeZone(JSONObject json) throws Exception {
         Zone zone = new Zone(json);
         zone.remove();
         readZones();
@@ -676,38 +682,12 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.register(shield);
     }
 
-    public ArrayList<ActiveProgram> getNextActiveProgramlist() {
-        return mSchedule.getActiveProgramList();
-    }
-
-    /*public static Program getProgramFromId(int id) {
-        return mSchedule.getProgramFromId(id);
-    }*/
-
-    /*public ActiveProgram getActiveProgram(int id) {
-        SensorBase sensor = getSensorFromId(id);
-        return sensor.getActiveProgram();
-    }*/
-
-    /*public Date getLastActiveProgramUpdate() {
-        return mSchedule.getLastActiveProgramUpdate();
-    }*/
-
     public static SensorBase getSensorFromId(int id) {
         return mShields.getSensorFromId(id);
     }
     public static Trigger getTriggerFromId(int id) {
         return triggerClass.getFromId(id);
     }
-
-
-    /*public int deleteProgram(int id) {
-        return mSchedule.delete(id);
-    }
-
-    public int updatePrograms(Program program) {
-        return mSchedule.insert(program);
-    }*/
 
     public JSONArray getShieldsJsonArray() {
         return mShields.getShieldsJsonArray();

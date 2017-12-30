@@ -17,7 +17,10 @@ function addTrigger(idx, elem) {
     trigger.find('td[name="id"]').text(elem.id);
     trigger.find('td input[name="name"]').val(elem.name);
 
-    trigger.find('td[name="status"]').text(elem.status);
+    if (elem.status)
+        trigger.find('td[name="status"]').text("Attivo");
+    else
+        trigger.find('td[name="status"]').text("Non Attivo");
 
     trigger.find('button[name="deletetrigger"]').attr("idx", idx);
     trigger.find('button[name="deletetrigger"]').click(function () {
@@ -153,7 +156,7 @@ function loadTriggers() {
                     var trigger = {
                         "id": 0,
                         "name": "nuovo action",
-                        "status": "",
+                        "status": false,
                     };
                     $triggers.push(trigger);
 

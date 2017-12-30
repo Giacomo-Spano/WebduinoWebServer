@@ -102,37 +102,6 @@ public class Scenarios {
                                                 programAction.addConflict(conflict);
                                             }
                                         }
-
-
-
-
-                                        /*if (conflict.scenario.priority < scenario.priority) {
-
-                                            programAction.addConflict(conflict);
-
-                                        } else if (conflict.scenario.priority == scenario.priority) {
-
-                                            if (conflict.program.priority < program.priority) {
-
-                                                programAction.addConflict(conflict);
-
-                                            } else if (conflict.program.priority == program.priority) {
-
-                                                // controlla se è lo stesso scenario, program e timerange
-                                                if (conflict.scenario.id == scenario.id &&
-                                                        conflict.program.id == program.id &&
-                                                        conflict.timerange.id == timeRange.id) {
-
-                                                    if (conflict.timerange.index <= timeRange.index) {
-                                                        programAction.addConflict(conflict);
-                                                    }
-
-                                                } else {
-                                                    programAction.addConflict(conflict);
-                                                }
-
-                                            }
-                                        }*/
                                     }
                             }
                     }

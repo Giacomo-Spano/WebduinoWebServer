@@ -36,7 +36,10 @@ function addScenarioTrigger(idx, elem) {
     triggeritem.find('td input[name="triggerpriority"]').val(elem.priority);
 
 
-    triggeritem.find('td[name="status"]').text(elem.status);
+    if (elem.status)
+        triggeritem.find('td[name="status"]').text("Attivo");
+    else
+        triggeritem.find('td[name="status"]').text("Non Attivo");
 
     triggeritem.find('button[name="deletetrigger"]').attr("idx", idx);
     triggeritem.find('button[name="deletetrigger"]').click(function () {

@@ -139,6 +139,10 @@ function loadHeater(heater) {
                 });
 
             });
+
+        $.getJSON(systemServletPath + "?requestcommand=nextprograms&id="+heater.id, function (nextprograms) {
+
+        });
         }
     );
 }

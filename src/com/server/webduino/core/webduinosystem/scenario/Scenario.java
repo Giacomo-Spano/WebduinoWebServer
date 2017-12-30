@@ -24,7 +24,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * Created by giaco on 18/05/2017.
  */
-public class Scenario extends DBObject /*implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ActionListener*/ {
+public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ActionListener*/ {
 
     private static final Logger LOGGER = Logger.getLogger(NextScenarioTimeIntervalQuartzJob.class.getName());
 
@@ -46,20 +46,6 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
     private Date startDate = null;
     private Date endDate = null;
 
-    private ScenarioTimeInterval.ScenarioTimeIntervalListener timeIntervalListener = new ScenarioTimeInterval.ScenarioTimeIntervalListener() {
-        @Override
-        public void onChangeStatus(boolean active) {
-            checkStatus();
-        }
-    };
-
-    private ScenarioTrigger.ScenarioTriggerListener triggerListener = new ScenarioTrigger.ScenarioTriggerListener() {
-        @Override
-        public void onChangeStatus(boolean active) {
-            checkStatus();
-        }
-    };
-
     public Scenario() {
     }
 
@@ -75,14 +61,10 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
         }
 
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-            timeInterval.addListener(timeIntervalListener);
+            timeInterval.addListener(this);
         }
 
-        for (ScenarioTrigger trigger : triggers) {
-            trigger.addListener(triggerListener);
-        }
-
-        checkStatus();
+        updateStatus();
 
         jobKey = JobKey.jobKey("ScenarioJob"+id, "my-jobs"+id);
 
@@ -95,9 +77,7 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
     }
 
     public void stop() {
-        removeTimeIntervalListeners();
-
-        removeTriggerListeners();
+        removeListeners();
 
         deleteNextTimeRangeJob();
 
@@ -107,17 +87,11 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
 
     }
 
-    private void removeTimeIntervalListeners() {
+    private void removeListeners() {
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-            timeInterval.deleteListener(timeIntervalListener);
+            timeInterval.deleteListener(this);
         }
     }
-    private void removeTriggerListeners() {
-        for (ScenarioTrigger trigger : triggers) {
-            trigger.deleteListener(triggerListener);
-        }
-    }
-
 
     public void triggerNextTimeInterval(Date currentDate) {
 
@@ -129,7 +103,6 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
         //
         // forse ho capito. Non serve a nulla questa chiamata, si potrebbe eliminare. La checkStatus è chiamata dagli eventi dei timeinterval
         // onChangeStatus
-
 
         ScenarioTimeInterval activeTimeInterval = null;
         Date nextTriggerDate = null;
@@ -211,7 +184,6 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
             e.printStackTrace();
         }
     }
-
 
 
     @Override
@@ -445,40 +417,66 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
         return null;
     }
 
-    /*@Override
-    public void onChangeStatus(boolean active) {
-        checkStatus();
+    /*public static Scenario scenarioFromProgramTimeRange(int programTimeRangeId) {
+        LOGGER.info("scenarioFromProgramTimeRange");
+        try {
+            //Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            conn.setAutoCommit(false);
+            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+            String sql;
+            sql = "SELECT *\n" +
+                    "FROM scenarios\n" +
+                    "INNER JOIN scenarios_programs ON scenarios_programs.scenarioid=scenarios.id\n" +
+                    "INNER JOIN scenarios_programtimeranges ON scenarios_programs.id=scenarios_programtimeranges.programid where scenarios_programtimeranges.id = " + programTimeRangeId + ";";
+            ResultSet scenariosResultSet = stmt.executeQuery(sql);
+            if (scenariosResultSet.next()) {
+                Scenario scenario = new Scenario();
+                scenario.fromResulSet(conn, scenariosResultSet);
+                scenariosResultSet.close();
+                stmt.close();
+                conn.close();
+                return scenario;
+            } else {
+                stmt.close();
+                conn.close();
+                return null;
+            }
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }*/
 
-    // controlla lo stato 'active' dello scenario
+    @Override
+    public void onChangeStatus(boolean active) {
+        updateStatus();
+    }
+
+    // ritorna lo stato dello scenario ad una certa data e ora
+    public boolean statusActiveAtDate(Date date) {
+        //boolean oldActiveStatus = active;
+        //active = false;
+
+        // controlla se c'è almeno un timeinterval attivo
+        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+            if (timeInterval.isActive(date)) {
+                //active = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // controlla se lo stato è attivo e avvia o ferma i programmi
     // è chiamata all'inizio e poi dall'evento onChangeStatus dei timeInterval del calendario dello scenario
-    public void checkStatus() {
+    public void updateStatus() {
+
         boolean oldActiveStatus = active;
-        active = false;
-
-        if (calendar.timeIntervals.size() == 0) {
-            active = true;
-        } else {
-            // controlla se c'è almeno un timeinterval attivo
-            for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-                if (timeInterval.isActive(Core.getDate())) {
-                    active = true;
-                    break;
-                }
-            }
-        }
-
-        if (active && triggers.size() > 0) {
-            active = false;
-            // controlla se c'è almeno un ttrigger attivo
-            for (ScenarioTrigger trigger : triggers) {
-                if (trigger.getStatus()) {
-                    active = true;
-                    break;
-                }
-            }
-        }
-
+        active = statusActiveAtDate(Core.getDate());
 
         // se lo scenario è attivo avvia i programmi
         for (ScenarioProgram program : programs) {
@@ -498,8 +496,17 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
         }
     }
 
-    public class ScenarioCalendar {
 
+
+
+    /*public void setActionsListener(ProgramAction.ActionListener listener) {
+        for (ScenarioProgram program : programs) {
+            program.setActionsListener(listener);
+        }
+    }*/
+
+    public class ScenarioCalendar {
+        //public boolean dateEnabled;
         public List<ScenarioTimeInterval> timeIntervals = new ArrayList<>();
         private int priority;
 
@@ -570,6 +577,16 @@ public class Scenario extends DBObject /*implements ScenarioTimeInterval.Scenari
                 e.printStackTrace();
             }
             return json;
+        }
+    }
+
+    public void getActuatorIdActiveTimeRangeFromDate(int actuatorid, Date date) {
+
+
+
+        for (ScenarioProgram program : programs) {
+
+            List<NextTimeRange> list = program.getNextTimeRanges(date);
         }
     }
 }

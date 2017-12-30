@@ -4,7 +4,6 @@ import com.quartz.NextScenarioProgramTimeIntervalQuartzJob;
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.TimeRange;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -129,22 +128,39 @@ public class ScenarioProgram extends DBObject {
         Instant instant = Instant.ofEpochMilli(currentDate.getTime());
         LocalTime currentTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
 
-        // controlla se all'ora corrente c'è una TimeRange attiva e la avvia
-        ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromDateTime(currentTime);
+        // controlla se all'ora corrente di oggi c'è una TimeRange attiva e la avvia
+        Calendar c = Calendar.getInstance();
+        ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromTimeAndDay(currentTime,c.get(Calendar.DAY_OF_WEEK));
+
         if (activeTimeRange != null) {
             active = true;
             activeTimeRange.start();
+            // se esiste un time raneg attivo imposta la data di fine
         } else {
             active = false;
         }
 
         // schedula il prossimo ProgramTimeRangeJob, cioè schedula la prossima data e ora
         // in cui verrà fatto il prossimo controllo per vedere qual è il timerange attivo
-        Date nexJobDate = null;
+        Date nexJobDate = getNextJobDate(currentDate/*currentTime*/, activeTimeRange);
 
+        if (nexJobDate != null) {
+            LOGGER.info("triggerNextTimeInterval id=" + id + "nextActivationDate=" + nexJobDate.toString());
+            scheduleNextProgramTimeRangeJob(nexJobDate, activeTimeRange); // activeTime range sarà automaticamente fermato dal job quando parte
+        } else {
+            LOGGER.info("no triggerNextTimeInterval id=" + id);
+        }
+    }
+
+    public Date getNextJobDate(Date date, ScenarioProgramTimeRange activeTimeRange) {
+
+        Instant instant = Instant.ofEpochMilli(date.getTime());
+        LocalTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+
+        Date nexJobDate = null;
         Date activeTimeRangeEndDate = null;
-        // questa sezione andrebbe spostata nell'if precedente, nella parte != null
-        if (activeTimeRange != null) { // se esiste un time raneg attivo imposta la data di fine
+        if (activeTimeRange != null) {
+            // se esiste un time raneg attivo imposta la data di fine
             Calendar cal = Calendar.getInstance();
             cal.set(Calendar.HOUR_OF_DAY, activeTimeRange.endTime.getHour());
             cal.set(Calendar.MINUTE, activeTimeRange.endTime.getMinute());
@@ -157,11 +173,11 @@ public class ScenarioProgram extends DBObject {
         // e l'inizio del prossimo. Alla data nextTimeRangeStartDate sarà chiamato il prossimo Job che
         // chiamerà lo Stop del time range (
         Date nextTimeRangeStartDate = null;
-        ScenarioProgramTimeRange nextTimeRange = getNextActiveTimeRangeFromDateTime(currentTime);
+        ScenarioProgramTimeRange nextTimeRange = getNextActiveTimeRangeFromDateTime(time);
         if (nextTimeRange != null) {
             Calendar cal = Calendar.getInstance();
-            cal.setTime(Core.getDate());
-            if (nextTimeRange.startTime.compareTo(currentTime) < 0) {
+            cal.setTime(date/*Core.getDate()*/);
+            if (nextTimeRange.startTime.compareTo(time) < 0) {
                 cal.add(Calendar.HOUR, 24);
             }
             cal.set(Calendar.HOUR_OF_DAY, nextTimeRange.startTime.getHour());
@@ -196,12 +212,42 @@ public class ScenarioProgram extends DBObject {
             if (nextTimeRangeStartDate != null)
                 nexJobDate = nextTimeRangeStartDate;
         }
-        if (nexJobDate != null) {
-            LOGGER.info("triggerNextTimeInterval id=" + id + "nextActivationDate=" + nexJobDate.toString());
-            scheduleNextProgramTimeRangeJob(nexJobDate, activeTimeRange); // activeTime range sarà automaticamente fermato dal job quando parte
-        } else {
-            LOGGER.info("no triggerNextTimeInterval id=" + id);
+        return nexJobDate;
+    }
+
+    public List<NextTimeRange> getNextTimeRanges(Date date) {
+        List<NextTimeRange> list = new ArrayList<>();
+
+        Date nextDate = date;
+        Calendar c = Calendar.getInstance();
+        c.setTime(nextDate);
+
+        Instant instant = Instant.ofEpochMilli(nextDate.getTime());
+        LocalTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        ScenarioProgramTimeRange timeRange;// = getActiveTimeRangeFromTimeAndDay(time, c.get(Calendar.DAY_OF_WEEK));
+
+        long diffDays = (nextDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+
+        while (diffDays < 7 && list.size() < 20) {
+            NextTimeRange range = new NextTimeRange();
+            range.date = nextDate;
+            range.start = time;
+
+            timeRange = getActiveTimeRangeFromTimeAndDay(time, c.get(Calendar.DAY_OF_WEEK));
+            range.timeRange = timeRange;
+            nextDate = getNextJobDate(nextDate,timeRange);
+
+            instant = Instant.ofEpochMilli(nextDate.getTime());
+            time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+
+            range.end = time;
+            list.add(range);
+
+            c.setTime(nextDate);
+            diffDays = (nextDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+
         }
+        return list;
     }
 
     private void deleteNextTimeRangeJob() {
@@ -263,27 +309,27 @@ public class ScenarioProgram extends DBObject {
         }
     }
 
-    // ritorna il Timerange attivo all'ora current time di oggi. Se il programma non è attivo oggi ritorna null
-    public ScenarioProgramTimeRange getActiveTimeRangeFromDateTime(LocalTime currentTime) {
+    // ritorna il Timerange attivo all'ora 'time' e giorno 'day'. Se il programma non è attivo oggi ritorna null
+    public ScenarioProgramTimeRange getActiveTimeRangeFromTimeAndDay(LocalTime time, int day) {
 
-        Calendar c = Calendar.getInstance();
-        if (!dayOfWeekActive(c.get(Calendar.DAY_OF_WEEK))) return null;
+        //Calendar c = Calendar.getInstance();
+        //if (!dayOfWeekActive(day/*c.get(Calendar.DAY_OF_WEEK))*/) return null;
 
         if (timeRanges == null || timeRanges.size() == 0) return null;
         for (ScenarioProgramTimeRange timeRange : timeRanges) {
-            if (timeRange.isActive(currentTime)) return timeRange;
+            if (timeRange.isActive(time)) return timeRange;
         }
         return null;
     }
 
-    // ritorna la fascia orari attiva alla current time ssenza tenere conto del giorno della settimana
-    public ScenarioProgramTimeRange getNextActiveTimeRangeFromDateTime(LocalTime currentTime) {
+    // ritorna la fascia orari attiva all'ora 'time' ssenza tenere conto del giorno della settimana
+    public ScenarioProgramTimeRange getNextActiveTimeRangeFromDateTime(LocalTime time) {
 
         if (timeRanges == null || timeRanges.size() == 0) return null;
 
         // cerca la prossima fascia oraria che inizia dopo l'ora attuale
         for (ScenarioProgramTimeRange timeRange : timeRanges) {
-            if (timeRange.startTime.compareTo(currentTime) > 0)
+            if (timeRange.startTime.compareTo(time) > 0)
                 return timeRange;
         }
         // se non c'è nessuna fascia che inizia dopop l'ora attuale
@@ -372,7 +418,8 @@ public class ScenarioProgram extends DBObject {
                 json.put("startdate", df.format(startDate));
             if (endDate != null)
                 json.put("enddate", df.format(endDate));
-            ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromDateTime(Core.getTime());
+            Calendar c = Calendar.getInstance();
+            ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromTimeAndDay(Core.getTime(),c.get(Calendar.DAY_OF_WEEK));
             if (activeTimeRange != null)
                 json.put("activetimerange", activeTimeRange.toJson());
 

@@ -162,9 +162,11 @@ public class ScenarioProgram extends DBObject {
         if (activeTimeRange != null) {
             // se esiste un time raneg attivo imposta la data di fine
             Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
             cal.set(Calendar.HOUR_OF_DAY, activeTimeRange.endTime.getHour());
             cal.set(Calendar.MINUTE, activeTimeRange.endTime.getMinute());
-            cal.set(Calendar.SECOND, activeTimeRange.endTime.getSecond());
+            cal.set(Calendar.SECOND, 0/*activeTimeRange.endTime.getSecond()*/);
+            //cal.add(Calendar.MINUTE,1);
             activeTimeRangeEndDate = cal.getTime();
         }
 
@@ -177,7 +179,7 @@ public class ScenarioProgram extends DBObject {
         if (nextTimeRange != null) {
             Calendar cal = Calendar.getInstance();
             cal.setTime(date/*Core.getDate()*/);
-            if (nextTimeRange.startTime.compareTo(time) < 0) {
+            if (nextTimeRange.startTime.compareTo(time) <= 0) {
                 cal.add(Calendar.HOUR, 24);
             }
             cal.set(Calendar.HOUR_OF_DAY, nextTimeRange.startTime.getHour());
@@ -204,10 +206,14 @@ public class ScenarioProgram extends DBObject {
         // imposta il prossimo job alla fine dell'activeTimeRange oppure alla start date del prossimo
         // se la data è precedente oppure se l'active non esiste
         if (activeTimeRangeEndDate != null) {
-            if (nextTimeRangeStartDate.compareTo(activeTimeRangeEndDate) <= 0)
+            if (nextTimeRangeStartDate.compareTo(activeTimeRangeEndDate) <= 0) {
                 nexJobDate = nextTimeRangeStartDate;
-            else
-                nexJobDate = activeTimeRangeEndDate;
+            } else {
+                Calendar c = Calendar.getInstance();
+                c.setTime(activeTimeRangeEndDate);
+                c.add(Calendar.MINUTE,1);
+                nexJobDate = c.getTime();
+            }
         } else {
             if (nextTimeRangeStartDate != null)
                 nexJobDate = nextTimeRangeStartDate;

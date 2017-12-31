@@ -46,6 +46,20 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     private Date startDate = null;
     private Date endDate = null;
 
+    private ScenarioTimeInterval.ScenarioTimeIntervalListener timeIntervalListener = new ScenarioTimeInterval.ScenarioTimeIntervalListener() {
+        @Override
+        public void onChangeStatus(boolean active) {
+            updateStatus();
+        }
+    };
+
+    private ScenarioTrigger.ScenarioTriggerListener triggerListener = new ScenarioTrigger.ScenarioTriggerListener() {
+        @Override
+        public void onChangeStatus(boolean active) {
+            updateStatus();
+        }
+    };
+
     public Scenario() {
     }
 
@@ -62,6 +76,10 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
             timeInterval.addListener(this);
+        }
+
+        for (ScenarioTrigger trigger : triggers) {
+            trigger.addListener(triggerListener);
         }
 
         updateStatus();
@@ -476,7 +494,25 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     public void updateStatus() {
 
         boolean oldActiveStatus = active;
-        active = statusActiveAtDate(Core.getDate());
+
+        if (calendar.timeIntervals.size() == 0) {
+            active = true;
+        } else {
+            // controlla se c'è almeno un timeinterval attivo
+            active = statusActiveAtDate(Core.getDate());
+        }
+
+        if (active && triggers.size() > 0) {
+            active = false;
+            // controlla se c'è almeno un ttrigger attivo
+            for (ScenarioTrigger trigger : triggers) {
+                if (trigger.getStatus()) {
+                    active = true;
+                    break;
+                }
+            }
+        }
+
 
         // se lo scenario è attivo avvia i programmi
         for (ScenarioProgram program : programs) {
@@ -580,14 +616,19 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
-    public void getActuatorIdActiveTimeRangeFromDate(int actuatorid, Date date) {
+    public List<NextProgram> getNextPrograms(Date date) {
 
-
-
+        List<NextProgram> nextPrograms = new ArrayList<>();
         for (ScenarioProgram program : programs) {
-
-            List<NextTimeRange> list = program.getNextTimeRanges(date);
+            List<NextTimeRange> timeRangeList = program.getNextTimeRanges(date);
+            if (timeRangeList != null) {
+                NextProgram nextProgram = new NextProgram();
+                nextProgram.program = program;
+                nextProgram.nextTimeranges = timeRangeList;
+                nextPrograms.add(nextProgram);
+            }
         }
+        return nextPrograms;
     }
 }
 

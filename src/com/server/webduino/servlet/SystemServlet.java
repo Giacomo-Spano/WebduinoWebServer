@@ -482,6 +482,19 @@ public class SystemServlet extends HttpServlet {
             }
             if (jsonArray != null)
                 out.print(jsonArray.toString());
+        } else if (requestCommand != null && requestCommand.equals("nextprograms") && id != null) {
+            int actuatorid = Integer.parseInt(id);
+            if (actuatorid != 0) {
+
+
+
+                JSONArray jarray = core.getNextActuatorTimeRangeJSONArray(actuatorid);
+                if (jarray != null) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(jarray.toString());
+                    return;
+                }
+            }
         }
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }

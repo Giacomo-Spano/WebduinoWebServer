@@ -73,6 +73,20 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return null;
     }
 
+    public JSONArray getNextActuatorTimeRangeJSONArray(int actuatorid) {
+
+        JSONArray jsonArray = new JSONArray();
+
+        List<NextScenario> list = scenarios.getNextScenarios(Core.getDate());
+        if (list != null) {
+            for(NextScenario nextScenario: list) {
+                jsonArray.put(nextScenario.toJson());
+            }
+            return jsonArray;
+        }
+        return null;
+    }
+
 
     public interface CoreListener {
         void onCommandResponse(String uuid, String response);
@@ -681,6 +695,21 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static int registerShield(Shield shield) {
         return mShields.register(shield);
     }
+
+
+
+    /*public static Program getProgramFromId(int id) {
+        return mSchedule.getProgramFromId(id);
+    }*/
+
+    /*public ActiveProgram getActiveProgram(int id) {
+        SensorBase sensor = getSensorFromId(id);
+        return sensor.getActiveProgram();
+    }*/
+
+    /*public Date getLastActiveProgramUpdate() {
+        return mSchedule.getLastActiveProgramUpdate();
+    }*/
 
     public static SensorBase getSensorFromId(int id) {
         return mShields.getSensorFromId(id);

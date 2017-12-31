@@ -6,8 +6,7 @@ import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import org.json.JSONArray;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -212,4 +211,20 @@ public class Scenarios {
     }
 
 
+
+
+    public List<NextScenario> getNextScenarios(java.util.Date date) {
+
+        List<NextScenario> nextScenarios = new ArrayList<>();
+        for (Scenario scenario : scenarioList) {
+            List<NextProgram> programList = scenario.getNextPrograms(date);
+            if (programList != null) {
+                NextScenario nextScenario = new NextScenario();
+                nextScenario.scenario = scenario;
+                nextScenario.nextPrograms = programList;
+                nextScenarios.add(nextScenario);
+            }
+        }
+        return nextScenarios;
+    }
 }

@@ -57,9 +57,45 @@ public class Scenarios {
         }
     }
 
-    private void checkConflict(ProgramAction action/*, int timerangeIndex, int programPriority, int scenarioPriority*/) {
+    private Conflict hasConflict(Scenario scenario, ScenarioProgram program, ScenarioProgramTimeRange timeRange, ProgramAction programAction, ProgramAction action) {
+        // se è la stessa action passa alla successiva
+        if (action.id == programAction.id)
+            return null;
 
         Conflict conflict = getActionConfictDataFromActionId(action.id);
+
+        if (conflict.scenario.id == scenario.id) {
+            if (conflict.program.id == program.id) {
+                if (conflict.timerange.id == timeRange.id) {
+                    if (conflict.action.id < action.id) {
+                        return conflict;
+                    }
+                } else {
+                    if (conflict.timerange.index < timeRange.index ||
+                            (conflict.timerange.index == timeRange.index && conflict.timerange.id < timeRange.id)) {
+                        return conflict;
+                    }
+                }
+            } else {
+                if (conflict.program.priority < program.priority ||
+                        (conflict.program.priority == program.priority &&conflict.program.id < program.id)) {
+                    return conflict;
+                }
+            }
+
+        } else {
+            if (conflict.scenario.priority < scenario.priority ||
+                    (conflict.scenario.priority == scenario.priority && conflict.scenario.id < scenario.id)) {
+                return conflict;
+            }
+        }
+
+        return null;
+    }
+
+    private void checkConflict(ProgramAction action) {
+
+        //Conflict conflict = getActionConfictDataFromActionId(action.id);
 
         // Scorre tutte le action di tutti gli scenari e se ne trova una con priorità inferiore aggiunge un conflic alla action trovata
         if (scenarioList != null)
@@ -70,37 +106,9 @@ public class Scenarios {
                             for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
                                 if (timeRange.programActionList != null)
                                     for (ProgramAction programAction : timeRange.programActionList) {
-
-                                        // se è la stessa action passa alla successiva
-                                        if (action.id == programAction.id)
-                                            continue;
-
-
-                                        if (conflict.scenario.id == scenario.id) {
-                                            if (conflict.program.id == program.id) {
-                                                if (conflict.timerange.id == timeRange.id) {
-                                                    if (conflict.action.id < action.id) {
-                                                        programAction.addConflict(conflict);
-                                                    }
-                                                } else {
-                                                    if (conflict.timerange.index < timeRange.index ||
-                                                            (conflict.timerange.index == timeRange.index && conflict.timerange.id < timeRange.id)) {
-                                                        programAction.addConflict(conflict);
-                                                    }
-                                                }
-                                            } else {
-                                                if (conflict.program.priority < program.priority ||
-                                                        (conflict.program.priority == program.priority &&conflict.program.id < program.id)) {
-                                                    programAction.addConflict(conflict);
-                                                }
-                                            }
-
-                                        } else {
-                                            if (conflict.scenario.priority < scenario.priority ||
-                                                    (conflict.scenario.priority == scenario.priority && conflict.scenario.id < scenario.id)) {
-                                                programAction.addConflict(conflict);
-                                            }
-                                        }
+                                        Conflict conflict = hasConflict(scenario,program,timeRange,programAction,action);
+                                        if(conflict != null)
+                                            programAction.addConflict(conflict);
                                     }
                             }
                     }

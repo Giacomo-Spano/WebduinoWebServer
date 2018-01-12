@@ -2,8 +2,12 @@ package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Program;
+import com.server.webduino.core.datalog.ActionDataLog;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.scenario.Conflict;
+import com.server.webduino.core.webduinosystem.scenario.Scenario;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioProgram;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioProgramTimeRange;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,18 +35,24 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
     public int zoneId = 0;
     public int seconds = 0;
     public boolean enabled = true;
-    protected Date endDate = null;
+    public Date endDate = null;
+    public Date startDate = null;
 
-    boolean active = false;
+    public boolean active = false;
+    private ActionDataLog dataLog = new ActionDataLog();
 
     protected List<ActionListener> listeners = new ArrayList<>();
+
     public interface ActionListener {
         void onStart(ProgramAction action);
+
         void onStop(ProgramAction action);
     }
+
     public void addListener(ActionListener toAdd) {
         listeners.add(toAdd);
     }
+
     public void deleteListener(ActionListener toRemove) {
         listeners.remove(toRemove);
     }
@@ -66,28 +76,41 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
 
     List<Conflict> conflictList = new ArrayList<>();
 
+    public boolean hasConflict(ProgramAction action) {
+
+        if (action ==  null) return false;
+
+        if (action.actuatorid == this.actuatorid) {
+            if ((action instanceof KeepTemperatureProgramAction || action instanceof KeepOffProgramActions) &&
+                    (this instanceof KeepTemperatureProgramAction || this instanceof KeepOffProgramActions)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void addConflict(Conflict newconflict) {
 
         // controlla che non ci sia già nella lista altrimenti
-        for (Conflict conflict: conflictList) {
+        for (Conflict conflict : conflictList) {
             if (conflict.action.id == newconflict.action.id) {
                 return;
             }
         }
 
         // se la action ha lo stesso actuator aggiunge il conflitto
-        if (newconflict.action.actuatorid == this.actuatorid) {
-            if ((newconflict.action instanceof KeepTemperatureProgramAction || newconflict.action instanceof KeepOffProgramActions ) &&
-                    (this instanceof KeepTemperatureProgramAction || this instanceof KeepOffProgramActions ) ) {
+        //if (newconflict.action.actuatorid == this.actuatorid) {
 
-                //Conflict conflict = new Conflict(action, timerangeIndex, programPriority, scenarioPriority);
+            conflictList.add(newconflict);
+            /*if ((newconflict.action instanceof KeepTemperatureProgramAction || newconflict.action instanceof KeepOffProgramActions) &&
+                    (this instanceof KeepTemperatureProgramAction || this instanceof KeepOffProgramActions)) {
                 conflictList.add(newconflict);
-            }
-        }
+            }*/
+        //}
     }
 
     public void removeConflict(ProgramAction action) {
-        for (Conflict conflict: conflictList) {
+        for (Conflict conflict : conflictList) {
             if (conflict.action.id == action.id) {
                 conflictList.remove(conflict);
                 break;
@@ -97,6 +120,10 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
 
     public void setEndDate(Date date) {
         endDate = date;
+    }
+
+    public void setStartDate(Date date) {
+        startDate = date;
     }
 
     @Override
@@ -111,17 +138,23 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
     }
 
     public void start() {
-        if (!enabled) return;
+        if (!enabled)
+            return;
+
+        startDate = Core.getDate();
+        dataLog.id = dataLog.writelog("start",this);
 
         active = true;
-        for (ActionListener listener: listeners) {
+        for (ActionListener listener : listeners) {
             listener.onStart(this);
         }
     }
-    public void stop() {
 
+    public void stop() {
+        if (active)
+            dataLog.writelog("stop",this);
         active = false;
-        for (ActionListener listener: listeners) {
+        for (ActionListener listener : listeners) {
             listener.onStop(this);
         }
     }

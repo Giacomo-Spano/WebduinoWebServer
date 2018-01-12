@@ -15,9 +15,9 @@ public class DoorSensorDataLog extends DataLog {
     public String tableName = "doordatalog";
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
 
-        DoorSensor doorSensor = (DoorSensor) sensor;
+        DoorSensor doorSensor = (DoorSensor) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, sensorid, date, open) VALUES ("
                 + doorSensor.getId() + "," + doorSensor.getId() + ","  + getStrDate() + "," + doorSensor.getDoorStatus() + ");";

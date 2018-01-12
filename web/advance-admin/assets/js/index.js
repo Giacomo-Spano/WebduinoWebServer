@@ -9,6 +9,8 @@ var $zoneRow;
 var $zonePanel;
 var $scenariosPanel;
 var $scenarioRow;
+var $nexttimerangesPanel;
+var $nexttimerangeRow;
 var $programPanel;
 var $instructionsPanel;
 var $instructionRow;
@@ -324,6 +326,9 @@ function loadScenarios() {
         $scenariosPanel = $(this).find('div[id="scenariospanel"]');
         $scenarioRow = $scenariosPanel.find('tr[name="scenario"]');
 
+        $nexttimerangesPanel = $(this).find('div[id="nexttimeranges"]');
+        $nexttimerangeRow = $nexttimerangesPanel.find('tr[name="nexttimerangerow"]');
+
         var tbody = $scenariosPanel.find('tbody[name="scenariolist"]');
         $.getJSON(systemServletPath + "?requestcommand=scenarios", function (data) {
             tbody[0].innerHTML = "";
@@ -353,8 +358,39 @@ function loadScenarios() {
 
 
             });
+
+
+
+
+            $.getJSON(systemServletPath + "?requestcommand=nextprograms&id="+0, function (nexttimeranges) {
+                var tbody = $nexttimerangesPanel.find('tbody[name="nexttimerangelist"]');
+                tbody[0].innerHTML = "";
+                if (nexttimeranges != null) {
+                    $.each(nexttimeranges, function (idx, elem) {
+                        addNextTimeRange(idx, elem);
+                    });
+                }
+            });
+
         });
     });
+}
+
+function addNextTimeRange(idx, elem) {
+    var timerange = $nexttimerangeRow.clone();
+
+    timerange.find('td[name="date"]').text(elem.date);
+    timerange.find('td[name="time"]').text(elem.starttime + "-" + elem.endtime);
+    timerange.find('td[name="scenario"]').text(elem.scenarioid+"."+elem.scenarioname);
+    timerange.find('td[name="timeinterval"]').text(elem.timeintervalid);
+    timerange.find('td[name="program"]').text(elem.programid+"."+elem.programname);
+    timerange.find('td[name="timerange"]').text(elem.timerangeid+"."+elem.timerangename);
+    timerange.find('td[name="action"]').text(elem.action.id+"."+elem.action.name);
+    timerange.find('td[name="type"]').text(elem.action.type+"."+elem.action.targetvalue);
+    timerange.find('td[name="actuatorid"]').text(elem.actuatorid);
+    timerange.find('td[name="conflicts"]').text(elem.conflicts);
+
+    $nexttimerangesPanel.find('tbody[name="nexttimerangelist"]').append(timerange);
 }
 
 function setSensorElement(element, sensor) {

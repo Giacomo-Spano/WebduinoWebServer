@@ -15,9 +15,9 @@ public class HumiditySensorDataLog extends DataLog {
     public String tableName = "currentdatalog";
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
 
-        HumiditySensor humiditySensor = (HumiditySensor) sensor;
+        HumiditySensor humiditySensor = (HumiditySensor) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
                 + humiditySensor.getId() + ",'" + humiditySensor.getSubaddress() + "',"  + getStrDate() + "," + humiditySensor.getHumidity() + ");";

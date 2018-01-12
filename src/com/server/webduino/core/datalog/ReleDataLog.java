@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class ReleDataLog extends DataLog {
-    //public Date date = new Date();
-    //public Date time = new Date();
     protected String status = "";
     protected double localTemperature;
     protected int activeProgram;
@@ -24,9 +22,9 @@ public class ReleDataLog extends DataLog {
 
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
 
-        HeaterActuator heaterActuator = (HeaterActuator) sensor;
+        HeaterActuator heaterActuator = (HeaterActuator) object;
         String sql = "";
 
         /*sql = "INSERT INTO heaterdatalog (id, date, event, relestatus, status, localtemperature, remotetemperature, targettemperature, activeprogram, activetimerange, activesensor) " +

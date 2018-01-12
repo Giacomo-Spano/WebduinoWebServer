@@ -22,9 +22,9 @@ public class HeaterDataLog extends DataLog {
 
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
 
-        HeaterActuator heaterActuator = (HeaterActuator) sensor;
+        HeaterActuator heaterActuator = (HeaterActuator) object;
         String sql;
 
         sql = "INSERT INTO heaterdatalog (date, sensorid, relestatus, status, temperature, targettemperature, actionid) " +

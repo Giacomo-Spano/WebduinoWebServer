@@ -67,8 +67,6 @@ public class ScenarioProgramTimeRange extends DBObject {
             cal.set(Calendar.MINUTE, endTime.getMinute());
             cal.set(Calendar.SECOND, endTime.getSecond());
             action.setEndDate(cal.getTime());
-
-
         }
     }
 
@@ -76,8 +74,6 @@ public class ScenarioProgramTimeRange extends DBObject {
         active = false;
         for (ProgramAction action : programActionList) {
             action.stop();
-
-
         }
     }
 
@@ -98,13 +94,13 @@ public class ScenarioProgramTimeRange extends DBObject {
         if (time == null)
             return false;
 
-        if (!enabled) return false;
+        if (!enabled)
+            return false;
 
         if (time.compareTo(startTime) < 0) // timerange inizia dopo
             return false;
 
-
-        if (/*!endTime.equals(LocalTime.MIDNIGHT) && */time.compareTo(endTime) > 0) // timerange è già finita
+        if (time.compareTo(endTime) > 0) // timerange è già finita
             return false;
 
         return true;
@@ -255,10 +251,14 @@ public class ScenarioProgramTimeRange extends DBObject {
         java.util.Date time = resultSet.getTimestamp("starttime");
         Instant instant = Instant.ofEpochMilli(time.getTime());
         LocalTime startTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        startTime = startTime.withSecond(0);
 
         time = resultSet.getTimestamp("endtime");
         instant = Instant.ofEpochMilli(time.getTime());
+
         LocalTime endTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        endTime = endTime.plusMinutes(-1);
+        endTime = endTime.withSecond(59);
 
         Boolean enabled = resultSet.getBoolean("enabled");
         int index = resultSet.getInt("index");

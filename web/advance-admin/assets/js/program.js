@@ -157,6 +157,10 @@ function loadProgram(program) {
 
             $timerangeRow = $programPanel.find('tr[name="row"]');
 
+            $.getJSON(systemServletPath + "?requestcommand=nextprograms&id="+program.id, function (nextprograms) {
+
+            });
+
             // save button
             var savebutton = $programPanel.find('button[name="save"]');
             savebutton.hide();

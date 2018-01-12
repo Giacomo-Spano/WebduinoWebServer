@@ -1,11 +1,7 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,7 +9,7 @@ import java.util.List;
  */
 public class NextProgram {
     ScenarioProgram program;
-    List<NextTimeRange> nextTimeranges;
+    List<NextTimeRangeAction> nextTimerangeActions;
 
     public JSONObject toJson() {
 

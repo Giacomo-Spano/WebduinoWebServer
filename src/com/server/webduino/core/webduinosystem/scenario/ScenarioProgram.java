@@ -142,7 +142,7 @@ public class ScenarioProgram extends DBObject {
 
         // schedula il prossimo ProgramTimeRangeJob, cioè schedula la prossima data e ora
         // in cui verrà fatto il prossimo controllo per vedere qual è il timerange attivo
-        Date nexJobDate = getNextJobDate(currentDate/*currentTime*/, activeTimeRange);
+        Date nexJobDate = getNextJobDate(currentDate, activeTimeRange);
 
         if (nexJobDate != null) {
             LOGGER.info("triggerNextTimeInterval id=" + id + "nextActivationDate=" + nexJobDate.toString());
@@ -153,6 +153,8 @@ public class ScenarioProgram extends DBObject {
     }
 
     public Date getNextJobDate(Date date, ScenarioProgramTimeRange activeTimeRange) {
+        // valuta la data della prossima fine del timerange corrente attivo oppure
+        // quella dell'inizio del prossimo se non c'è nessun time range attivo
 
         Instant instant = Instant.ofEpochMilli(date.getTime());
         LocalTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
@@ -160,12 +162,12 @@ public class ScenarioProgram extends DBObject {
         Date nexJobDate = null;
         Date activeTimeRangeEndDate = null;
         if (activeTimeRange != null) {
-            // se esiste un time raneg attivo imposta la data di fine
+            // se esiste un time range attivo imposta la data di fine
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
             cal.set(Calendar.HOUR_OF_DAY, activeTimeRange.endTime.getHour());
             cal.set(Calendar.MINUTE, activeTimeRange.endTime.getMinute());
-            cal.set(Calendar.SECOND, 0/*activeTimeRange.endTime.getSecond()*/);
+            cal.set(Calendar.SECOND, activeTimeRange.endTime.getSecond());
             //cal.add(Calendar.MINUTE,1);
             activeTimeRangeEndDate = cal.getTime();
         }
@@ -177,81 +179,143 @@ public class ScenarioProgram extends DBObject {
         Date nextTimeRangeStartDate = null;
         ScenarioProgramTimeRange nextTimeRange = getNextActiveTimeRangeFromDateTime(time);
         if (nextTimeRange != null) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(date/*Core.getDate()*/);
+            Calendar nextTimeRangeStartDateCal = Calendar.getInstance();
+            // imposta nextTimeRangeStartDateCal alla data corrente 'date'
+            nextTimeRangeStartDateCal.setTime(date);
             if (nextTimeRange.startTime.compareTo(time) <= 0) {
-                cal.add(Calendar.HOUR, 24);
+                // se lo starttime è precedente porta avanti nextTimeRangeStartDateCal
+                //  di un giorno
+                nextTimeRangeStartDateCal.add(Calendar.HOUR, 24);
             }
-            cal.set(Calendar.HOUR_OF_DAY, nextTimeRange.startTime.getHour());
-            cal.set(Calendar.MINUTE, nextTimeRange.startTime.getMinute());
-            cal.set(Calendar.SECOND, nextTimeRange.startTime.getSecond());
+            // imposta nextTimeRangeStartDateCal all'ora, minuti e secondi di nextTimeRange.startTime
+            nextTimeRangeStartDateCal.set(Calendar.HOUR_OF_DAY, nextTimeRange.startTime.getHour());
+            nextTimeRangeStartDateCal.set(Calendar.MINUTE, nextTimeRange.startTime.getMinute());
+            nextTimeRangeStartDateCal.set(Calendar.SECOND, nextTimeRange.startTime.getSecond());
 
-            if (!dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
+            if (!dayOfWeekActive(nextTimeRangeStartDateCal.get(Calendar.DAY_OF_WEEK))) {
+                // Se il prossimo timerange non è attivo nel giorno della settimana corrente
+                // aggiungi un giorno fino a che non ne trova uno attivo partento
+                // dal primo Timerange del prossimo giorno
                 ScenarioProgramTimeRange tr = getFirstTimeRangeofDay();
-                cal.set(Calendar.HOUR_OF_DAY, tr.startTime.getHour());
-                cal.set(Calendar.MINUTE, tr.startTime.getMinute());
-                cal.set(Calendar.SECOND, tr.startTime.getMinute());
+                nextTimeRangeStartDateCal.set(Calendar.HOUR_OF_DAY, tr.startTime.getHour());
+                nextTimeRangeStartDateCal.set(Calendar.MINUTE, tr.startTime.getMinute());
+                nextTimeRangeStartDateCal.set(Calendar.SECOND, tr.startTime.getMinute());
+                // imposta nextTimeRangeStartDate a null prima di fare un loop sui prossimi
+                // giorni per trovare il primo attivo
+                nextTimeRangeStartDate = null;
                 for (int i = 0; i < 7; i++) {
-                    cal.add(Calendar.HOUR, 24);
-                    if (dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK))) {
-                        nextTimeRangeStartDate = cal.getTime();
+                    nextTimeRangeStartDateCal.add(Calendar.HOUR, 24);
+                    if (dayOfWeekActive(nextTimeRangeStartDateCal.get(Calendar.DAY_OF_WEEK))) {
+                        nextTimeRangeStartDate = nextTimeRangeStartDateCal.getTime();
                         break;
                     }
                 }
+                // se dopo aver fatto il loop di tutti i giorni della settimana
+                // non trova nessun giorno nextTimeRangeStartDate rimarrà a null
+
             } else {
-                nextTimeRangeStartDate = cal.getTime();
+                // se il prossimo timerange è attivo nel giorno della settimana corrente
+                // sta nextTimeRangeStartDate al nextTimeRangeStartDateCal
+                nextTimeRangeStartDate = nextTimeRangeStartDateCal.getTime();
             }
         }
 
         // imposta il prossimo job alla fine dell'activeTimeRange oppure alla start date del prossimo
         // se la data è precedente oppure se l'active non esiste
         if (activeTimeRangeEndDate != null) {
-            if (nextTimeRangeStartDate.compareTo(activeTimeRangeEndDate) <= 0) {
-                nexJobDate = nextTimeRangeStartDate;
+            // esiste un TimeRange attivo alla data corrente
+            if ((nextTimeRangeStartDate != null && nextTimeRangeStartDate.compareTo(activeTimeRangeEndDate) <= 0) ||
+                    activeTimeRangeEndDate.compareTo(date) == 0) {
+                // la data di inizio del prossimo timerange è precedente
+                // alla data di fine di quello corrente oppure
+                // la data corrente coincide con la fine del time range corrente
+                Calendar c = Calendar.getInstance();
+                c.setTime(nextTimeRangeStartDate);
+                nexJobDate = c.getTime();
             } else {
+                // la data di inizio del prossimo timerange è successiva
+                // alla data di fine di quello corrente e
+                // la data corrente non coincide con la fine del time range corrente
                 Calendar c = Calendar.getInstance();
                 c.setTime(activeTimeRangeEndDate);
-                c.add(Calendar.MINUTE,1);
+                // imposta la prossima data ad un secondo dopo la fine del'activeTimerange
+                c.add(Calendar.SECOND,1);
                 nexJobDate = c.getTime();
             }
         } else {
-            if (nextTimeRangeStartDate != null)
-                nexJobDate = nextTimeRangeStartDate;
+            // non esiste un TimeRange attivo alla data corrente
+            if (nextTimeRangeStartDate != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(nextTimeRangeStartDate);
+                // imposta la prossima data ad un secondo dopo la fine del'activeTimerange
+                c.add(Calendar.SECOND,1);
+                nexJobDate = c.getTime();
+            }
         }
         return nexJobDate;
     }
 
-    public List<NextTimeRange> getNextTimeRanges(Date date) {
-        List<NextTimeRange> list = new ArrayList<>();
+    public List<NextTimeRangeAction> getNextTimeRangeActions(Date date, Date maxDate) {
+        // ritorna la lista dei prossimi NextTimeRangeAction a partire da 'date' fino alla
+        // massima data.
+        // Più avanti controlla comunque che la data di fine non sia oltre 7 giorni
+        // e che la lista non abbiam più di 20 elementi
 
+        if (date == null)
+            return null;
+
+        List<NextTimeRangeAction> list = new ArrayList<>();
         Date nextDate = date;
-        Calendar c = Calendar.getInstance();
-        c.setTime(nextDate);
-
-        Instant instant = Instant.ofEpochMilli(nextDate.getTime());
-        LocalTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
-        ScenarioProgramTimeRange timeRange;// = getActiveTimeRangeFromTimeAndDay(time, c.get(Calendar.DAY_OF_WEEK));
-
         long diffDays = (nextDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
 
-        while (diffDays < 7 && list.size() < 20) {
-            NextTimeRange range = new NextTimeRange();
-            range.date = nextDate;
-            range.start = time;
+        // esegue un loop e aggiunge tutti i prossimi nextTimeRange
+        // fino a che la data non supera 7 giorni oppure i time range sono più di 100
+        while (diffDays < 7 && list.size() < 100) {
 
-            timeRange = getActiveTimeRangeFromTimeAndDay(time, c.get(Calendar.DAY_OF_WEEK));
-            range.timeRange = timeRange;
-            nextDate = getNextJobDate(nextDate,timeRange);
+            Instant instant = Instant.ofEpochMilli(nextDate.getTime());
+            LocalTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+            ScenarioProgramTimeRange timeRange;
 
-            instant = Instant.ofEpochMilli(nextDate.getTime());
-            time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+            Calendar nextDateCalendar = Calendar.getInstance();
+            nextDateCalendar.setTime(nextDate);
+            timeRange = getActiveTimeRangeFromTimeAndDay(time, nextDateCalendar.get(Calendar.DAY_OF_WEEK));
 
-            range.end = time;
-            list.add(range);
+            Date startDate = nextDate;
+            nextDate = getNextJobDate(startDate,timeRange);
 
-            c.setTime(nextDate);
+            if (nextDate == null)
+                break;
+
+            if (maxDate != null && nextDate.after(maxDate))
+                nextDate = maxDate;
+
+            if (timeRange != null && timeRange.programActionList != null) {
+                // aggiunge un time range se esiste e se c'è almeno una action
+                for (ProgramAction action: timeRange.programActionList) {
+                    NextTimeRangeAction range = new NextTimeRangeAction();
+                    range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
+                    range.start = time;
+                    range.timeRange = timeRange;
+
+                    instant = Instant.ofEpochMilli(nextDate.getTime());
+                    time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+                    // mette la data di fine del range alla prima data tra la fine
+                    // del time range e l'inizio del successivo
+                    if (time.isBefore(timeRange.endTime)) {
+                        range.end = time;
+                    } else {
+                        range.end = timeRange.endTime;
+                    }
+                    range.action = action;
+                    list.add(range);
+
+                    range = new NextTimeRangeAction();
+                    range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
+                    range.start = time;
+                }
+
+            }
             diffDays = (nextDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-
         }
         return list;
     }
@@ -317,9 +381,6 @@ public class ScenarioProgram extends DBObject {
 
     // ritorna il Timerange attivo all'ora 'time' e giorno 'day'. Se il programma non è attivo oggi ritorna null
     public ScenarioProgramTimeRange getActiveTimeRangeFromTimeAndDay(LocalTime time, int day) {
-
-        //Calendar c = Calendar.getInstance();
-        //if (!dayOfWeekActive(day/*c.get(Calendar.DAY_OF_WEEK))*/) return null;
 
         if (timeRanges == null || timeRanges.size() == 0) return null;
         for (ScenarioProgramTimeRange timeRange : timeRanges) {

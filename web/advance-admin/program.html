@@ -89,6 +89,7 @@
                         </div>
                     </div>
 
+                    <!-- timeranges-->
                     <div class="form-group col-md-12">
                         <div id="timeranges" class="table-responsive">
                             <table class="table table-striped table-bordered table-hover">
@@ -128,9 +129,6 @@
                                 </tbody>
                             </table>
 
-
-
-
                             <button type="button" name="add" class="btn btn-info">Aggiungi fasciax</button>
                         </div>
                     </div>
@@ -139,6 +137,89 @@
                         <button type="button" name="cancel" class="btn btn-info">Annulla</button>
                         <button type="button" name="edit" class="btn btn-info">Modifica</button>
                     </div>
+                    <!-- fine timeranges-->
+
+                    <!-- /. ROW  -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="panel panel-info">
+                                <div class="panel-heading">
+                                    Next programs <p style="display: inline-block;" name="headingleft"></p>
+                                    <p style="float: right;" name="headingright">xx.xx</p>
+                                </div>
+                                <div class="panel-body" name="body">
+
+                                    <label>next programs</label>
+                                    <div id="nextprograms" class="table-responsive">
+                                        <div class="table-responsive">
+                                            <table class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                <tr name="header">
+                                                    <th>Id</th>
+                                                    <th>Id scenario</th>
+                                                    <th>Nome</th>
+                                                    <th>Descrizione</th>
+                                                    <th>Giorni</th>
+                                                    <th>Abilitato</th>
+                                                    <th>Priorità</th>
+                                                    <th>Stato</th>
+                                                    <th>Nextjob</th>
+                                                    <th>Active Timerange</th>
+                                                    <th></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody name="nextprogramlist">
+                                                <tr name="nextprogramrow">
+                                                    <td name="id">#</td>
+                                                    <td name="scenarioid">#</td>
+                                                    <td><input class="form-control" name="programname" type="text"></td>
+                                                    <td><input class="form-control" name="programdescription" type="text"></td>
+                                                    <td>
+                                                        <label>
+                                                            <input type="checkbox" name="programmonday">L
+                                                        </label>
+                                                        <label>
+                                                            <input type="checkbox" name="programtuesday">Ma
+                                                        </label>
+                                                        <label>
+                                                            <input type="checkbox" name="programwednesday">Me
+                                                        </label>
+                                                        <label>
+                                                            <input type="checkbox" name="programthursday">G
+                                                        </label>
+                                                        <label>
+                                                            <input type="checkbox" name="programfriday">V
+                                                        </label>
+                                                        <label>
+                                                            <input type="checkbox" name="programsaturday">S
+                                                        </label>
+                                                        <label>
+                                                            <input type="checkbox" name="programsunday">D
+                                                        </label>
+                                                    </td>
+                                                    <td><input type="checkbox" name="programenabled" value="">Abilitato</td>
+                                                    <td><input class="form-control" type="number" name="programpriority" value="0"
+                                                               min="0" max="30" step="1"></td>
+                                                    <td name="status">#</td>
+                                                    <td name="nextjob">#</td>
+                                                    <td name="activetimerange">#</td>
+                                                    <th>Comandi</th>
+                                                    <td name="command">
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <button type="button" name="addprogram" class="btn btn-info">Aggiungi programma
+                                        </button>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /. ROW  -->
 
                 </form>
             </div>

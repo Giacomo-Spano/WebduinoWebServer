@@ -15,9 +15,9 @@ public class PressureSensorDataLog extends DataLog {
     public String tableName = "currentdatalog";
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
 
-        PressureSensor pressureSensor = (PressureSensor) sensor;
+        PressureSensor pressureSensor = (PressureSensor) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
                 + pressureSensor.getId() + ",'" + pressureSensor.getSubaddress() + "',"  + getStrDate() + "," + pressureSensor.getPressure() + ");";

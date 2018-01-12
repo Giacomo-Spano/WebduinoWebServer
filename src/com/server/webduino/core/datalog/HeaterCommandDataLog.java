@@ -10,23 +10,15 @@ public class HeaterCommandDataLog extends DataLog {
     public String tableName = "heatercommanddatalog";
 
     @Override
-    public String getSQLInsert(String event, Command command) {
+    //public String getSQLInsert(String event, Command command) {
+    public String getSQLInsert(String event, Object object) {
 
-        /*SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String strDate = "", strEndDate = "";*/
-
-        HeaterActuatorCommand heaterCommand = (HeaterActuatorCommand) command;
-
-        /*if (heaterCommand.date != null)
-            strDate = "'" + df.format(heaterCommand.date) + "'";
-        if (heaterCommand.enddate != null)
-            strEndDate = "'" + df.format(heaterCommand.enddate) + "'";*/
-
+        HeaterActuatorCommand heaterCommand = (HeaterActuatorCommand) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate, success, result) VALUES ("
                 + "'" + heaterCommand.date + "'"
                 + ",'" + heaterCommand.command + "'"
-                + "," + command.shieldid
+                + "," + heaterCommand.shieldid
                 + "," + heaterCommand.actuatorid
                 + ",'" + heaterCommand.uuid + "'"
                 + "," + heaterCommand.duration
@@ -41,5 +33,4 @@ public class HeaterCommandDataLog extends DataLog {
                 + ");";
         return sql;
     }
-
 }

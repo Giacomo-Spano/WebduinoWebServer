@@ -15,9 +15,10 @@ public class CurrentSensorDataLog extends DataLog {
     public String tableName = "currentdatalog";
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
+    //public String getSQLInsert(String event, SensorBase sensor) {
 
-        CurrentSensor currentSensor = (CurrentSensor) sensor;
+        CurrentSensor currentSensor = (CurrentSensor) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
                 + currentSensor.getId() + ",'" + currentSensor.getSubaddress() + "',"  + getStrDate() + "," + currentSensor.getCurrent() + ");";

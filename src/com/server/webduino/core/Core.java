@@ -47,13 +47,11 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     private List<WebduinoSystem> webduinoSystems = new ArrayList<>();
     private static List<Zone> zones = new ArrayList<>();
-    //private static List<Trigger> triggers = new ArrayList<>();
     private static Triggers triggerClass = new Triggers();
     private Scenarios scenarios = new Scenarios();
     private List<Exit> exits = new ArrayList<>();
     private List<Key> keys = new ArrayList<>();
     public static Shields mShields; // rendere private
-    //public static Schedule mSchedule;// DA ELIMINARE
 
     private static List<SWVersion> swversions = new ArrayList<>();
 
@@ -75,7 +73,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public JSONArray getNextActuatorTimeRangeJSONArray(int actuatorid) {
 
-        JSONArray jsonArray = new JSONArray();
+        /*JSONArray jsonArray = new JSONArray();
 
         List<NextScenario> list = scenarios.getNextScenarios(Core.getDate());
         if (list != null) {
@@ -83,10 +81,13 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 jsonArray.put(nextScenario.toJson());
             }
             return jsonArray;
-        }
+        }*/
         return null;
     }
 
+    public List<NextTimeRangeAction> getNextTimeRangeActions(/*int scenarioProgramId*/) {
+        return scenarios.nextTimeRangeActions;
+    }
 
     public interface CoreListener {
         void onCommandResponse(String uuid, String response);
@@ -630,6 +631,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return zone;
     }
 
+    public NextTimeRangeAction getNextActuatorProgramTimeRange(int actuatorid) {
+        return scenarios.getNextActuatorProgramTimeRange(actuatorid);
+    }
+
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
 
         LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
@@ -858,8 +863,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return false;
     }
 
-
-
     static public boolean publish(String topic, String message) {
 
         if (smc != null)
@@ -883,7 +886,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static boolean postCommand(Command command) {
         return mShields.postCommand(command);
     }
-
 
     public static JSONObject loadShieldSettings(String macAddress) {
         return mShields.loadShieldSettings(macAddress);

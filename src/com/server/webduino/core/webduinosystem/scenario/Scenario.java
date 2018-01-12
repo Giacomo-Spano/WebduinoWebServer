@@ -84,7 +84,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         updateStatus();
 
-        jobKey = JobKey.jobKey("ScenarioJob"+id, "my-jobs"+id);
+        jobKey = JobKey.jobKey("ScenarioJob" + id, "my-jobs" + id);
 
         Date currentDate = Core.getDate();
         Calendar cal = Calendar.getInstance();
@@ -99,7 +99,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         deleteNextTimeRangeJob();
 
-        for (ScenarioProgram program:programs) {
+        for (ScenarioProgram program : programs) {
             program.stopProgram();
         }
 
@@ -250,7 +250,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
     public void setActionListener(ProgramAction.ActionListener listener) {
         if (programs != null)
-            for (ScenarioProgram program: programs) {
+            for (ScenarioProgram program : programs) {
                 program.setActionListener(listener);
             }
     }
@@ -616,19 +616,103 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
-    public List<NextProgram> getNextPrograms(Date date) {
+    private class Interval {
+        Date start;
+        Date end;
+        int timeintervalid;
 
-        List<NextProgram> nextPrograms = new ArrayList<>();
-        for (ScenarioProgram program : programs) {
-            List<NextTimeRange> timeRangeList = program.getNextTimeRanges(date);
-            if (timeRangeList != null) {
-                NextProgram nextProgram = new NextProgram();
-                nextProgram.program = program;
-                nextProgram.nextTimeranges = timeRangeList;
-                nextPrograms.add(nextProgram);
+        Interval(Date start, Date end, int timeintervalid) {
+            this.start = start;
+            this.end = end;
+            this.timeintervalid = timeintervalid;
+        }
+    }
+
+    ;
+
+    public List<NextTimeRangeAction> getNextTimeRangeActions(Date date) {
+
+        if (triggers != null && triggers.size() > 0) {
+            boolean triggerActive = false;
+            for (ScenarioTrigger trigger : triggers) {
+                if (trigger.getStatus()) {
+                    triggerActive = true;
+                }
+            }
+            if (!triggerActive)
+                return null;
+        }
+
+        List<NextTimeRangeAction> scenarioNextTimeRangeActions = new ArrayList<>();
+
+        List<Interval> intervals = new ArrayList<>();
+        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+
+            if (timeInterval.endDateTime.before(date))
+                continue;
+
+            if (intervals.size() == 0) {
+                intervals.add(new Interval(timeInterval.startDateTime, timeInterval.endDateTime,timeInterval.id));
+                continue;
+            }
+
+            for (Interval interval : intervals) {
+                // inizia prima e finisce dopo
+                if (timeInterval.startDateTime.before(interval.start) && timeInterval.endDateTime.before(interval.start)) {
+                    intervals.add(new Interval(timeInterval.startDateTime, timeInterval.endDateTime,timeInterval.id));
+                    break;
+                }
+                // tutto dopo
+                if (timeInterval.endDateTime.after(interval.end) && timeInterval.endDateTime.after(interval.end)) {
+                    intervals.add(new Interval(timeInterval.startDateTime, timeInterval.endDateTime,timeInterval.id));
+                    break;
+                }
+                // tutto dentro
+                if (timeInterval.startDateTime.after(interval.end) && timeInterval.endDateTime.before(interval.end)) {
+                    continue;
+                }
+                // inizia prima e finisce dentro
+                if (timeInterval.startDateTime.before(interval.end)) {
+                    interval.start = timeInterval.startDateTime;
+                    interval.timeintervalid = timeInterval.id;
+                    break;
+                }
+                // inizia dentro e finisce dopo
+                if (timeInterval.endDateTime.before(interval.end)) {
+                    interval.end = timeInterval.endDateTime;
+                    interval.timeintervalid = timeInterval.id;
+                }
             }
         }
-        return nextPrograms;
+
+        if (intervals.size() == 0)
+            intervals.add(new Interval(date, null,0));
+
+        for (Interval interval:intervals) {
+
+            if (interval.start.before(date))
+                interval.start = date;
+
+            for (ScenarioProgram program : programs) {
+                if (!program.enabled)
+                    continue;
+                List<NextTimeRangeAction> list = program.getNextTimeRangeActions(interval.start, interval.end);  /// qui va ionserito controllo giorni della settimana
+                if (list != null) {
+                    for (NextTimeRangeAction timeRangeAction : list) {
+                        timeRangeAction.program = program;
+                        timeRangeAction.timeintervalid = interval.timeintervalid;
+
+                        Calendar cal = Calendar.getInstance();
+                        cal.set(Calendar.YEAR,timeRangeAction.date.getYear());
+                        cal.set(Calendar.MONTH,timeRangeAction.date.getMonthValue()-1);
+                        cal.set(Calendar.DAY_OF_MONTH,timeRangeAction.date.getDayOfMonth());
+                        if (program.dayOfWeekActive(cal.get(Calendar.DAY_OF_WEEK)))
+                            scenarioNextTimeRangeActions.add(timeRangeAction);
+                    }
+                }
+            }
+        }
+        return scenarioNextTimeRangeActions;
     }
 }
 

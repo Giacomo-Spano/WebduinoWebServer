@@ -15,9 +15,9 @@ public class PIRSensorDataLog extends DataLog {
     public String tableName = "currentdatalog";
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
 
-        PIRSensor pirSensor = (PIRSensor) sensor;
+        PIRSensor pirSensor = (PIRSensor) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, subaddress, date, current) VALUES ("
                 + pirSensor.getId() + ",'" + pirSensor.getSubaddress() + "',"  + getStrDate() + "," + pirSensor.getStatus() + ");";

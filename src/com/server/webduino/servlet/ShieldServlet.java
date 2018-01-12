@@ -7,6 +7,7 @@ import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.webduinosystem.scenario.NextTimeRangeAction;
 import com.server.webduino.core.webduinosystem.scenario.Scenarios;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
@@ -165,12 +166,49 @@ public class ShieldServlet extends HttpServlet {
                                 SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
                                 cmd.date = df.format(startDate);
 
-                                if (json.getString("command").equals("manual") && json.has("duration")) {
-                                    int duration = json.getInt("duration");
-                                    Calendar cal = Calendar.getInstance();
-                                    cal.setTime(startDate);
-                                    cal.add(Calendar.SECOND,duration);
-                                    cmd.enddate = df.format(cal.getTime());
+                                if (json.getString("command").equals("manual")) {
+                                    if (json.has("duration")) {
+                                        int duration = json.getInt("duration");
+                                        Calendar cal = Calendar.getInstance();
+                                        cal.setTime(startDate);
+                                        cal.add(Calendar.SECOND,duration);
+                                        cmd.enddate = df.format(cal.getTime());
+                                    } else if (json.has("nexttimerange") && json.getBoolean("nexttimerange") == true) {
+                                        Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+                                        NextTimeRangeAction nextTimeRangeAction = core.getNextActuatorProgramTimeRange(cmd.actuatorid);
+                                        if (nextTimeRangeAction != null) {
+                                            if (nextTimeRangeAction.start.isBefore(Core.getTime())) {
+                                                Calendar cal = Calendar.getInstance();
+                                                cal.setTime(Core.getDate());
+                                                cal.set(Calendar.HOUR_OF_DAY,nextTimeRangeAction.end.getHour());
+                                                cal.set(Calendar.MINUTE,nextTimeRangeAction.end.getMinute());
+                                                cal.set(Calendar.SECOND,nextTimeRangeAction.end.getSecond());
+                                                cmd.enddate = df.format(cal.getTime());
+                                            } else {
+                                                Calendar cal = Calendar.getInstance();
+                                                cal.setTime(Core.getDate());
+                                                cal.set(Calendar.HOUR_OF_DAY,nextTimeRangeAction.start.getHour());
+                                                cal.set(Calendar.MINUTE,nextTimeRangeAction.start.getMinute());
+                                                cal.set(Calendar.SECOND,nextTimeRangeAction.start.getSecond());
+                                                cmd.enddate = df.format(cal.getTime());
+                                            }
+                                        } else {
+                                            response.setStatus(HttpServletResponse.SC_OK);
+                                            out.print("Invalid timerange");
+                                            return;
+                                        }
+
+                                    } else if (json.has("endtime")) {
+                                        SimpleDateFormat tf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                                        String str = json.getString("endtime");
+                                        Date enddate = tf.parse(str);
+                                        cmd.enddate = df.format(enddate);
+                                    } else {
+                                        response.setStatus(HttpServletResponse.SC_OK);
+                                        out.print("Invalid endtime");
+                                        return;
+                                    }
+
 
                                     Zone zone = Core.getZoneFromId(cmd.zone);
                                     if (zone != null) {
@@ -182,7 +220,6 @@ public class ShieldServlet extends HttpServlet {
                                         return;
                                     }
                                 }
-
 
                                 Command.CommandResult result = cmd.send();
                                 //SensorBase sensor = Core.getSensorFromId(cmd.actuatorid);

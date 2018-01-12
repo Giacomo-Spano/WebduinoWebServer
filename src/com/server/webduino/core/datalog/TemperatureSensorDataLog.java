@@ -16,9 +16,9 @@ public class TemperatureSensorDataLog extends DataLog {
     public String tableName = "temperaturedatalog";
 
     @Override
-    public String getSQLInsert(String event, SensorBase sensor) {
+    public String getSQLInsert(String event, Object object) {
 
-        TemperatureSensor temperatureSensor = (TemperatureSensor) sensor;
+        TemperatureSensor temperatureSensor = (TemperatureSensor) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, sensorid, date, temperature, avtemperature) VALUES ("
                 + temperatureSensor.getId() + "," + temperatureSensor.getId() + ","  + getStrDate() + "," + temperatureSensor.getTemperature() + "," + temperatureSensor.getAvTemperature() + ");";

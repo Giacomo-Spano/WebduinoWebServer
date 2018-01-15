@@ -15,6 +15,13 @@ public class TemperatureSensorDataLog extends DataLog {
     public Double avTemperature = 0.0;
     public String tableName = "temperaturedatalog";
 
+    private int sensorid;
+
+    public TemperatureSensorDataLog(int sensorid) {
+        super();
+        this.sensorid = sensorid;
+    }
+
     @Override
     public String getSQLInsert(String event, Object object) {
 
@@ -26,7 +33,7 @@ public class TemperatureSensorDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -42,17 +49,16 @@ public class TemperatureSensorDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM temperaturedatalog WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM temperaturedatalog WHERE id = " + sensorid + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                TemperatureSensorDataLog data = new TemperatureSensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-                data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.temperature = rs.getDouble("temperature");
+                date = df.parse(String.valueOf(rs.getTimestamp("date")));
+                temperature = rs.getDouble("temperature");
 
-                list.add(data);
+                list.add(this);
             }
             // Clean-up environment
             rs.close();

@@ -54,6 +54,8 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public HeaterActuator(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "heatersensor";
+
+        datalog = new HeaterDataLog(id);
     }
 
     public void init() {
@@ -137,8 +139,8 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
 
     @Override
     public void writeDataLog(String event) {
-        HeaterDataLog dl = new HeaterDataLog();
-        dl.writelog(event, this);
+        //HeaterDataLog dl = new HeaterDataLog();
+        datalog.writelog(event, this);
     }
 
     public double getTemperature() {

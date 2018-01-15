@@ -18,6 +18,7 @@ public class DoorSensor extends SensorBase {
     public DoorSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "doorsensor";
+        datalog = new DoorSensorDataLog(id);
     }
 
     public void setStatus(boolean open) {
@@ -26,8 +27,7 @@ public class DoorSensor extends SensorBase {
         boolean oldOpen = this.open;
         this.open = open;
         if (open != oldOpen) {
-            DoorSensorDataLog dl = new DoorSensorDataLog();
-            dl.writelog("updateFromJson",this);
+            datalog.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (SensorListener listener : listeners) {
                 listener.changeDoorStatus(id, open, oldOpen);
@@ -37,8 +37,7 @@ public class DoorSensor extends SensorBase {
 
     @Override
     public void writeDataLog(String event) {
-        DoorSensorDataLog dl = new DoorSensorDataLog();
-        dl.writelog(event, this);
+        datalog.writelog(event, this);
     }
 
     public boolean getDoorStatus() {

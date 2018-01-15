@@ -16,10 +16,11 @@ public class TemperatureSensor extends SensorBase {
     private double temperature;
     private double avTemperature;
 
-    public interface TemperatureSensorListener extends SensorBase.SensorListener {
-        public String TemperatureEvents = "temperature event";
-        void onUpdateTemperature(int sensorId, double temperature, double oldtemperature);
-        void changeAvTemperature(int sensorId, double avTemperature);
+    public TemperatureSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
+
+        super(id, name, description, subaddress, shieldid, pin, enabled);
+        type = "temperaturesensor";
+        datalog = new TemperatureSensorDataLog(id);
     }
 
     public boolean sendEvent(String eventtype) {
@@ -28,29 +29,13 @@ public class TemperatureSensor extends SensorBase {
         return false;
     }
 
-    public TemperatureSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
-
-        super(id, name, description, subaddress, shieldid, pin, enabled);
-        type = "temperaturesensor";
+    @Override
+    public void writeDataLog(String event) {
+        datalog.writelog(event, this);
     }
 
-    public void setTemperature(double temperature) {
-
-        LOGGER.info("setTemperature");
-
-        double oldtemperature = this.temperature;
-        this.temperature = temperature;
-
-        //if (temperature != oldtemperature) {
-            TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
-            dl.writelog("updateFromJson",this);
-            // Notify everybody that may be interested.
-            for (SensorListener listener : listeners) {
-                if (listener instanceof TemperatureSensorListener) {
-                    ((TemperatureSensorListener)listener).onUpdateTemperature(getId(), temperature, oldtemperature);
-                }
-            }
-        //}
+    public double getAvTemperature() {
+        return avTemperature;
     }
 
     public void setAvTemperature(double avTemperature) {
@@ -69,26 +54,31 @@ public class TemperatureSensor extends SensorBase {
         }
     }
 
-    @Override
-    public void writeDataLog(String event) {
-        TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
-        dl.writelog(event, this);
-    }
-
-    public double getAvTemperature() {
-        return avTemperature;
-    }
-
-
-
     public double getTemperature() {
         return temperature;
+    }
+
+    public void setTemperature(double temperature) {
+
+        LOGGER.info("setTemperature");
+
+        double oldtemperature = this.temperature;
+        this.temperature = temperature;
+
+        //TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
+        datalog.writelog("updateFromJson", this);
+        // Notify everybody that may be interested.
+        for (SensorListener listener : listeners) {
+            if (listener instanceof TemperatureSensorListener) {
+                ((TemperatureSensorListener) listener).onUpdateTemperature(getId(), temperature, oldtemperature);
+            }
+        }
     }
 
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
-        super.updateFromJson(date,json);
+        super.updateFromJson(date, json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
             if (json.has("avtemperature"))
@@ -113,5 +103,13 @@ public class TemperatureSensor extends SensorBase {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public interface TemperatureSensorListener extends SensorBase.SensorListener {
+        public String TemperatureEvents = "temperature event";
+
+        void onUpdateTemperature(int sensorId, double temperature, double oldtemperature);
+
+        void changeAvTemperature(int sensorId, double avTemperature);
     }
 }

@@ -2,6 +2,7 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
+import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.Command;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 //import com.server.webduino.core.SensorData;
@@ -177,21 +179,24 @@ public class ShieldServlet extends HttpServlet {
                                         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
                                         NextTimeRangeAction nextTimeRangeAction = core.getNextActuatorProgramTimeRange(cmd.actuatorid);
                                         if (nextTimeRangeAction != null) {
+                                            Calendar cal = Calendar.getInstance();
                                             if (nextTimeRangeAction.start.isBefore(Core.getTime())) {
-                                                Calendar cal = Calendar.getInstance();
+
                                                 cal.setTime(Core.getDate());
                                                 cal.set(Calendar.HOUR_OF_DAY,nextTimeRangeAction.end.getHour());
                                                 cal.set(Calendar.MINUTE,nextTimeRangeAction.end.getMinute());
                                                 cal.set(Calendar.SECOND,nextTimeRangeAction.end.getSecond());
                                                 cmd.enddate = df.format(cal.getTime());
                                             } else {
-                                                Calendar cal = Calendar.getInstance();
+                                                //Calendar cal = Calendar.getInstance();
                                                 cal.setTime(Core.getDate());
                                                 cal.set(Calendar.HOUR_OF_DAY,nextTimeRangeAction.start.getHour());
                                                 cal.set(Calendar.MINUTE,nextTimeRangeAction.start.getMinute());
                                                 cal.set(Calendar.SECOND,nextTimeRangeAction.start.getSecond());
                                                 cmd.enddate = df.format(cal.getTime());
                                             }
+                                            long diffInMillies = Math.abs(cal.getTime().getTime() - Core.getDate().getTime());
+                                            cmd.duration = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.SECONDS);
                                         } else {
                                             response.setStatus(HttpServletResponse.SC_OK);
                                             out.print("Invalid timerange");
@@ -203,6 +208,8 @@ public class ShieldServlet extends HttpServlet {
                                         String str = json.getString("endtime");
                                         Date enddate = tf.parse(str);
                                         cmd.enddate = df.format(enddate);
+                                        long diffInMillies = Math.abs(enddate.getTime() - Core.getDate().getTime());
+                                        cmd.duration = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.SECONDS);
                                     } else {
                                         response.setStatus(HttpServletResponse.SC_OK);
                                         out.print("Invalid endtime");
@@ -401,6 +408,51 @@ public class ShieldServlet extends HttpServlet {
             JSONArray jarray = Scenarios.getScenariosJSONArray();
             out.print(jarray.toString());
 
+        } else if (command.equals("nextactions")) {
+            if (id != null) {
+                JSONArray jarray = new JSONArray();
+                int actuatorid = Integer.parseInt(id);
+                List<NextTimeRangeAction> list = core.getNextActuatorProgramTimeRangeActionList(actuatorid);
+                if (list != null) {
+                    for (NextTimeRangeAction nextaction:list) {
+                        jarray.put(nextaction.toJson());
+                    }
+                    out.print(jarray.toString());
+                }
+            }
+        } else if (command.equals("sensorlog")) {
+            if (id != null) {
+                JSONArray jarray = new JSONArray();
+                int sensorid = Integer.parseInt(id);
+                SensorBase sensor = core.getSensorFromId(sensorid);
+
+                Date enddate = Core.getDate();
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(enddate);
+                cal.add(Calendar.HOUR,-24);
+                Date startdate = cal.getTime();
+                sensor.datalog.getDataLog(startdate,enddate);
+
+                List<DataLog> list = core.getSensorDataLogList(sensorid,startdate,enddate);
+                if (list != null) {
+                    for (DataLog logitem:list) {
+                        jarray.put(logitem.toJson());
+                    }
+                    out.print(jarray.toString());
+                }
+            }
+        } else if (command.equals("commandlog")) {
+            if (id != null) {
+                JSONArray jarray = new JSONArray();
+                int actuatorid = Integer.parseInt(id);
+                List<NextTimeRangeAction> list = core.getNextActuatorProgramTimeRangeActionList(actuatorid);
+                if (list != null) {
+                    for (NextTimeRangeAction nextaction:list) {
+                        jarray.put(nextaction.toJson());
+                    }
+                    out.print(jarray.toString());
+                }
+            }
         } else if (command != null && id != null) { // CHIAMTA CON ATTESA RITORNO
 
             String json = "";

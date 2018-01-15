@@ -27,6 +27,7 @@ public class CurrentSensor extends SensorBase {
     public CurrentSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "currentsensor";
+        datalog = new CurrentSensorDataLog(id);
     }
 
     public void setCurrent(double current) {
@@ -37,8 +38,7 @@ public class CurrentSensor extends SensorBase {
         this.current = current;
 
         if (current != oldCurrent) {
-            CurrentSensorDataLog dl = new CurrentSensorDataLog();
-            dl.writelog("updateFromJson",this);
+            datalog.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (CurrentSensorListener hl : listeners)
                 hl.changeCurrent(id, current);
@@ -47,8 +47,7 @@ public class CurrentSensor extends SensorBase {
 
     @Override
     public void writeDataLog(String event) {
-        CurrentSensorDataLog dl = new CurrentSensorDataLog();
-        dl.writelog(event, this);
+        datalog.writelog(event, this);
     }
 
     public double getCurrent() {

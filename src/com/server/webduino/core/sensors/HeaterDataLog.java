@@ -19,9 +19,14 @@ public class HeaterDataLog extends DataLog {
     protected boolean releStatus;
     protected double remoteTemperature;
     protected double targetTemperature;
+    private int sensorid;
 
 
-    @Override
+    public HeaterDataLog(int sensorid) {
+        super();
+        this.sensorid = sensorid;
+    }
+
     public String getSQLInsert(String event, Object object) {
 
         HeaterActuator heaterActuator = (HeaterActuator) object;
@@ -30,7 +35,8 @@ public class HeaterDataLog extends DataLog {
         sql = "INSERT INTO heaterdatalog (date, sensorid, relestatus, status, temperature, targettemperature, actionid) " +
                 " VALUES (" +
                 getStrDate() + ",'" +
-                heaterActuator.getId() + "'," +
+                //heaterActuator.getId() + "'," +
+                sensorid + "'," +
                 heaterActuator.releStatus + ",'" +
                 heaterActuator.getStatus() + "'," +
                 heaterActuator.getTemperature() + "," +
@@ -40,7 +46,8 @@ public class HeaterDataLog extends DataLog {
         return sql;
     }
 
-    public JSONObject getJson() {
+    @Override
+    public JSONObject toJson() {
         try {
             JSONObject json = new JSONObject();
             SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -63,7 +70,7 @@ public class HeaterDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -79,22 +86,21 @@ public class HeaterDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM heaterdatalog WHERE id = " + id + " AND event='update' AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM heaterdatalog WHERE id = " + sensorid + " AND event='update' AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                HeaterDataLog data = new HeaterDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-                data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.releStatus = rs.getBoolean("relestatus");
-                data.status = rs.getString("status");
-                data.localTemperature = rs.getDouble("localtemperature");
-                data.remoteTemperature = rs.getDouble("remotetemperature");
-                data.targetTemperature = rs.getDouble("targettemperature");
-                data.activeScenario = rs.getInt("activeprogram");
-                data.activeTimeIntervals = rs.getInt("activetimerange");
-                list.add(data);
+                date = df.parse(String.valueOf(rs.getTimestamp("date")));
+                releStatus = rs.getBoolean("relestatus");
+                status = rs.getString("status");
+                localTemperature = rs.getDouble("localtemperature");
+                remoteTemperature = rs.getDouble("remotetemperature");
+                targetTemperature = rs.getDouble("targettemperature");
+                activeScenario = rs.getInt("activeprogram");
+                activeTimeIntervals = rs.getInt("activetimerange");
+                list.add(this);
             }
             // Clean-up environment
             rs.close();
@@ -111,39 +117,4 @@ public class HeaterDataLog extends DataLog {
         }
         return list;
     }
-
-    /*@Override
-    DataLog getInterpolatedDataLog(Date t, DataLog dataA, DataLog dataB) {
-
-
-        HeaterDataLog dlA = (HeaterDataLog) dataA, dlB = (HeaterDataLog) dataB;
-        HeaterDataLog interpolatedDataLog = new HeaterDataLog();
-
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        //DateFormat timeFormat = new SimpleDateFormat("");
-
-        try {
-            interpolatedDataLog.date = dateFormat.parse(dateFormat.format(t));
-            //interpolatedDataLog.time = timeFormat.parse(timeFormat.format(t));
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-
-        long xa = dataA.getDatetime().getTime(), xb = dataB.getDatetime().getTime(), x = t.getTime();
-        if (xa == xb) {
-            interpolatedDataLog.localTemperature = dlA.localTemperature;
-            interpolatedDataLog.remoteTemperature = dlA.remoteTemperature;
-            interpolatedDataLog.targetTemperature = dlA.targetTemperature;
-            interpolatedDataLog.releStatus = dlA.releStatus;
-
-        } else {
-            interpolatedDataLog.localTemperature = dlA.localTemperature * (x - xb) / (xa - xb) - dlB.localTemperature * (x - xa) / (xa - xb);
-            interpolatedDataLog.remoteTemperature = dlA.remoteTemperature * (x - xb) / (xa - xb) - dlB.remoteTemperature * (x - xa) / (xa - xb);
-            interpolatedDataLog.targetTemperature = dlA.targetTemperature * (x - xb) / (xa - xb) - dlB.targetTemperature * (x - xa) / (xa - xb);
-            interpolatedDataLog.releStatus = dlA.releStatus;
-        }
-        return interpolatedDataLog;
-    }*/
 }

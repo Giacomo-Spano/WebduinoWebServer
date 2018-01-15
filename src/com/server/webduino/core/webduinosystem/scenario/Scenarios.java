@@ -286,7 +286,7 @@ public class Scenarios {
         checkNextConflict();
     }
 
-    public NextTimeRangeAction getNextActuatorProgramTimeRange(int actuatorid) {
+    public NextTimeRangeAction getNextActuatorProgramTimeRangeAction(int actuatorid) {
         for (NextTimeRangeAction timeRangeAction:nextTimeRangeActions) {
             if (timeRangeAction.action.actuatorid == actuatorid)
                 return timeRangeAction;
@@ -294,4 +294,12 @@ public class Scenarios {
         return null;
     }
 
+    public List<NextTimeRangeAction> getNextActuatorProgramTimeRangeActionList(int actuatorid) {
+        List<NextTimeRangeAction> list = new ArrayList<>();
+        for (NextTimeRangeAction timeRangeAction:nextTimeRangeActions) {
+            if (timeRangeAction.action.actuatorid == actuatorid)
+                list.add(timeRangeAction);
+        }
+        return list;
+    }
 }

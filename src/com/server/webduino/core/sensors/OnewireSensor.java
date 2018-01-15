@@ -1,5 +1,6 @@
 package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.datalog.TemperatureSensorDataLog;
 import org.json.JSONObject;
 
@@ -27,12 +28,12 @@ public class OnewireSensor extends SensorBase {
         //statusUpdatePath = "/temperaturesensorstatus";
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "onewiresensor";
+        datalog = new DataLog();
     }
 
     @Override
     public void writeDataLog(String event) {
-        TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
-        dl.writelog(event, this);
+        datalog.writelog(event, this);
     }
 
     @Override

@@ -38,8 +38,7 @@ public class PIRSensor extends SensorBase {
         this.motionDetected = motionDetected;
 
         if (motionDetected != oldMotionDetected) {
-            CurrentSensorDataLog dl = new CurrentSensorDataLog();
-            dl.writelog("updateFromJson",this);
+            datalog.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (PIRSensorListener hl : listeners)
                 hl.changeStatus(id, motionDetected);
@@ -48,8 +47,8 @@ public class PIRSensor extends SensorBase {
 
     @Override
     public void writeDataLog(String event) {
-        PIRSensorDataLog dl = new PIRSensorDataLog();
-        dl.writelog(event, this);
+        datalog.writelog(event, this);
+        datalog = new PIRSensorDataLog(id);
     }
 
     public boolean getMotionStatus() {

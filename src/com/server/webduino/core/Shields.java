@@ -537,7 +537,7 @@ public class Shields {
         return shieldid;
     }
 
-    public static SensorBase getSensorFromId(int id) {
+    public SensorBase getSensorFromId(int id) {
         for (Shield shield : list) {
             for (SensorBase sensor : shield.sensors) {
                 SensorBase ret = sensor.getSensorFromId(id);

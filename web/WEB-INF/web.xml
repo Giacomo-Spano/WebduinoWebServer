@@ -203,16 +203,7 @@
         <servlet-name>SendAllMessagesServlet</servlet-name>
         <url-pattern>/sendall</url-pattern>
     </servlet-mapping>
-
-    <servlet>
-        <servlet-name>DataLogServlet</servlet-name>
-        <servlet-class>com.server.webduino.servlet.DataLogServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>DataLogServlet</servlet-name>
-        <url-pattern>/datalog</url-pattern>
-    </servlet-mapping>
-
+    
     <security-role>
         <role-name>tomcat</role-name>
     </security-role>

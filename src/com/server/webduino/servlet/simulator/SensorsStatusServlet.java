@@ -92,15 +92,15 @@ public class SensorsStatusServlet extends HttpServlet {
                     return;
                 }
                 int actuatorId = json.getInt("actuatorid");
-                Actuator actuator = (Actuator) Core.getSensorFromId(actuatorId);
-                ActuatorCommand cmd = actuator.getCommandFromJson(json);
-                if (cmd == null) {
+                //Actuator actuator = (Actuator) Core.getSensorFromId(actuatorId);
+                //ActuatorCommand cmd = actuator.getCommandFromJson(json);
+                /*if (cmd == null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     return;
                 }
                 new SendActuatorCommandThread(actuatorId, cmd).start();
 
-                response.setStatus(HttpServletResponse.SC_OK);
+                response.setStatus(HttpServletResponse.SC_OK);*/
                 jsonResult.put("answer", "success");
                 out.print(jsonResult.toString());
 

@@ -20,6 +20,13 @@ public class ReleDataLog extends DataLog {
     protected double remoteTemperature;
     protected double targetTemperature;
 
+    private int sensorid;
+
+    public ReleDataLog(int sensorid) {
+        super();
+        this.sensorid = sensorid;
+    }
+
 
     @Override
     public String getSQLInsert(String event, Object object) {
@@ -66,7 +73,7 @@ public class ReleDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -82,22 +89,21 @@ public class ReleDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM heaterdatalog WHERE id = " + id + " AND event='update' AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM heaterdatalog WHERE id = " + sensorid + " AND event='update' AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                ReleDataLog data = new ReleDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-                data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.releStatus = rs.getBoolean("relestatus");
-                data.status = rs.getString("status");
-                data.localTemperature = rs.getDouble("localtemperature");
-                data.remoteTemperature = rs.getDouble("remotetemperature");
-                data.targetTemperature = rs.getDouble("targettemperature");
-                data.activeProgram = rs.getInt("activeprogram");
-                data.activeTimerange = rs.getInt("activetimerange");
-                list.add(data);
+                date = df.parse(String.valueOf(rs.getTimestamp("date")));
+                releStatus = rs.getBoolean("relestatus");
+                status = rs.getString("status");
+                localTemperature = rs.getDouble("localtemperature");
+                remoteTemperature = rs.getDouble("remotetemperature");
+                targetTemperature = rs.getDouble("targettemperature");
+                activeProgram = rs.getInt("activeprogram");
+                activeTimerange = rs.getInt("activetimerange");
+                list.add(this);
             }
             // Clean-up environment
             rs.close();

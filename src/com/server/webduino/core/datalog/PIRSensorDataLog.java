@@ -14,6 +14,13 @@ public class PIRSensorDataLog extends DataLog {
     public boolean open = false;
     public String tableName = "currentdatalog";
 
+    private int sensorid;
+
+    public PIRSensorDataLog(int sensorid) {
+        super();
+        this.sensorid = sensorid;
+    }
+
     @Override
     public String getSQLInsert(String event, Object object) {
 
@@ -25,7 +32,7 @@ public class PIRSensorDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -41,16 +48,15 @@ public class PIRSensorDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM " + tableName + " WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM " + tableName + " WHERE id = " + sensorid + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                PIRSensorDataLog data = new PIRSensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-                data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.open = rs.getBoolean("motion");
-                list.add(data);
+                date = df.parse(String.valueOf(rs.getTimestamp("date")));
+                open = rs.getBoolean("motion");
+                list.add(this);
             }
             // Clean-up environment
             rs.close();

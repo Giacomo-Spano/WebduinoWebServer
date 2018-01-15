@@ -2,6 +2,7 @@ package com.server.webduino.core.sensors;
 
 import com.server.webduino.DBObject;
 import com.server.webduino.core.*;
+import com.server.webduino.core.datalog.DataLog;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,12 +17,12 @@ import java.util.logging.Logger;
 
 import static com.server.webduino.core.sensors.SensorBase.SensorListener.SensorEvents;
 
-public class SensorBase extends /*httpClient,*/ DBObject {
+public class SensorBase extends DBObject {
 
     private static Logger LOGGER = Logger.getLogger(SensorBase.class.getName());
 
-    //public static final String Status_Offline = "OFFLINE";
-    //public static final String Status_Online = "ONLINE";
+    public DataLog datalog = null;
+
     protected int shieldid;
     protected int parentid;
     protected boolean online = false;
@@ -61,6 +62,7 @@ public class SensorBase extends /*httpClient,*/ DBObject {
         this.shieldid = shieldid;
         this.pin = pin;
         this.enabled = enabled;
+        datalog = new DataLog();
     }
 
     /*public ActiveProgram getActiveProgram() {

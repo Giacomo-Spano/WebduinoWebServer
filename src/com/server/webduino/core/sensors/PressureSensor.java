@@ -28,6 +28,7 @@ public class PressureSensor extends SensorBase {
     public PressureSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "pressuresensor";
+        datalog = new PressureSensorDataLog(id);
     }
 
     public void setPressure(double pressure) {
@@ -38,8 +39,7 @@ public class PressureSensor extends SensorBase {
         this.pressure = pressure;
 
         if (pressure != oldPressure) {
-            CurrentSensorDataLog dl = new CurrentSensorDataLog();
-            dl.writelog("updateFromJson",this);
+            datalog.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (PressureSensorListener hl : listeners)
                 hl.changePressure(id, pressure);
@@ -48,8 +48,7 @@ public class PressureSensor extends SensorBase {
 
     @Override
     public void writeDataLog(String event) {
-        PressureSensorDataLog dl = new PressureSensorDataLog();
-        dl.writelog(event, this);
+        datalog.writelog(event, this);
     }
 
     public double getPressure() {

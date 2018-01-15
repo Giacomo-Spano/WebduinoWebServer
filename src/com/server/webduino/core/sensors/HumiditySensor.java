@@ -28,6 +28,7 @@ public class HumiditySensor extends SensorBase {
     public HumiditySensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "huniditysensor";
+        datalog = new HumiditySensorDataLog(id);
     }
 
     public void setCurrent(int humidity) {
@@ -38,8 +39,7 @@ public class HumiditySensor extends SensorBase {
         this.humidity = humidity;
 
         if (humidity != oldHumidity) {
-            CurrentSensorDataLog dl = new CurrentSensorDataLog();
-            dl.writelog("updateFromJson",this);
+            datalog.writelog("updateFromJson",this);
             // Notify everybody that may be interested.
             for (CurrentSensorListener hl : listeners)
                 hl.changeHumidity(id, humidity);
@@ -48,8 +48,7 @@ public class HumiditySensor extends SensorBase {
 
     @Override
     public void writeDataLog(String event) {
-        HumiditySensorDataLog dl = new HumiditySensorDataLog();
-        dl.writelog(event, this);
+        datalog.writelog(event, this);
     }
 
     public int getHumidity() {

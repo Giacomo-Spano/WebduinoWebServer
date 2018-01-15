@@ -14,6 +14,14 @@ public class CurrentSensorDataLog extends DataLog {
     public Double current = 0.0;
     public String tableName = "currentdatalog";
 
+    private int sensorid;
+
+    public CurrentSensorDataLog(int sensorid) {
+        super();
+        this.sensorid = sensorid;
+
+    }
+
     @Override
     public String getSQLInsert(String event, Object object) {
     //public String getSQLInsert(String event, SensorBase sensor) {
@@ -26,7 +34,7 @@ public class CurrentSensorDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -42,16 +50,15 @@ public class CurrentSensorDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM " + tableName + " WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM " + tableName + " WHERE id = " + sensorid + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                CurrentSensorDataLog data = new CurrentSensorDataLog();
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-                data.date = df.parse(String.valueOf(rs.getTimestamp("date")));
-                data.current = rs.getDouble("current");
-                list.add(data);
+                date = df.parse(String.valueOf(rs.getTimestamp("date")));
+                current = rs.getDouble("current");
+                list.add(this);
             }
             // Clean-up environment
             rs.close();

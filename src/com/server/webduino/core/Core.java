@@ -1,5 +1,6 @@
 package com.server.webduino.core;
 
+import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.webduinosystem.*;
@@ -632,7 +633,17 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
     public NextTimeRangeAction getNextActuatorProgramTimeRange(int actuatorid) {
-        return scenarios.getNextActuatorProgramTimeRange(actuatorid);
+        return scenarios.getNextActuatorProgramTimeRangeAction(actuatorid);
+    }
+
+    public List<NextTimeRangeAction> getNextActuatorProgramTimeRangeActionList(int actuatorid) {
+        return scenarios.getNextActuatorProgramTimeRangeActionList(actuatorid);
+    }
+
+    public List<DataLog> getSensorDataLogList(int actuatorid,Date startdate, Date enddate) {
+
+        SensorBase sensor = getSensorFromId(actuatorid);
+        return sensor.datalog.getDataLog(startdate,enddate);
     }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {

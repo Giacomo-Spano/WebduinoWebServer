@@ -1,6 +1,8 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.ReleActuatorCommand;
+import com.server.webduino.core.datalog.CurrentSensorDataLog;
+import com.server.webduino.core.datalog.ReleDataLog;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +22,7 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
     public ReleActuator(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "releactuator";
+        datalog = new ReleDataLog(id);
     }
 
     public boolean getReleStatus() {
@@ -40,8 +43,7 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
 
     @Override
     public void writeDataLog(String event) {
-        HeaterDataLog dl = new HeaterDataLog();
-        dl.writelog(event, this);
+        datalog.writelog(event, this);
     }
 
     public Boolean sendCommand(String command, boolean status) {

@@ -452,7 +452,8 @@ public class SystemServlet extends HttpServlet {
             }
         } else if (requestCommand != null && requestCommand.equals("sensor") && id != null) {
             int sensorid = Integer.parseInt(id);
-            SensorBase sensor = Shields.getSensorFromId(sensorid);
+
+            SensorBase sensor = core.getSensorFromId(sensorid);
             if (sensor != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(sensor.toJson());
@@ -483,20 +484,16 @@ public class SystemServlet extends HttpServlet {
             if (jsonArray != null)
                 out.print(jsonArray.toString());
         } else if (requestCommand != null && requestCommand.equals("nextprograms") && id != null) {
-            //int scenarioprogramid = Integer.parseInt(id);
-            //if (scenarioprogramid != 0) {
-                //JSONArray jarray = core.getNextActuatorTimeRangeJSONArray(actuatorid);
-                List<NextTimeRangeAction> list = core.getNextTimeRangeActions(/*scenarioprogramid*/);
-                if (list != null) {
-                    JSONArray jarray = new JSONArray();
-                    for(NextTimeRangeAction timeRange: list) {
-                        jarray.put(timeRange.toJson());
-                    }
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    out.print(jarray.toString());
-                    return;
+            List<NextTimeRangeAction> list = core.getNextTimeRangeActions(/*scenarioprogramid*/);
+            if (list != null) {
+                JSONArray jarray = new JSONArray();
+                for (NextTimeRangeAction timeRange : list) {
+                    jarray.put(timeRange.toJson());
                 }
-            //}
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
         }
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }

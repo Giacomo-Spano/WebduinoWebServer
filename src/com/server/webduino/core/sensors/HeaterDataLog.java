@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 public class HeaterDataLog extends DataLog {
@@ -31,6 +32,8 @@ public class HeaterDataLog extends DataLog {
 
         HeaterActuator heaterActuator = (HeaterActuator) object;
         String sql;
+
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
         sql = "INSERT INTO heaterdatalog (date, sensorid, relestatus, status, temperature, targettemperature, actionid) " +
                 " VALUES (" +
@@ -70,7 +73,7 @@ public class HeaterDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -81,17 +84,26 @@ public class HeaterDataLog extends DataLog {
             // Execute SQL query
             Statement stmt = conn.createStatement();
 
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            String start = dateFormat.format(startDate);
-            String end = dateFormat.format(endDate);
+            if (endDate == null)
+                endDate = Core.getDate();
+            if (startDate == null) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(endDate);
+                cal.add(Calendar.DAY_OF_MONTH, -3);
+                startDate = cal.getTime();
+            }
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String start = df.format(startDate);
+            String end = df.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM heaterdatalog WHERE id = " + sensorid + " AND event='update' AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM heatercommanddatalog WHERE actuatorid = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "' ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
+                //SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 date = df.parse(String.valueOf(rs.getTimestamp("date")));
                 releStatus = rs.getBoolean("relestatus");
                 status = rs.getString("status");

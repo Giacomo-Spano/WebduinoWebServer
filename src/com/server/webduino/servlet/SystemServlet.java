@@ -2,6 +2,8 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
+import com.server.webduino.core.datalog.CommandDataLog;
+import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.scenario.*;
@@ -493,6 +495,24 @@ public class SystemServlet extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
                 return;
+            }
+        } else if (requestCommand != null && requestCommand.equals("commandlog")) {
+            if (id != null) {
+                JSONArray jarray = new JSONArray();
+                int actuatorid = Integer.parseInt(id);
+                List<DataLog> list = core.getCommandDatalogs(actuatorid,null,null);
+                if (list != null) {
+                    for (DataLog dataLog:list) {
+                        try {
+                            jarray.put(dataLog.toJson());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(jarray.toString());
+                    return;
+                }
             }
         }
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

@@ -1,12 +1,14 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class DataLog {
     public Date date = new Date();
@@ -52,11 +54,11 @@ public class DataLog {
         return id;
     }
 
-    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
+    public List<DataLog> getDataLog(int id,Date startDate, Date endDate) {
         return null;
     }
 
-    public JSONObject toJson() {
+    public JSONObject toJson() throws JSONException {
         return null;
     }
 }

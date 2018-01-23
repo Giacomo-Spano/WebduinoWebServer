@@ -1,6 +1,7 @@
 package com.server.webduino.core.sensors.commands;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.datalog.CommandDataLog;
 import com.server.webduino.core.datalog.HeaterCommandDataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,6 +15,8 @@ import java.util.logging.Logger;
  * Created by Giacomo Spanò on 29/12/2016.
  */
 public class Command {
+
+    public CommandDataLog commandDataLog = null;
 
     public interface CommandListener {
         void onCommandResponse(String response);
@@ -32,6 +35,11 @@ public class Command {
     public int shieldid;
     public int actuatorid;
     public CommandResult result;
+
+    public Command(int shieldid, int actuatorid) {
+        this.shieldid = shieldid;
+        this.actuatorid = actuatorid;
+    }
 
     public Command(String command, int shieldid, int actuatorid) {
         this.command = command;
@@ -77,8 +85,8 @@ public class Command {
             result.success = true;
             result.result = json;
         }
-        HeaterCommandDataLog dl = new HeaterCommandDataLog();
-        dl.writelog("send",this);
+        //HeaterCommandDataLog dl = new HeaterCommandDataLog();
+        commandDataLog.writelog("send",this);
         return result;
     }
 

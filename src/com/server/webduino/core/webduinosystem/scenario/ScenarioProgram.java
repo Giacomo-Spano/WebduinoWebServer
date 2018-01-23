@@ -132,7 +132,7 @@ public class ScenarioProgram extends DBObject {
         Calendar c = Calendar.getInstance();
         ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromTimeAndDay(currentTime,c.get(Calendar.DAY_OF_WEEK));
 
-        if (activeTimeRange != null) {
+        if (activeTimeRange != null && dayOfWeekActive(c.get(Calendar.DAY_OF_WEEK))) {
             active = true;
             activeTimeRange.start();
             // se esiste un time raneg attivo imposta la data di fine

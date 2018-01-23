@@ -1,6 +1,7 @@
 package com.server.webduino.core;
 
 import com.server.webduino.core.datalog.DataLog;
+import com.server.webduino.core.sensors.Actuator;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.webduinosystem.*;
@@ -89,6 +90,20 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public List<NextTimeRangeAction> getNextTimeRangeActions(/*int scenarioProgramId*/) {
         return scenarios.nextTimeRangeActions;
     }
+
+    public List<DataLog> getCommandDatalogs(int actuatorId, Date start, Date end) {
+        SensorBase sensor = getSensorFromId(actuatorId);
+        if (sensor != null && sensor instanceof Actuator) {
+
+            Actuator actuator = (Actuator) sensor;
+            if (actuator.command.commandDataLog != null)
+                return actuator.command.commandDataLog.getDataLog(actuatorId,start,end);
+        }
+        return null;
+
+    }
+
+
 
     public interface CoreListener {
         void onCommandResponse(String uuid, String response);
@@ -643,7 +658,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public List<DataLog> getSensorDataLogList(int actuatorid,Date startdate, Date enddate) {
 
         SensorBase sensor = getSensorFromId(actuatorid);
-        return sensor.datalog.getDataLog(startdate,enddate);
+        if (sensor == null) return null;
+        return sensor.datalog.getDataLog(actuatorid,startdate,enddate);
     }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {

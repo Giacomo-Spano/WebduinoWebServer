@@ -166,7 +166,7 @@ public class ShieldServlet extends HttpServlet {
 
                                 Date startDate = Core.getDate();
                                 SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                                cmd.date = df.format(startDate);
+                                cmd.date = startDate;
 
                                 if (json.getString("command").equals("manual")) {
                                     if (json.has("duration")) {
@@ -174,7 +174,7 @@ public class ShieldServlet extends HttpServlet {
                                         Calendar cal = Calendar.getInstance();
                                         cal.setTime(startDate);
                                         cal.add(Calendar.SECOND,duration);
-                                        cmd.enddate = df.format(cal.getTime());
+                                        cmd.enddate = cal.getTime();
                                     } else if (json.has("nexttimerange") && json.getBoolean("nexttimerange") == true) {
                                         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
                                         NextTimeRangeAction nextTimeRangeAction = core.getNextActuatorProgramTimeRange(cmd.actuatorid);
@@ -186,17 +186,17 @@ public class ShieldServlet extends HttpServlet {
                                                 cal.set(Calendar.HOUR_OF_DAY,nextTimeRangeAction.end.getHour());
                                                 cal.set(Calendar.MINUTE,nextTimeRangeAction.end.getMinute());
                                                 cal.set(Calendar.SECOND,nextTimeRangeAction.end.getSecond());
-                                                cmd.enddate = df.format(cal.getTime());
+                                                cmd.enddate = cal.getTime();
                                             } else {
                                                 //Calendar cal = Calendar.getInstance();
                                                 cal.setTime(Core.getDate());
                                                 cal.set(Calendar.HOUR_OF_DAY,nextTimeRangeAction.start.getHour());
                                                 cal.set(Calendar.MINUTE,nextTimeRangeAction.start.getMinute());
                                                 cal.set(Calendar.SECOND,nextTimeRangeAction.start.getSecond());
-                                                cmd.enddate = df.format(cal.getTime());
+                                                cmd.enddate = cal.getTime();
                                             }
                                             long diffInMillies = Math.abs(cal.getTime().getTime() - Core.getDate().getTime());
-                                            cmd.duration = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.SECONDS);
+                                            cmd.duration = diffInMillies/1000;
                                         } else {
                                             response.setStatus(HttpServletResponse.SC_OK);
                                             out.print("Invalid timerange");
@@ -207,9 +207,9 @@ public class ShieldServlet extends HttpServlet {
                                         SimpleDateFormat tf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
                                         String str = json.getString("endtime");
                                         Date enddate = tf.parse(str);
-                                        cmd.enddate = df.format(enddate);
+                                        cmd.enddate = enddate;
                                         long diffInMillies = Math.abs(enddate.getTime() - Core.getDate().getTime());
-                                        cmd.duration = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.SECONDS);
+                                        cmd.duration = diffInMillies/1000;
                                     } else {
                                         response.setStatus(HttpServletResponse.SC_OK);
                                         out.print("Invalid endtime");
@@ -431,29 +431,21 @@ public class ShieldServlet extends HttpServlet {
                 cal.setTime(enddate);
                 cal.add(Calendar.HOUR,-24);
                 Date startdate = cal.getTime();
-                sensor.datalog.getDataLog(startdate,enddate);
+                //sensor.datalog.getDataLog(startdate,enddate);
 
                 List<DataLog> list = core.getSensorDataLogList(sensorid,startdate,enddate);
                 if (list != null) {
                     for (DataLog logitem:list) {
-                        jarray.put(logitem.toJson());
+                        try {
+                            jarray.put(logitem.toJson());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                     out.print(jarray.toString());
                 }
             }
-        } else if (command.equals("commandlog")) {
-            if (id != null) {
-                JSONArray jarray = new JSONArray();
-                int actuatorid = Integer.parseInt(id);
-                List<NextTimeRangeAction> list = core.getNextActuatorProgramTimeRangeActionList(actuatorid);
-                if (list != null) {
-                    for (NextTimeRangeAction nextaction:list) {
-                        jarray.put(nextaction.toJson());
-                    }
-                    out.print(jarray.toString());
-                }
-            }
-        } else if (command != null && id != null) { // CHIAMTA CON ATTESA RITORNO
+        }  else if (command != null && id != null) { // CHIAMTA CON ATTESA RITORNO
 
             String json = "";
             json = handleGetJson(Integer.parseInt(id), command);

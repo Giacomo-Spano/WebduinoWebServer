@@ -34,7 +34,7 @@ public class CurrentSensorDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -50,7 +50,7 @@ public class CurrentSensorDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM " + tableName + " WHERE id = " + sensorid + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM " + tableName + " WHERE id = " + id + " AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 

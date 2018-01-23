@@ -1,9 +1,12 @@
 package com.server.webduino.core.sensors.commands;
 
+import com.server.webduino.core.datalog.HeaterCommandDataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Logger;
 
 /**
@@ -26,11 +29,18 @@ public class HeaterActuatorCommand extends Command {
     public int zone;
     public double temperature;
     public int actionid;
-    public String date;
-    public String enddate;
+    public Date date;
+    public Date enddate;
+
+    public HeaterActuatorCommand(int shieldid, int actuatorid){
+        super(shieldid,actuatorid);
+        commandDataLog = new HeaterCommandDataLog();
+
+    }
 
     public HeaterActuatorCommand(JSONObject json) throws JSONException {
         super(json);
+        commandDataLog = new HeaterCommandDataLog();
     }
 
     @Override
@@ -52,10 +62,25 @@ public class HeaterActuatorCommand extends Command {
                 actionid = json.getInt("actionid");
             if (json.has("zone"))
                 zone = json.getInt("zone");
-            if (json.has("date"))
-                date = json.getString("date");
-            if (json.has("enddate"))
-                enddate = json.getString("enddate");
+            SimpleDateFormat df = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+            if (json.has("date")) {
+                String str = json.getString("date");
+                try {
+                    date = df.parse(str);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    date = null;
+                }
+            }
+            if (json.has("enddate")) {
+                String str = json.getString("enddate");
+                try {
+                    enddate = df.parse(str);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    enddate = null;
+                }
+            }
     }
 
     @Override

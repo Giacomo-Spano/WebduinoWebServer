@@ -6,6 +6,7 @@ import com.server.webduino.core.datalog.DataLog;
 public class CommandDataLog extends DataLog {
 
     public String tableName = "commanddatalog";
+    public CommandDataLog commandDataLog = null;
 
     @Override
     public String getSQLInsert(String event, Object object) {

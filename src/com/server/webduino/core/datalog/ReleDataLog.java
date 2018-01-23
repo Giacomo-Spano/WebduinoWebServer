@@ -73,7 +73,7 @@ public class ReleDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(Date startDate, Date endDate) {
+    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -89,7 +89,7 @@ public class ReleDataLog extends DataLog {
             String end = dateFormat.format(endDate);
 
             String sql;
-            sql = "SELECT * FROM heaterdatalog WHERE id = " + sensorid + " AND event='update' AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
+            sql = "SELECT * FROM heaterdatalog WHERE id = " + id + " AND event='update' AND date BETWEEN '" + start + "' AND '" + end + "'" + "ORDER BY date ASC";
 
             ResultSet rs = stmt.executeQuery(sql);
 

@@ -1,6 +1,7 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.*;
+import com.server.webduino.core.datalog.HeaterCommandDataLog;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
@@ -55,7 +56,9 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "heatersensor";
 
+        command = new HeaterActuatorCommand(shieldid,id);
         datalog = new HeaterDataLog(id);
+
     }
 
     public void init() {

@@ -73,8 +73,10 @@ public class ScenarioProgram extends DBObject {
     }*/
     public void setActionListener(ProgramAction.ActionListener toAdd) {
 
-        for(ScenarioProgramTimeRange timeRange: timeRanges) {
-            timeRange.setActionListener(toAdd);
+        if (timeRanges != null) {
+            for (ScenarioProgramTimeRange timeRange : timeRanges) {
+                timeRange.setActionListener(toAdd);
+            }
         }
     }
 

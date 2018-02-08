@@ -33,6 +33,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>CheckHealthServlet</servlet-name>
+        <servlet-class>com.server.webduino.servlet.CheckHealthServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CheckHealthServlet</servlet-name>
+        <url-pattern>/health</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>TokenSigninServlet</servlet-name>
         <servlet-class>com.server.webduino.servlet.TokenSigninServlet</servlet-class>
     </servlet>

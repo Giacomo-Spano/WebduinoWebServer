@@ -336,7 +336,19 @@ public class SystemServlet extends HttpServlet {
 
         Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
-        if (requestCommand != null && requestCommand.equals("sensors")) {
+        if (requestCommand != null && requestCommand.equals("checkhealth")) {
+
+            JSONObject json = new JSONObject();
+            try {
+                json.put("date", Core.getDate().toString());
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(json.toString());
+                return;
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        } else if (requestCommand != null && requestCommand.equals("sensors")) {
             int shieldid = 0;
             if (id != null)
                 shieldid = Integer.parseInt(id);

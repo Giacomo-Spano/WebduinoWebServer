@@ -37,7 +37,20 @@ function loadAction(action, sensors, zones, instructiontypes) {
         });
         $instructionPanel.find('select[name="type"]').val(action.type);
         $instructionPanel.find('input[name="thresholdvalue"]').val(action.thresholdvalue);
-        $instructionPanel.find('input[name="seconds"]').val(action.seconds);
+        //$instructionPanel.find('input[name="seconds"]').val(action.seconds);
+        $instructionPanel.find('input[name="seconds"]').timepicker({
+            timeFormat: 'HH:mm:ss',
+            interval: 1,
+            minTime: '00:00:00',
+            //maxTime: '59:59',
+            defaultTime: '00:00:00',
+            startTime: '00:00:00',
+            dynamic: true,
+            dropdown: true,
+            scrollbar: true
+        });
+
+
         $instructionPanel.find('input[name="enabled"]').prop('checked',action.enabled);
 
         // save button
@@ -55,7 +68,12 @@ function loadAction(action, sensors, zones, instructiontypes) {
             action.actuatorid = $instructionPanel.find('select[name="actuator"]').val();
             action.targetvalue = $instructionPanel.find('input[name="targetvalue"]').val();
             action.thresholdvalue = $instructionPanel.find('input[name="thresholdvalue"]').val();
+            //action.seconds = $instructionPanel.find('input[name="seconds"]').val();
             action.seconds = $instructionPanel.find('input[name="seconds"]').val();
+
+
+
+
             action.enabled = $instructionPanel.find('input[name="enabled"]').prop('checked');
             action.priority = $instructionPanel.find('input[name="priority"]').val();
             postData("instruction", action, function (result, response) {

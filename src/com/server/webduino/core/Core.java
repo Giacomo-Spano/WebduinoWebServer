@@ -531,6 +531,8 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public void enableTrigger(int id, boolean enable) throws Exception {
         Trigger trigger = getTriggerFromId(id);
+        if (trigger == null)
+            throw new Exception("trigger id " + id + " not found");
         trigger.enable(enable);
         scenarios.initScenarios();
     }

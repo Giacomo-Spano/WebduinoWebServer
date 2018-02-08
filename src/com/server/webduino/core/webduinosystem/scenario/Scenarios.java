@@ -71,6 +71,8 @@ public class Scenarios {
             return null;
 
         Conflict conflict = getActionConfictDataFromActionId(action.id);
+        if (conflict == null)
+            return null;
 
         // Se il timerange finisce prima dell'inizio dell'altro oppure incomincia
         // dopo la fine dell'altro non c'è conflitto

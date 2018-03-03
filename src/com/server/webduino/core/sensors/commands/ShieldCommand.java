@@ -1,6 +1,6 @@
-package com.server.webduino.core;
+package com.server.webduino.core.sensors.commands;
 
-import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.core.datalog.CommandDataLog;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +19,7 @@ public class ShieldCommand extends Command {
 
     public ShieldCommand(JSONObject json) throws JSONException {
         super(json);
+        commandDataLog = new CommandDataLog();
     }
 
     public void fromJson(JSONObject json) throws JSONException {
@@ -36,6 +37,7 @@ public class ShieldCommand extends Command {
 
         JSONObject json = new JSONObject();
         try {
+            json.put("uuid", uuid);
             json.put("command", command);
             json.put("shieldid", shieldid);
             json.put("sensors", sensors);

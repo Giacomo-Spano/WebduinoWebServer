@@ -305,7 +305,7 @@ function loadScenario(scenario) {
                 $scenarioPanel.find('input[name="index"]').val(scenario.index);
                 $scenarioPanel.find('input[name="name"]').val(scenario.name);
                 $scenarioPanel.find('textarea[name="description"]').val(scenario.description);
-                if (scenario.startdate != undefined)
+                /*if (scenario.startdate != undefined)
                     $scenarioPanel.find('input[name="startdate"]').val(scenario.startdate);
                 $scenarioPanel.find('input[name="startdate"]').datetimepicker({
                     dateFormat: "d/m/Y H:i"
@@ -314,7 +314,7 @@ function loadScenario(scenario) {
                     $scenarioPanel.find('input[name="enddate"]').val(scenario.enddate);
                 $scenarioPanel.find('input[name="enddate"]').datetimepicker({
                     dateFormat: "d/m/Y H:i"
-                });
+                });*/
 
                 $scenarioPanel.find('input[name="priority"]').val(scenario.priority);
 

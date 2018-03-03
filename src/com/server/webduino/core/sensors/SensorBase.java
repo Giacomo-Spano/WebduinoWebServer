@@ -25,7 +25,7 @@ public class SensorBase extends DBObject {
 
     protected int shieldid;
     protected int parentid;
-    protected boolean online = false;
+    public boolean online = false;
     protected String subaddress;
     protected String name;
     protected String description;
@@ -95,6 +95,13 @@ public class SensorBase extends DBObject {
             return child.getSensorFromId(id);
         }
         return null;
+    }
+
+    public void setOffline() {
+        online = false;
+        for (SensorBase child : childSensors) {
+            child.setOffline();
+        }
     }
 
     public SensorBase findSensorFromId(int id) {
@@ -252,7 +259,7 @@ public class SensorBase extends DBObject {
 
         writeDataLog("requestStatusUpdate");
 
-        Result result = call("GET", "", statusUpdatePath);
+        httpClientResult result = call("GET", "", statusUpdatePath);
         if (result != null && result.res)
             return result.response;
 
@@ -342,7 +349,7 @@ public class SensorBase extends DBObject {
 
     }
 
-    protected httpClient.Result call(String method, String param, String path) {
+    protected httpClientResult call(String method, String param, String path) {
 
         LOGGER.info("call: " + method + "," + param + "," + path);
 
@@ -355,7 +362,7 @@ public class SensorBase extends DBObject {
         //boolean res;
 
         httpClient client = new httpClient();
-        httpClient.Result result = null;
+        httpClientResult result = null;
         if (method.equals("GET")) {
 
             result = client.callGet(param, path, url);

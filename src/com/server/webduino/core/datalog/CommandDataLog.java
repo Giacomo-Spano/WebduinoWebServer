@@ -13,11 +13,10 @@ public class CommandDataLog extends DataLog {
     //public String getSQLInsert(String event, Command command) {
         Command command = (Command) object;
         String sql = "INSERT INTO " + tableName + " (date, shieldid, actuatorid, uuid) VALUES ("
-                + "'" + getStrDate() + "'"
-                + ",'" + command.command + "'"
+                + getStrDate()
                 + "," + command.shieldid
                 + "," + command.actuatorid
-
+                + ",'" + command.uuid + "'"
                 + ");";
         return sql;
     }

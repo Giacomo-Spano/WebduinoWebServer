@@ -83,6 +83,7 @@ public class SystemServlet extends HttpServlet {
                 } catch (Exception e) {
                     e.printStackTrace();
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    //response.sendError(HttpServletResponse.SC_BAD_REQUEST,e.toString());
                     out.print(e.toString());
                     return;
                 }
@@ -371,6 +372,19 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
+        } else if (requestCommand != null && requestCommand.equals("webduinosystems")) {
+
+            try {
+                JSONArray jarray = core.getWebduinoSystemJSONArray();
+                if (jarray != null) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(jarray.toString());
+                    return;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
         } else if (requestCommand != null && requestCommand.equals("sensortypes")) {
 
             JSONArray jarray = SensorFactory.getSensorTypesJSONArray();
@@ -512,9 +526,9 @@ public class SystemServlet extends HttpServlet {
             if (id != null) {
                 JSONArray jarray = new JSONArray();
                 int actuatorid = Integer.parseInt(id);
-                List<DataLog> list = core.getCommandDatalogs(actuatorid,null,null);
+                List<DataLog> list = core.getCommandDatalogs(actuatorid, null, null);
                 if (list != null) {
-                    for (DataLog dataLog:list) {
+                    for (DataLog dataLog : list) {
                         try {
                             jarray.put(dataLog.toJson());
                         } catch (JSONException e) {

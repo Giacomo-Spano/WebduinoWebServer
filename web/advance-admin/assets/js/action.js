@@ -43,7 +43,7 @@ function loadAction(action, sensors, zones, instructiontypes) {
             interval: 1,
             minTime: '00:00:00',
             //maxTime: '59:59',
-            defaultTime: '00:00:00',
+            defaultTime: '00:00:05',
             startTime: '00:00:00',
             dynamic: true,
             dropdown: true,
@@ -69,8 +69,11 @@ function loadAction(action, sensors, zones, instructiontypes) {
             action.targetvalue = $instructionPanel.find('input[name="targetvalue"]').val();
             action.thresholdvalue = $instructionPanel.find('input[name="thresholdvalue"]').val();
             //action.seconds = $instructionPanel.find('input[name="seconds"]').val();
-            action.seconds = $instructionPanel.find('input[name="seconds"]').val();
-
+            var hms = $instructionPanel.find('input[name="seconds"]').val();
+            //var hms = '02:04:33';   // your input string
+            var a = hms.split(':'); // split it at the colons
+            // minutes are worth 60 seconds. Hours are worth 60 minutes.
+            action.seconds = (+a[0]) * 60 * 60 + (+a[1]) * 60 + (+a[2]);
 
 
 

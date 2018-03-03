@@ -2,7 +2,6 @@ package com.server.webduino.servlet;
 
 import com.google.api.client.json.gson.GsonFactory;
 import com.server.webduino.core.httpClient;
-import org.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -12,16 +11,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.security.GeneralSecurityException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.logging.Logger;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.server.webduino.core.httpClientResult;
 
 
 /**
@@ -62,7 +59,7 @@ public class TokenSigninServlet extends HttpServlet {
 
         String idTokenString = jb.toString();
         httpClient client = new httpClient();
-        httpClient.Result res = client.callGet("","/oauth2/v3/tokeninfo?id_token=" + idTokenString,new URL("https://www.googleapis.com") );
+        httpClientResult res = client.callGet("","/oauth2/v3/tokeninfo?id_token=" + idTokenString,new URL("https://www.googleapis.com") );
 
         out.print("prova");
     }

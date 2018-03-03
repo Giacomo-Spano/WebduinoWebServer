@@ -1,7 +1,5 @@
 package com.server.webduino.core;
 
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
@@ -15,15 +13,15 @@ public class httpClient {
 
     private static Logger LOGGER = Logger.getLogger(httpClient.class.getName());
 
-    public class Result {
+    /*public class httpClientResult {
         public boolean res;
         public String response = "";
-    }
+    }*/
 
-    public Result callGet(String param, String path, URL url) {
+    public httpClientResult callGet(String param, String path, URL url) {
 
         InputStreamReader responseInputStream;
-        Result result = new Result();
+        httpClientResult result = new httpClientResult();
         try {
             URL jsonurl = new URL(url.toString() + path);
 
@@ -87,12 +85,12 @@ public class httpClient {
 
     }
 
-    public Result callPost(String path, String urlParameters, URL url) {
+    public httpClientResult callPost(String path, String urlParameters, URL url) {
 
         LOGGER.info("path: " + path + "urlParameters: " + urlParameters+ "url: " + url.toString());
 
 
-        Result result = new Result();
+        httpClientResult result = new httpClientResult();
         try {
             URL jsonurl = new URL(url.toString() + path);
 

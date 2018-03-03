@@ -226,6 +226,14 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return jsonArray;
     }
 
+    public JSONArray getWebduinoSystemJSONArray() throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (WebduinoSystem system:webduinoSystems) {
+            jsonArray.put(system.toJson());
+        }
+        return jsonArray;
+    }
+
 
     public void initMQTT() {
 
@@ -253,8 +261,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         //mSchedule = new Schedule(); // DA ELIMINARE
 
         // caricamento dati scernari e zone
-        readWebduinoSystems();
         readZones();
+        readWebduinoSystems();
+
         readTriggers();
         readExits();
         readKeys();
@@ -414,8 +423,11 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 String type = rs.getString("type");
                 WebduinoSystemFactory factory = new WebduinoSystemFactory();
                 WebduinoSystem system = factory.createWebduinoSystem(id, name, type);
-                if (system != null)
+                if (system != null) {
+                    system.readWebduinoSystemsZones(conn,id);
+                    system.readWebduinoSystemsActuators(conn,id);
                     webduinoSystems.add(system);
+                }
             }
             rs.close();
             stmt.close();
@@ -428,7 +440,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     }
 
     private void readExits() {
-        LOGGER.info(" readWebduinoSystems");
+        LOGGER.info(" readWebduinoExits");
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -719,13 +731,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.requestShieldSensorsStatusUpdate(shieldid);
     }
 
-    public ArrayList<Program> getPrograms(int systemId) {
-        Schedule schedule = getWebduinoSystemSchedule(systemId);
-        if (schedule != null)
-            return schedule.getProgramList();
-        return null;
-    }
-
     public static int registerShield(Shield shield) {
         return mShields.register(shield);
     }
@@ -922,13 +927,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public static boolean saveShieldSettings(JSONObject json) {
         return mShields.saveShieldSettings(json);
-    }
-
-    public Schedule getWebduinoSystemSchedule(int systemId) {
-        for (WebduinoSystem system : webduinoSystems) {
-            return system.getSchedule();
-        }
-        return null;
     }
 
     @Override

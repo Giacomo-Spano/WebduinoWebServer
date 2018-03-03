@@ -19,10 +19,4 @@ public class SecuritySystem extends com.server.webduino.core.webduinosystem.Webd
         super(id, name);
     }
 
-    /*@Override
-    public void readZoneSensors(int systemid) {
-        super.readZoneSensors(systemid);
-    }*/
-
-
 }

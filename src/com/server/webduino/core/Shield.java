@@ -4,6 +4,7 @@ import com.server.webduino.DBObject;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.core.sensors.commands.ShieldCommand;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +41,7 @@ public class Shield extends DBObject/*httpClient*/ {
 
     public String swVersion = "";
 
+    protected boolean online = false;
 
     private ShieldSettings settings = new ShieldSettings();
 
@@ -77,16 +79,35 @@ public class Shield extends DBObject/*httpClient*/ {
         return Core.publish("fromServer/shield/" + MACAddress + "/command", command.getJSON().toString());
     }
 
-    public boolean requestSensorStatusUpdate() { //
+    public boolean requestSensorStatusUpdate() { // ritorna false se fallisce l'invio del comando
 
         LOGGER.info("requestStatusUpdate:");
         sensorStatus = updateStatus_updating;
-        return Core.publish("fromServer/shield/" + MACAddress + "/updatesensorstatusrequest", "requestSensorsStatusUpdate");
+
+        String str = "{\"command\" : \"updatesensorstatus\", \"shieldid\":\"";
+        str += id + "\"}";
+        try {
+            setOffline();
+            JSONObject json = new JSONObject(str);
+            ShieldCommand cmd = new ShieldCommand(json);
+            Command.CommandResult result = cmd.send();
+            if (result.success == true) {
+                JSONObject j = new JSONObject(result.result);
+                updateShieldStatus(j);
+                return true;
+            } else {
+
+                return false;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public boolean requestReboot() { //
 
-        LOGGER.info("requestStatusUpdate:");
+        LOGGER.info("requestReboot:");
         sensorStatus = updateStatus_updating;
         return Core.publish("fromServer/shield/" + MACAddress + "/reboot", "immediate");
     }
@@ -100,13 +121,13 @@ public class Shield extends DBObject/*httpClient*/ {
         return Core.publish("fromServer/shield/" + MACAddress + "/updatesettingstatusrequest", "");
     }
 
-    protected httpClient.Result call(String method, String param, String path) {
+    protected httpClientResult call(String method, String param, String path) {
 
         LOGGER.info("call: " + method + "," + param + "," + path);
         LOGGER.info("url: " + url.toString());
 
         httpClient client = new httpClient();
-        httpClient.Result result = null;
+        httpClientResult result = null;
         if (method.equals("GET")) {
             result = client.callGet(param, path, url);
         } else if (method.equals("POST")) {
@@ -223,14 +244,14 @@ public class Shield extends DBObject/*httpClient*/ {
         List<SensorBase> sensors = new ArrayList<>();
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject j = null;
-                j = jsonArray.getJSONObject(i);
-                SensorFactory factory = new SensorFactory();
-                SensorBase sensor = factory.fromJson(j);
-                if (j.has("childsensors")) {
-                    sensor.childSensors = getSensors(j.getJSONArray("childsensors"));
-                }
+            j = jsonArray.getJSONObject(i);
+            SensorFactory factory = new SensorFactory();
+            SensorBase sensor = factory.fromJson(j);
+            if (j.has("childsensors")) {
+                sensor.childSensors = getSensors(j.getJSONArray("childsensors"));
+            }
 
-                sensors.add(sensor);
+            sensors.add(sensor);
         }
         return sensors;
     }
@@ -328,6 +349,18 @@ public class Shield extends DBObject/*httpClient*/ {
         return false;
     }
 
+    void setOffline() {
+
+        online = false;
+        setSensorOffline();
+    }
+
+    private void setSensorOffline() {
+
+        for (SensorBase sensor : sensors) {
+            sensor.setOffline();
+        }
+    }
 
     boolean updateSensors(JSONArray jsonArray) {
 
@@ -620,7 +653,7 @@ public class Shield extends DBObject/*httpClient*/ {
     public List<SensorBase> getAllSensors() {
 
         List<SensorBase> list = new ArrayList<>();
-        for (SensorBase sensor: sensors) {
+        for (SensorBase sensor : sensors) {
             list.add(sensor);
 
             List<SensorBase> childlist = sensor.getAllChildSensors();

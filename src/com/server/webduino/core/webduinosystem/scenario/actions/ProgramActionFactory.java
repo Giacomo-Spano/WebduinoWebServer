@@ -14,16 +14,28 @@ import java.util.Calendar;
  */
 public class ProgramActionFactory {
 
+    public static final String DELAYALARM = "delayalarm";
+    public static final String KEEPTEMPERATURE = "keeptemperature";
+    public static final String KEEPOFF = "keepoff";
+    public static final String VOIPCALL = "voipcall";
+    public static final String TRIGGERSTATUS = "triggerstatus";
+
     public ProgramAction createProgramAction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
                                              int zoneId, int seconds, boolean enabled) throws Exception {
         ProgramAction programActions = null;
-        if (type.equals("delayalarm")) {
+        if (type.equals(DELAYALARM)) {
             programActions = new DelayAlarmProgramActions(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
-        } else if (type.equals("keeptemperature")) {
+        } else if (type.equals(VOIPCALL)) {
+            programActions = new VoIPCallProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+                    zoneId, seconds, enabled);
+        } else if (type.equals(TRIGGERSTATUS)) {
+            programActions = new TriggerStatusProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+                    zoneId, seconds, enabled);
+        } else if (type.equals(KEEPTEMPERATURE)) {
             programActions = new KeepTemperatureProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
-        } else if (type.equals("keepoff")) {
+        } else if (type.equals(KEEPOFF)) {
             programActions = new KeepOffProgramActions(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals("immediatealarm") || type.equals("perimetrale") || type.equals("path") || type.equals("24hours")) {
@@ -137,17 +149,27 @@ public class ProgramActionFactory {
         JSONObject json;
         try {
             json = new JSONObject();
-            json.put("instruction", "delayalarm");
+            json.put("instruction", DELAYALARM);
             json.put("description", "Delayalarm");
             jsonArray.put(json);
 
             json = new JSONObject();
-            json.put("instruction", "keeptemperature");
+            json.put("instruction", VOIPCALL);
+            json.put("description", "VoipCall");
+            jsonArray.put(json);
+
+            json = new JSONObject();
+            json.put("instruction", TRIGGERSTATUS);
+            json.put("description", "triggerstatus");
+            jsonArray.put(json);
+
+            json = new JSONObject();
+            json.put("instruction", KEEPTEMPERATURE);
             json.put("description", "Keeptemperature");
             jsonArray.put(json);
 
             json = new JSONObject();
-            json.put("instruction", "keepoff");
+            json.put("instruction", KEEPOFF);
             json.put("description", "Keepoff");
             jsonArray.put(json);
 
@@ -156,6 +178,4 @@ public class ProgramActionFactory {
         }
         return jsonArray;
     }
-
-
 }

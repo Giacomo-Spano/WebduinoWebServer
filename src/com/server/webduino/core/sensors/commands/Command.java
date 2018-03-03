@@ -86,7 +86,8 @@ public class Command {
             result.result = json;
         }
         //HeaterCommandDataLog dl = new HeaterCommandDataLog();
-        commandDataLog.writelog("send",this);
+        if (commandDataLog != null)
+            commandDataLog.writelog("send",this);
         return result;
     }
 

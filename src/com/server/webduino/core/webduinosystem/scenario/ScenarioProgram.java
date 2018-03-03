@@ -58,19 +58,8 @@ public class ScenarioProgram extends DBObject {
     private Date startDate = null;
     private Date endDate = null;
     private Date programLastEndDate = null;
+    public List<ScenarioProgramTimeRange> timeRanges = new ArrayList<>();
 
-    /*protected List<ActionListener> listeners = new ArrayList<>();
-
-    public interface ActionListener {
-        void onStart(ProgramAction action, int timerangeIndex, int programPriority);
-        void onStop(ProgramAction action);
-    }
-    public void addListener(ActionListener toAdd) {
-        listeners.add(toAdd);
-    }
-    public void deleteListener(ActionListener toRemove) {
-        listeners.remove(toRemove);
-    }*/
     public void setActionListener(ProgramAction.ActionListener toAdd) {
 
         if (timeRanges != null) {
@@ -80,7 +69,6 @@ public class ScenarioProgram extends DBObject {
         }
     }
 
-    public List<ScenarioProgramTimeRange> timeRanges = new ArrayList<>();
 
     public ScenarioProgram(Connection conn, ResultSet resultSet) throws Exception {
         fromResultSet(conn, resultSet);
@@ -272,7 +260,9 @@ public class ScenarioProgram extends DBObject {
 
         // esegue un loop e aggiunge tutti i prossimi nextTimeRange
         // fino a che la data non supera 7 giorni oppure i time range sono più di 100
-        while (diffDays < 7 && list.size() < 100) {
+        // oppure il while ha fatto più di 1000 loop
+        int counter = 0;
+        while (diffDays < 7 && list.size() < 100 && counter++ < 1000) {
 
             Instant instant = Instant.ofEpochMilli(nextDate.getTime());
             LocalTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();

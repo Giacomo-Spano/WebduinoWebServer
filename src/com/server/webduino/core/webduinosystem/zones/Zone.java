@@ -43,7 +43,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
 
     }
 
-    private int id;
+    public int id;
     private String name;
     private String type;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();

@@ -243,7 +243,7 @@ public class Shields {
             boolean res = shield.requestSensorStatusUpdate();
             if (res == false) {
                 LOGGER.severe("sensors " + shield.id + " OFFLINE");
-                Core.sendPushNotification(SendPushMessages.notification_error, "errore", "SHIELD " + shield.id + " OFFLINE", "0", shield.id);
+                //Core.sendPushNotification(SendPushMessages.notification_error, "errore", "SHIELD " + shield.id + " OFFLINE", "0", shield.id);
             }
         }
     }

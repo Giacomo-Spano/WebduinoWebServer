@@ -95,18 +95,7 @@ public class ShieldServlet extends HttpServlet {
                     handleSaveSettingEvent(json);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
-                } /*else if (json.getString("command").equals("reboot") && json.has("shieldid")) {
-                    ShieldCommand cmd = new ShieldCommand(json);
-                    Command.CommandResult result = cmd.send();
-                    if (result.success) {
-                        out.print(result);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                    } else {
-                        out.print("errore");
-                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    }
-
-                } */else if (json.getString("command").equals("reboot")) {
+                } else if (json.getString("command").equals("reboot")) {
 
                     if (json.has("shieldid")) {
                         int id = json.getInt("shieldid");
@@ -141,15 +130,6 @@ public class ShieldServlet extends HttpServlet {
                         int id = json.getInt("shieldid");
                         Shield shield = Core.getShieldFromId(id);
                         shield.requestSensorStatusUpdate();
-                        /*ShieldCommand cmd = new ShieldCommand(json);
-                        Command.CommandResult result = cmd.send();
-                        if (result.success) {
-                            out.print(result);
-                            response.setStatus(HttpServletResponse.SC_OK);
-                        } else {
-                            out.print("errore");
-                            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        }*/
                         out.print("command sent");
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
@@ -222,8 +202,11 @@ public class ShieldServlet extends HttpServlet {
                                         cmd.temperature = zone.getTemperature();
 
                                     } else {
-                                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                        //response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                                         out.print("Invalid zone " + cmd.zone);
+                                        //response.send
+                                        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "custom message");
+                                        //response.se(HttpServletResponse.SC_BAD_REQUEST, "custom message");
                                         return;
                                     }
                                 }
@@ -232,6 +215,12 @@ public class ShieldServlet extends HttpServlet {
                                 //SensorBase sensor = Core.getSensorFromId(cmd.actuatorid);
                                 if (result.success /*&& sensor != null*/) {
                                     //out.print(sensor.toJson().toString());
+                                    // aggiorna lòo stato del sensore in base alla risposta al comando
+                                    JSONObject jresult = new JSONObject(result.result);
+                                    actuator.updateFromJson(Core.getDate(),jresult);
+
+
+
                                     response.setStatus(HttpServletResponse.SC_OK);
                                     //PrintWriter out = response.getWriter();
                                     out.print(result.result);

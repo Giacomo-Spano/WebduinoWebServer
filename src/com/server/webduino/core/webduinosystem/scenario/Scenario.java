@@ -12,6 +12,7 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import java.sql.*;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Calendar;
@@ -43,8 +44,8 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     private JobDetail nextTimeIntervalJob = null;
     private Scheduler scheduler = null;
     private Date nextJobDate = null;
-    private Date startDate = null;
-    private Date endDate = null;
+    //private Date startDate = null;
+    //private Date endDate = null;
 
     private ScenarioTimeInterval.ScenarioTimeIntervalListener timeIntervalListener = new ScenarioTimeInterval.ScenarioTimeIntervalListener() {
         @Override
@@ -383,10 +384,10 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             if (nextJobDate != null)
                 json.put("nextjobdate", df.format(nextJobDate));
-            if (startDate != null)
+            /*if (startDate != null)
                 json.put("startdate", df.format(startDate));
             if (endDate != null)
-                json.put("enddate", df.format(endDate));
+                json.put("enddate", df.format(endDate));*/
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -406,6 +407,28 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             enabled = json.getBoolean("enabled");
         if (json.has("dateenabled"))
             dateEnabled = json.getBoolean("dateenabled");
+
+        /*if (json.has("startdate")) {
+            String time = json.getString("startdate");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+            try {
+                startDate = df.parse(time);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (json.has("enddate")) {
+            String time = json.getString("enddate");
+            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+            try {
+                endDate = df.parse(time);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }*/
+
+
         if (json.has("calendar"))
             calendar = new ScenarioCalendar(json.getJSONObject("calendar"));
         if (json.has("triggers")) {
@@ -523,13 +546,13 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             }
         }
 
-        if (oldActiveStatus != active) {
+        /*if (oldActiveStatus != active) {
             if (active) {
                 startDate = Core.getDate();
             } else {
                 endDate = Core.getDate();
             }
-        }
+        }*/
     }
 
 

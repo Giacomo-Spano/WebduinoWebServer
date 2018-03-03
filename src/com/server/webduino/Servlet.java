@@ -47,7 +47,7 @@ public class Servlet extends javax.servlet.http.HttpServlet {
         // Set response content type
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
-        String title = "Database Result";
+        String title = "Database httpClientResult";
         String docType =
                 "<!doctype html public \"-//w3c//dtd html 4.0 " +
                         "transitional//en\">\n";

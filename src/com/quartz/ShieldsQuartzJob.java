@@ -42,8 +42,27 @@ public class ShieldsQuartzJob implements Job {
         Core core = (Core)servletContext.getAttribute(QuartzListener.CoreClass);
         LOGGER.info("ShieldsQuartzJob:update  start");
 
+        //core.mShields.requestSensorsStatusUpdate();
+        MyThread commandThread = new MyThread();
+        Thread thread = new Thread(commandThread, "commandThread");
+        thread.start();
+
         core.mShields.requestSensorsStatusUpdate();
 
         LOGGER.info("ShieldsQuartzJob:update  end");
+    }
+
+
+    class MyThread implements Runnable {
+
+        private volatile boolean execute; // variabile di sincronizzazione
+        public MyThread() {
+        }
+
+        @Override
+        public void run() {
+            Thread t = Thread.currentThread();
+            System.out.println("Thread started: " + t.getName());
+        }
     }
 }

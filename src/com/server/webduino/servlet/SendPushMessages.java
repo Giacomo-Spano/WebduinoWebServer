@@ -80,7 +80,7 @@ public class SendPushMessages {
                 //String registrationId = list.get(0).tokenId;
                 // Message message = new Message.Builder().build();
 
-                //Result result = sendSingleMessage(registrationId,message);
+                //httpClientResult result = sendSingleMessage(registrationId,message);
                 //status = "Sent message to one device: " + result;
                 LOGGER.info(status);
             } else {
@@ -114,7 +114,7 @@ public class SendPushMessages {
 
         LOGGER.info("sendSingleMessage message=" + message);
 
-        Result result = null;// = new Result();
+        Result result = null;// = new httpClientResult();
         try {
             result = sender.send(message, registrationId, 5);
         } catch (IOException e) {
@@ -188,11 +188,11 @@ public class SendPushMessages {
 					logger.log(Level.SEVERE, "Error posting messages", e);
 					return;
 				}
-				List<Result> results = multicastResult.getResults();
+				List<httpClientResult> results = multicastResult.getResults();
 				// analyze the results
 				for (int i = 0; i < devices.size(); i++) {
 					String tokenId = devices.get(i);
-					Result result = results.get(i);
+					httpClientResult result = results.get(i);
 					String messageId = result.getMessageId();
 					if (messageId != null) {
 						logger.fine("Succesfully sent message to device: "

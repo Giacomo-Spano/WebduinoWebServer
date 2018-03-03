@@ -1,15 +1,9 @@
 package com.server.webduino.core;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.server.webduino.servlet.NotificationServlet;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -20,7 +14,7 @@ public class SendNotification extends httpClient {
 
     private static final Logger LOGGER = Logger.getLogger(NotificationServlet.class.getName());
 
-    Result send(String title, String description, String notificationType, int id) {
+    httpClientResult send(String title, String description, String notificationType, int id) {
 
         Devices devices = new Devices();
         devices.read();
@@ -63,7 +57,7 @@ If Content-Type is omitted, the format is assumed to be plain text.*/
                     "    }\n" +
                     "}";
 
-            Result result = new Result();
+            httpClientResult result = new httpClientResult();
             try {
                 URL jsonurl = new URL(stringUrl.toString());
 

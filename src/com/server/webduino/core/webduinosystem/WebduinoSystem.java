@@ -25,12 +25,14 @@ public class WebduinoSystem {
     private List<SecurityKey> keys = new ArrayList<>();
     private int id;
     private String name;
+    private String type;
     private List<WebduinoSystemZone> zones = new ArrayList<>();
     private List<WebduinoSystemActuator> actuators = new ArrayList<>();
 
-    public WebduinoSystem(int id, String name) {
+    public WebduinoSystem(int id, String name, String type) {
         this.id = id;
         this.name = name;
+        this.type = type;
     }
 
     public int getId() {
@@ -65,7 +67,7 @@ public class WebduinoSystem {
             String name = rs.getString("name");
             int zoneid = rs.getInt("zoneid");
             Zone zone = Core.getZoneFromId(zoneid);
-            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id, name, zone);
+            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id,name,zone,type);
             zones.add(webduinosystemzone);
         }
         rs.close();
@@ -97,6 +99,7 @@ public class WebduinoSystem {
         JSONObject json = new JSONObject();
         json.put("id", id);
         json.put("name", name);
+        json.put("type", type);
 
         JSONArray zonearray = new JSONArray();
         for (WebduinoSystemZone zone : zones) {
@@ -108,9 +111,9 @@ public class WebduinoSystem {
         JSONArray actuatorarray = new JSONArray();
         for (WebduinoSystemActuator actuator : actuators) {
             JSONObject j = actuator.toJson();
-            zonearray.put(j);
+            actuatorarray.put(j);
         }
-        json.put("actuators", zonearray);
+        json.put("actuators", actuatorarray);
 
         return json;
     }

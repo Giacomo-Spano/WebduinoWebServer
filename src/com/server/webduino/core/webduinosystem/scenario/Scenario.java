@@ -30,6 +30,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     private static final Logger LOGGER = Logger.getLogger(NextScenarioTimeIntervalQuartzJob.class.getName());
 
     public int id;
+    public int webduinosystemid;
     public boolean active = false;
     public String name = "";
     public String description = "";
@@ -215,17 +216,19 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     public void write(Connection conn) throws SQLException {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String sql = "INSERT INTO scenarios (id, name, description, dateenabled, enabled, priority)" +
+        String sql = "INSERT INTO scenarios (id, webduinosystemid, name, description, dateenabled, enabled, priority)" +
                 " VALUES ("
                 + id + ","
+                + webduinosystemid + ","
                 + "\"" + name + "\","
                 + "\"" + description + "\","
                 + Core.boolToString(dateEnabled) + ","
                 + Core.boolToString(enabled) + ","
                 + priority + ") " +
                 "ON DUPLICATE KEY UPDATE "
+                + "webduinosystemid=" + webduinosystemid + ","
                 + "name=\"" + name + "\","
-                + "name=\"" + description + "\","
+                + "description=\"" + description + "\","
                 + "dateenabled=" + Core.boolToString(dateEnabled) + ","
                 + "enabled=" + Core.boolToString(enabled) + ","
                 + "priority=" + priority + ";";
@@ -260,6 +263,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         //Scenario scenario = new Scenario();
         this.id = scenariosResultSet.getInt("id");
+        this.webduinosystemid = scenariosResultSet.getInt("webduinosystemid");
         this.name = scenariosResultSet.getString("name");
         this.description = scenariosResultSet.getString("description");
         this.dateEnabled = scenariosResultSet.getBoolean("dateenabled");
@@ -305,25 +309,6 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         while (programsResultset.next()) {
             ScenarioProgram program = new ScenarioProgram(conn, programsResultset);
             this.programs.add(program);
-
-            //program.setActionListener(this);
-            /*program.addListener(new ScenarioProgram.ActionListener() {
-                @Override
-                public void onStart(ProgramAction action, int timerangeIndex, int programPriority) {
-                    for (ActionListener listener: listeners) {
-                        listener.onStart(action,timerangeIndex,programPriority,priority);
-                    }
-                }
-
-                @Override
-                public void onStop(ProgramAction action) {
-                    for (ActionListener listener: listeners) {
-                        listener.onStop(action);
-                    }
-                }
-
-            });*/
-
         }
         programsResultset.close();
         stmt.close();
@@ -355,6 +340,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         JSONObject json = new JSONObject();
         try {
             json.put("id", id);
+            json.put("webduinosystemid", webduinosystemid);
             json.put("name", name);
             json.put("description", description);
             json.put("dateenabled", dateEnabled);
@@ -399,6 +385,8 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         if (json.has("id"))
             id = json.getInt("id");
+        if (json.has("webduinosystemid"))
+            webduinosystemid = json.getInt("webduinosystemid");
         if (json.has("name"))
             name = json.getString("name");
         if (json.has("description"))
@@ -407,27 +395,6 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             enabled = json.getBoolean("enabled");
         if (json.has("dateenabled"))
             dateEnabled = json.getBoolean("dateenabled");
-
-        /*if (json.has("startdate")) {
-            String time = json.getString("startdate");
-            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-            try {
-                startDate = df.parse(time);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (json.has("enddate")) {
-            String time = json.getString("enddate");
-            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-            try {
-                endDate = df.parse(time);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }*/
-
 
         if (json.has("calendar"))
             calendar = new ScenarioCalendar(json.getJSONObject("calendar"));
@@ -457,40 +424,6 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
         return null;
     }
-
-    /*public static Scenario scenarioFromProgramTimeRange(int programTimeRangeId) {
-        LOGGER.info("scenarioFromProgramTimeRange");
-        try {
-            //Class.forName("com.mysql.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-            conn.setAutoCommit(false);
-            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
-
-            String sql;
-            sql = "SELECT *\n" +
-                    "FROM scenarios\n" +
-                    "INNER JOIN scenarios_programs ON scenarios_programs.scenarioid=scenarios.id\n" +
-                    "INNER JOIN scenarios_programtimeranges ON scenarios_programs.id=scenarios_programtimeranges.programid where scenarios_programtimeranges.id = " + programTimeRangeId + ";";
-            ResultSet scenariosResultSet = stmt.executeQuery(sql);
-            if (scenariosResultSet.next()) {
-                Scenario scenario = new Scenario();
-                scenario.fromResulSet(conn, scenariosResultSet);
-                scenariosResultSet.close();
-                stmt.close();
-                conn.close();
-                return scenario;
-            } else {
-                stmt.close();
-                conn.close();
-                return null;
-            }
-        } catch (SQLException se) {
-            se.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }*/
 
     @Override
     public void onChangeStatus(boolean active) {
@@ -545,24 +478,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
                 program.stopProgram();
             }
         }
-
-        /*if (oldActiveStatus != active) {
-            if (active) {
-                startDate = Core.getDate();
-            } else {
-                endDate = Core.getDate();
-            }
-        }*/
     }
-
-
-
-
-    /*public void setActionsListener(ProgramAction.ActionListener listener) {
-        for (ScenarioProgram program : programs) {
-            program.setActionsListener(listener);
-        }
-    }*/
 
     public class ScenarioCalendar {
         //public boolean dateEnabled;

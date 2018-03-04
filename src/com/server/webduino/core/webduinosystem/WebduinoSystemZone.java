@@ -19,11 +19,11 @@ public class WebduinoSystemZone {
     private String name;
     private Zone zone;
 
-    public WebduinoSystemZone(int id, String name, Zone zone) {
+    public WebduinoSystemZone(int id, String name, Zone zone, String type) {
         this.id = id;
         this.name = name;
         this.zone = zone;
-    }
+     }
 
     public JSONObject toJson() throws JSONException {
 

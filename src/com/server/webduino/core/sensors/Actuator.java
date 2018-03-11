@@ -26,17 +26,6 @@ public abstract class Actuator extends SensorBase {
 
     public abstract void writeDataLog(String event);
 
-    /*interface ActuatorListener {
-        void changeStatus(String newStatus, String oldStatus);
-    }
-
-    protected List<ActuatorListener> listeners = new ArrayList<ActuatorListener>();
-
-    public void addListener(ActuatorListener toAdd) {
-        listeners.add(toAdd);
-    }*/
-
-
     public abstract Boolean sendCommand(ActuatorCommand cmd);
 
     @Override

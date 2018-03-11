@@ -20,12 +20,12 @@ import static com.server.webduino.core.sensors.SensorBase.SensorListener.SensorE
 public class SensorBase extends DBObject {
 
     private static Logger LOGGER = Logger.getLogger(SensorBase.class.getName());
-
     public DataLog datalog = null;
 
+    // static states
     protected int shieldid;
     protected int parentid;
-    public boolean online = false;
+    protected boolean online = false;
     protected String subaddress;
     protected String name;
     protected String description;
@@ -34,24 +34,15 @@ public class SensorBase extends DBObject {
     protected int id;
     protected boolean enabled;
     protected String pin;
-    protected boolean testMode;
-    protected String statusUpdatePath = "/sensorstatus"; // può essere overidden a seconda del tipo
+    protected List<SensorBase> childSensors = new ArrayList<SensorBase>();
 
+    // dynamic state
+    protected boolean testMode;
     protected String status = "";
     protected String oldStatus = "";
 
-    /// schedulatorer programm
-    //public Schedule sensorSchedule = null;
-    //protected ActiveProgram activeProgram = null;
-
-    //protected JSONObject json = null;
     protected List<SensorListener> listeners = new ArrayList<>();
 
-    public List<SensorBase> childSensors = new ArrayList<SensorBase>();
-
-    public void addChildSensor(SensorBase childSensor) {
-        childSensors.add(childSensor);
-    }
 
     public SensorBase(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
 
@@ -65,12 +56,19 @@ public class SensorBase extends DBObject {
         datalog = new DataLog();
     }
 
-    /*public ActiveProgram getActiveProgram() {
+    public void addChildSensor(SensorBase childSensor) {
+        childSensors.add(childSensor);
+    }
 
-        return activeProgram;
-    }*/
+    public List<SensorBase> getChildSensors() { // ritorna la lista dei figli diretti
+        return childSensors;
+    }
 
-    public List<SensorBase> getAllChildSensors() {
+    public void setChildSensors(List<SensorBase> chidren) {
+        childSensors = chidren;
+    }
+
+    public List<SensorBase> getAllChildSensors() { // ritorna tutti i figli inclusi quelli non diretti
 
         List<SensorBase> list = new ArrayList<>();
         for (SensorBase child : childSensors) {
@@ -87,7 +85,7 @@ public class SensorBase extends DBObject {
         return list;
     }
 
-    public SensorBase getSensorFromId(int id) {
+    public SensorBase getSensorFromId(int id) { // ritorna il sensore stesso oppure uno dei figli
         if (this.id == id) {
             return this;
         }
@@ -124,8 +122,6 @@ public class SensorBase extends DBObject {
         public abstract void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
     }
 
-    //protected List<SensorListener> listeners = new ArrayList<SensorListener>();
-
     public void addListener(SensorListener toAdd) {
         listeners.add(toAdd);
     }
@@ -152,9 +148,6 @@ public class SensorBase extends DBObject {
 
     public void startPrograms() {
 
-        /*sensorSchedule = new Schedule();
-        sensorSchedule.init(this); // passa se stesso per agganciare il listener
-        sensorSchedule.read(id);*/
     }
 
     public boolean isUpdated() {
@@ -171,7 +164,6 @@ public class SensorBase extends DBObject {
     public Date getLastUpdate() {
         return lastUpdate;
     }
-
 
     public int getId() {
         return id;
@@ -253,27 +245,6 @@ public class SensorBase extends DBObject {
         return lastUpdate;
     }
 
-    /*public String requestStatusUpdate() { //
-
-        LOGGER.info("requestStatusUpdate:" + statusUpdatePath);
-
-        writeDataLog("requestStatusUpdate");
-
-        httpClientResult result = call("GET", "", statusUpdatePath);
-        if (result != null && result.res)
-            return result.response;
-
-        for (int i = 0; i < 2; i++) {
-
-            LOGGER.log(Level.WARNING, "retry..." + (i + 1));
-            result = call("GET", "", statusUpdatePath);
-            if (result != null && result.res)
-                return result.response;
-        }
-        LOGGER.info("end requestStatusUpdate" + result.response);
-        return null;
-    }*/
-
     public void writeDataLog(String event) {
     }
 
@@ -283,18 +254,18 @@ public class SensorBase extends DBObject {
             lastUpdate = date;
             online = true;
 
-            if (json.has("name"))
-                name = json.getString("name");
-            if (json.has("shieldid"))
-                shieldid = json.getInt("shieldid");
-            if (json.has("subaddress"))
-                subaddress = json.getString("subaddress");
-            if (json.has("pin"))
-                pin = json.getString("pin");
+            /*if (json.has("name"))
+                name = json.getString("name");*/
+            /*if (json.has("shieldid"))
+                shieldid = json.getInt("shieldid");*/
+            /*if (json.has("subaddress"))
+                subaddress = json.getString("subaddress");*/
+            /*if (json.has("pin"))
+                pin = json.getString("pin");*/
             if (json.has("enabled"))
                 enabled = json.getBoolean("enabled");
-            if (json.has("testmode"))
-                testMode = json.getBoolean("testmode");
+            /*if (json.has("testmode"))
+                testMode = json.getBoolean("testmode");*/
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -349,14 +320,12 @@ public class SensorBase extends DBObject {
 
     }
 
-    protected httpClientResult call(String method, String param, String path) {
+    /*protected httpClientResult call(String method, String param, String path) {
 
         LOGGER.info("call: " + method + "," + param + "," + path);
 
         Shields shields = new Shields();
         URL url = shields.getURL(shieldid);
-
-        //URL url = new URL(shields.getURL(shieldid).toString() + shi);
 
         LOGGER.info("url: " + url.toString());
         //boolean res;
@@ -366,23 +335,13 @@ public class SensorBase extends DBObject {
         if (method.equals("GET")) {
 
             result = client.callGet(param, path, url);
-            /*if (result.res) {
-                try {
-                    Date date = Core.getDate();
-                    JSONObject json = new JSONObject(result.response);
-                    updateFromJson(date, json);
-                    //writeDataLog(date,"request update");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }*/
         } else if (method.equals("POST")) {
             result = client.callPost(param, path, url);
         }
 
         LOGGER.info("end call");
         return result;
-    }
+    }*/
 
     @Override
     public void write(Connection conn) throws Exception {

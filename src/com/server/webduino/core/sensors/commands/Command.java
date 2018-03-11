@@ -18,23 +18,13 @@ public class Command {
 
     public CommandDataLog commandDataLog = null;
 
-    public interface CommandListener {
-        void onCommandResponse(String response);
-    }
-
-    protected List<CommandListener> listeners = new ArrayList<CommandListener>();
-
-    public void addListener(CommandListener toAdd) {
-        Core.addListener(new commandResponse());
-        listeners.add(toAdd);
-    }
-
     private static final Logger LOGGER = Logger.getLogger(Command.class.getName());
     public String command;
     public String uuid;
     public int shieldid;
     public int actuatorid;
     public CommandResult result;
+    CommandThread commandThread;
 
     public Command(int shieldid, int actuatorid) {
         this.shieldid = shieldid;
@@ -46,7 +36,6 @@ public class Command {
         this.shieldid = shieldid;
         this.actuatorid = actuatorid;
         uuid = UUID.randomUUID().toString();
-
     }
 
     public Command(JSONObject json) throws JSONException {
@@ -61,34 +50,46 @@ public class Command {
         return null;
     }
 
-    public CommandResult send() { //
+    // spedisce un comando e attende la risposta per il tempo definito in timeout
+    public boolean send() {
 
-        CommandThread commandThread = new CommandThread(this);
+        int timeout = 10000; // 10 secondi in millisecondi
+
+        /*CommandThread */commandThread = new CommandThread(this);
         Thread thread = new Thread(commandThread, "commandThread");
         thread.start();
 
         // il thread esegue la chiamata alla shield webduino ed aspetta una risposta (join) dal thead per x secondi
         try {
-            thread.join(15000); // 100000 è il timeout di attesa fine thread in millisecondi
+            thread.join(timeout); // timeout è il timeout di attesa fine thread in millisecondi
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         // recupera il risulktato della chiamamata che a questo punto è disponibile
         // forse bisiognerebbe metttere syncronized
-        String json = commandThread.getResultJson();
-        /*CommandResult*/ result = new CommandResult();
+        /*String json = commandThread.getResultJson();
+        result = new CommandResult();
         if (json == null) {
             result.success = false;
             result.result = "timeout";
         } else {
             result.success = true;
             result.result = json;
-        }
+        }*/
         //HeaterCommandDataLog dl = new HeaterCommandDataLog();
         if (commandDataLog != null)
             commandDataLog.writelog("send",this);
-        return result;
+        //return result;
+        String json = commandThread.getResultJson();
+        if (json == null)
+            return false;
+        else
+            return true;
+    }
+
+    public String getResult() {
+        return commandThread.getResultJson();
     }
 
     class CommandThread implements Runnable, Core.CoreListener {
@@ -140,27 +141,6 @@ public class Command {
     public class CommandResult {
         public boolean success;
         public String result;
-    }
-
-
-
-    public void post(CommandListener listener) {
-        addListener(listener);
-        Core.postCommand(this);
-    }
-
-    private class commandResponse implements Core.CoreListener {
-
-        @Override
-        public void onCommandResponse(String commanduuid, String response) {
-
-            if (uuid.equals(commanduuid)) {
-                for (CommandListener listener : listeners) {
-                    listener.onCommandResponse(response);
-                }
-                Core.removeListener(this);
-            }
-        }
     }
 }
 

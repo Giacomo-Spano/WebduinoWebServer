@@ -211,15 +211,17 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
 
 
                 HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
-                result = cmd.send();
+                //result = cmd.send();
+                boolean res = cmd.send();
+
                 SensorBase s = Core.getSensorFromId(cmd.actuatorid);
-                if (result.success && sensor != null) {
+                if (res && sensor != null) {
                     System.out.println(s.toJson().toString());
 
                     lastSent = Core.getDate();
                     lastSentResult = "successful";
 
-                    JSONObject jsonObject = new JSONObject(result.result);
+                    JSONObject jsonObject = new JSONObject(cmd.getResult());
                     if (jsonObject.has("shieldid"))
                         Core.updateShieldStatus(jsonObject.getInt("shieldid"), jsonObject);
 

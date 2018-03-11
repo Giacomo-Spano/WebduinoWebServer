@@ -58,14 +58,21 @@ public class SimpleMqttClient implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) /*throws Exception*/ {
 
+
         try {
             String payloadMessage = new String(mqttMessage.getPayload());
-            for (SimpleMqttClientListener listener : listeners) {
-                listener.messageReceived(topic, payloadMessage);
+
+            synchronized (listeners) {
+                for (SimpleMqttClientListener listener : listeners) {
+
+                    listener.messageReceived(topic, payloadMessage);
+                }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public void runClient() {
@@ -85,7 +92,7 @@ public class SimpleMqttClient implements MqttCallback {
             // questo fa schifo. Da cambiare
             // in base al valore della var java.io.tmpdir capisce se è su linux o su windows e cambia il path del file temp
             //if (tmpDir.equals("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\temp"))
-            if(!Core.isProduction())
+            if (!Core.isProduction())
                 tmpDir = System.getenv("tmp");
             else
                 tmpDir = System.getProperty("java.io.tmpdir");
@@ -98,7 +105,7 @@ public class SimpleMqttClient implements MqttCallback {
                 //myClient = new MqttClient("tcp://192.168.1.3:1883", clientID, dataStore);
                 myClient = new MqttClient("tcp://localhost:1883", clientID, dataStore);
             else*/
-                //myClient = new MqttClient("tcp://192.168.1.41:1883", clientID, dataStore);
+            //myClient = new MqttClient("tcp://192.168.1.41:1883", clientID, dataStore);
             myClient = new MqttClient("tcp://localhost:1883", clientID, dataStore);
             //myClient = new MqttClient(BROKER_URL, clientID, dataStore);
 

@@ -11,7 +11,7 @@ public abstract class DBObject {
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             conn.setAutoCommit(false);
             Statement stmt = conn.createStatement();
-            delete(stmt);
+            //delete(stmt);
             write(conn);
             stmt.close();
             conn.commit();

@@ -67,8 +67,8 @@ public class ShieldServlet extends HttpServlet {
             //boolean res = false;
             String error = "";
 
-            if (json.has("event")) { // DA ELIMINARE FINO A ELSE
-                if (json.getString("event").equals("register")) { // receive status update
+            if (json.has("event")) {
+                /*if (json.getString("event").equals("register")) { // receive status update
                     if (json.has("shield")) {
                         JSONObject jsonShield = json.getJSONObject("shield");
                         jsonResponse = handleRegisterEvent(jsonShield);
@@ -76,7 +76,7 @@ public class ShieldServlet extends HttpServlet {
                         response.setStatus(HttpServletResponse.SC_OK);
                     }
                     return;
-                } else if (json.getString("event").equals("loadsettings")) { // receive status update
+                } else */if (json.getString("event").equals("loadsettings")) { // chiato all'avvio della shield
                     String MACAddress = json.getString("MAC");
                     jsonResponse = handleLoadSettingEvent(MACAddress);
                     out.print(jsonResponse.toString());
@@ -91,11 +91,11 @@ public class ShieldServlet extends HttpServlet {
 
             } else if (json.has("command")) {
 
-                if (json.getString("command").equals("saveshieldsettings")) {
+                /*if (json.getString("command").equals("saveshieldsettings")) { // questo credo si possa rimuoveew
                     handleSaveSettingEvent(json);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
-                } else if (json.getString("command").equals("reboot")) {
+                } else */if (json.getString("command").equals("reboot")) {
 
                     if (json.has("shieldid")) {
                         int id = json.getInt("shieldid");
@@ -114,9 +114,9 @@ public class ShieldServlet extends HttpServlet {
 
                         //DoorSensorCommand cmd = new DoorSensorCommand(json);
                         DoorSensorCommand cmd = new DoorSensorCommand(json.getString("command"), actuator.getShieldId(), id, "close");
-                        Command.CommandResult result = cmd.send();
-                        if (result.success) {
-                            out.print(result);
+                        boolean res = cmd.send();
+                        if (res) {
+                            out.print(cmd.getResult());
                             response.setStatus(HttpServletResponse.SC_OK);
                         } else {
                             out.print("errore");
@@ -211,19 +211,19 @@ public class ShieldServlet extends HttpServlet {
                                     }
                                 }
 
-                                Command.CommandResult result = cmd.send();
+                                boolean res = cmd.send();
                                 //SensorBase sensor = Core.getSensorFromId(cmd.actuatorid);
-                                if (result.success /*&& sensor != null*/) {
+                                if (res) {
                                     //out.print(sensor.toJson().toString());
                                     // aggiorna lòo stato del sensore in base alla risposta al comando
-                                    JSONObject jresult = new JSONObject(result.result);
+                                    JSONObject jresult = new JSONObject(cmd.getResult());
                                     actuator.updateFromJson(Core.getDate(),jresult);
 
 
 
                                     response.setStatus(HttpServletResponse.SC_OK);
                                     //PrintWriter out = response.getWriter();
-                                    out.print(result.result);
+                                    out.print(jresult);
                                     return;
                                 } else {
                                     out.print("errore");
@@ -281,58 +281,6 @@ public class ShieldServlet extends HttpServlet {
         return null;
     }
 
-    private JSONObject handleRegisterEvent(JSONObject jsonObj) {
-
-        JSONObject jsonResponse;//create Json Response Object
-        jsonResponse = new JSONObject();
-
-        try {
-            //JSONObject jsonObj = new JSONObject(jb.toString());
-
-            LOGGER.info("SensorServlet:doPost" + jsonObj.toString());
-
-            int id = registerShield(jsonObj);
-            // put some value pairs into the JSON object .
-            try {
-                jsonResponse.put("result", "success");
-                jsonResponse.put("id", id);
-
-                Date date = Core.getDate();
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                jsonResponse.put("date", df.format(date));
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(date);
-                int tzOffsetSec = (cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET)) / (1000);
-                jsonResponse.put("timesec", date.getTime() / 1000 + tzOffsetSec);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        } catch (JSONException e) {
-            try {
-                jsonResponse.put("result", "error");
-            } catch (JSONException e1) {
-                e1.printStackTrace();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            try {
-                jsonResponse.put("result", "error");
-            } catch (JSONException e1) {
-                e1.printStackTrace();
-            }
-        }
-        return jsonResponse;
-    }
-
-    private int registerShield(JSONObject jsonObj) throws Exception {
-
-        Shield shield = new Shield(jsonObj);
-
-        int shieldid = Core.registerShield(shield);
-        return shieldid;
-    }
 
     private JSONObject handleLoadSettingEvent(String MACAddress) {
 
@@ -356,24 +304,20 @@ public class ShieldServlet extends HttpServlet {
         return jsonResponse;
     }
 
-    private boolean handleSaveSettingEvent(JSONObject json) {
+    /*private boolean handleSaveSettingEvent(JSONObject json) {
 
         return saveShieldSettings(json);
-    }
-
-    private boolean sendRestartCommand(JSONObject json) {
-        return Core.sendRestartCommand(json);
-    }
+    }*/
 
     private JSONObject loadShieldSettings(String MACAddress) {
 
         return Core.loadShieldSettings(MACAddress);
     }
 
-    private boolean saveShieldSettings(JSONObject json) {
+    /*private boolean saveShieldSettings(JSONObject json) {
 
         return Core.saveShieldSettings(json);
-    }
+    }*/
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 

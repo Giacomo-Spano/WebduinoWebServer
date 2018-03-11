@@ -383,8 +383,11 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             json.put("date", df.format(Core.getDate()));
             json.put("temperature", temperature);
             HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
-            Core.postCommand(cmd);
-            Command.CommandResult result = cmd.send();
+            //Core.postCommand(cmd);
+            boolean res = cmd.send();
+            if (res) {
+                String result = cmd.getResult();
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

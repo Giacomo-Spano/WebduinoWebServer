@@ -32,6 +32,8 @@ public class SensorFactory {
             sensor = (SensorBase) new PressureSensor(id,name,description,subaddress,shieldid,pin,enabled);
         } else if (type.equals("relesensor")) {
             sensor = (SensorBase) new ReleActuator(id,name,description,subaddress,shieldid,pin,enabled);
+        } else if (type.equals("hornsensor")) {
+            sensor = (SensorBase) new HornSensor(id,name,description,subaddress,shieldid,pin,enabled);
         } else {
             return null;
         }
@@ -114,6 +116,12 @@ public class SensorFactory {
             json.put("value", "relesensor");
             json.put("description", "Relesensor");
             jsonArray.put(json);
+
+            json = new JSONObject();
+            json.put("value", "hornsensor");
+            json.put("description", "Hornsensor");
+            jsonArray.put(json);
+
 
         } catch (JSONException e) {
             e.printStackTrace();

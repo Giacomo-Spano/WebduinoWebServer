@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-import java.net.URL;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
 
 //import static com.server.webduino.core.sensors.SensorBase.Status_Offline;
 
-public class Shield extends DBObject/*httpClient*/ {
+public class Shield extends DBObject /*implements Command.CommandListener*//*httpClient*/ {
 
     private static Logger LOGGER = Logger.getLogger(Shield.class.getName());
 
@@ -32,12 +31,6 @@ public class Shield extends DBObject/*httpClient*/ {
     protected boolean enabled = false;
     protected Date lastUpdate = new Date();
     protected List<SensorBase> sensors = new ArrayList<>();
-    public URL url;
-    public int port = 80;
-    public String server;
-    public int serverport;
-    public String mqttserver;
-    public int mqttport;
 
     public String swVersion = "";
 
@@ -79,7 +72,9 @@ public class Shield extends DBObject/*httpClient*/ {
         return Core.publish("fromServer/shield/" + MACAddress + "/command", command.getJSON().toString());
     }
 
-    public boolean requestSensorStatusUpdate() { // ritorna false se fallisce l'invio del comando
+    // spedisce una richiesta di aggiornamento stato sensori alla shield in unthread separato
+    // Non attende la risposta
+    public void requestSensorStatusUpdate() {
 
         LOGGER.info("requestStatusUpdate:");
         sensorStatus = updateStatus_updating;
@@ -90,19 +85,14 @@ public class Shield extends DBObject/*httpClient*/ {
             setOffline();
             JSONObject json = new JSONObject(str);
             ShieldCommand cmd = new ShieldCommand(json);
-            Command.CommandResult result = cmd.send();
-            if (result.success == true) {
-                JSONObject j = new JSONObject(result.result);
-                updateShieldStatus(j);
-                return true;
-            } else {
 
-                return false;
-            }
+            SendCommandThread sendCommandThread = new SendCommandThread(cmd);
+            Thread thread = new Thread(sendCommandThread, "sendCommandThread");
+            thread.start();
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return false;
     }
 
     public boolean requestReboot() { //
@@ -121,7 +111,7 @@ public class Shield extends DBObject/*httpClient*/ {
         return Core.publish("fromServer/shield/" + MACAddress + "/updatesettingstatusrequest", "");
     }
 
-    protected httpClientResult call(String method, String param, String path) {
+    /*protected httpClientResult call(String method, String param, String path) {
 
         LOGGER.info("call: " + method + "," + param + "," + path);
         LOGGER.info("url: " + url.toString());
@@ -136,7 +126,7 @@ public class Shield extends DBObject/*httpClient*/ {
 
         LOGGER.info("end call");
         return result;
-    }
+    }*/
 
 
     public boolean settingsFromJSON(JSONObject json) {
@@ -145,16 +135,6 @@ public class Shield extends DBObject/*httpClient*/ {
                 MACAddress = json.getString("MAC");
             if (json.has("shieldname"))
                 boardName = json.getString("shieldname");
-            if (json.has("localport"))
-                port = json.getInt("localport");
-            if (json.has("server"))
-                server = json.getString("server");
-            if (json.has("serverport"))
-                serverport = json.getInt("serverport");
-            if (json.has("mqttserver"))
-                mqttserver = json.getString("mqttserver");
-            if (json.has("mqttport"))
-                mqttport = json.getInt("mqttport");
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -185,7 +165,7 @@ public class Shield extends DBObject/*httpClient*/ {
                     sensorid = json.getInt("sensorid");
                 }
                 SensorFactory factory = new SensorFactory();
-                sensor = factory.createSensor(type, description, name, subaddress, sensorid, 0/*shieldid*/, pin, enabled);
+                sensor = factory.createSensor(type, description, name, subaddress, sensorid, 0, pin, enabled);
 
                 if (json.has("childsensors")) {
                     JSONArray children = json.getJSONArray("childsensors");
@@ -217,27 +197,15 @@ public class Shield extends DBObject/*httpClient*/ {
             MACAddress = json.getString("macaddress");
         if (json.has("name"))
             boardName = json.getString("name");
-        if (json.has("port"))
-            port = json.getInt("port");
         if (json.has("description"))
             description = json.getString("description");
         if (json.has("enabled"))
             enabled = json.getBoolean("enabled");
-        if (json.has("server"))
-            server = json.getString("server");
-        if (json.has("serverport"))
-            serverport = json.getInt("serverport");
-        if (json.has("mqttserver"))
-            mqttserver = json.getString("mqttserver");
-        if (json.has("mqttport"))
-            mqttport = json.getInt("mqttport");
-
         if (json.has("sensors")) {
             JSONArray jsonArray = json.getJSONArray("sensors");
             sensors = getSensors(jsonArray);
         }
     }
-
 
     private List<SensorBase> getSensors(JSONArray jsonArray) throws Exception {
 
@@ -248,7 +216,7 @@ public class Shield extends DBObject/*httpClient*/ {
             SensorFactory factory = new SensorFactory();
             SensorBase sensor = factory.fromJson(j);
             if (j.has("childsensors")) {
-                sensor.childSensors = getSensors(j.getJSONArray("childsensors"));
+                sensor.setChildSensors(getSensors(j.getJSONArray("childsensors")));
             }
 
             sensors.add(sensor);
@@ -262,7 +230,6 @@ public class Shield extends DBObject/*httpClient*/ {
         try {
             json.put("shieldid", id);
             json.put("lastupdate", Core.getStrLastUpdate(lastUpdate));
-            json.put("port", port);
             json.put("enabled", enabled);
             if (boardName != null)
                 json.put("shieldname", boardName);
@@ -270,16 +237,8 @@ public class Shield extends DBObject/*httpClient*/ {
                 json.put("description", description);
             if (swVersion != null)
                 json.put("swversion", swVersion);
-            if (server != null)
-                json.put("server", server);
-            json.put("serverport", serverport);
-            if (mqttserver != null)
-                json.put("mqttserver", mqttserver);
-            json.put("mqttport", mqttport);
             if (MACAddress != null)
                 json.put("macaddress", MACAddress);
-            if (url != null)
-                json.put("url", url);
 
             JSONArray jarray = new JSONArray();
             for (SensorBase sensor : sensors) {
@@ -312,7 +271,7 @@ public class Shield extends DBObject/*httpClient*/ {
         for (SensorBase sensor : sensors) {
             if (sensor.getSubaddress().equals(subaddress))
                 return sensor;
-            for (SensorBase child : sensor.childSensors) {
+            for (SensorBase child : sensor.getChildSensors()) {
                 if (child.getSubaddress().equals(subaddress))
                     return child;
             }
@@ -425,7 +384,7 @@ public class Shield extends DBObject/*httpClient*/ {
         return json;
     }
 
-    private void deleteMissingSensor(Connection conn, List<SensorBase> updatedSensors) {
+    /*private void deleteMissingSensor(Connection conn, List<SensorBase> updatedSensors) {
 
         for (SensorBase sensor : sensors) {
             boolean sensorFound = false;
@@ -439,7 +398,7 @@ public class Shield extends DBObject/*httpClient*/ {
                 deleteSensor(conn, sensor);
             }
         }
-    }
+    }*/
 
     private void deleteSensor(Connection conn, SensorBase sensor) {
         try {
@@ -448,7 +407,7 @@ public class Shield extends DBObject/*httpClient*/ {
             stmt.executeUpdate(sql);
             stmt.close();
 
-            for (SensorBase child : sensor.childSensors) {
+            for (SensorBase child : sensor.getChildSensors()) {
                 deleteSensor(conn, child);
             }
         } catch (SQLException e) {
@@ -496,7 +455,7 @@ public class Shield extends DBObject/*httpClient*/ {
             stmt.close();
 
             sensor.setId(lastid);
-            for (SensorBase child : sensor.childSensors) {
+            for (SensorBase child : sensor.getChildSensors()) {
                 writeSensor(conn, child, shieldid, sensor.getId());
             }
 
@@ -534,6 +493,7 @@ public class Shield extends DBObject/*httpClient*/ {
     }
 
 
+    /*
     public Shield saveSettings(JSONObject json) {
 
         Shield updatedShield = new Shield();
@@ -560,11 +520,7 @@ public class Shield extends DBObject/*httpClient*/ {
             Statement stmt = conn.createStatement();
             String sql = "UPDATE shields SET boardname=\"" + updatedShield.boardName + "\", " +
                     " description=\"" + updatedShield.description + "\", " +
-                    " enabled=" + Core.boolToString(enabled) + "," +
-                    " server=\"" + updatedShield.server + "\", " +
-                    " serverport=" + updatedShield.serverport + ", " +
-                    " mqttserver=\"" + updatedShield.mqttserver + "\", " +
-                    " mqttport=" + updatedShield.mqttport +
+                    " enabled=" + Core.boolToString(enabled) +
                     " WHERE id=" + updatedShield.id + ";";
             affectedRows = stmt.executeUpdate(sql);
             stmt.close();
@@ -590,6 +546,7 @@ public class Shield extends DBObject/*httpClient*/ {
 
         return updatedShield;
     }
+    */
 
     public boolean sendRestartCommand(JSONObject json) {
         return Core.publish("fromServer/shield/" + MACAddress + "/reboot", "");
@@ -600,31 +557,21 @@ public class Shield extends DBObject/*httpClient*/ {
     public void write(Connection conn) throws Exception {
 
         DateFormat tf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String sql = "INSERT INTO shields (id, name, enabled, description, port, macaddress, lastupdate, server, serverport, mqttserver, mqttport)" +
+        String sql = "INSERT INTO shields (id, name, enabled, description, macaddress, lastupdate)" +
                 " VALUES ("
                 + id + ","
                 + "\"" + boardName + "\","
                 + Core.boolToString(enabled) + ","
                 + "\"" + description + "\","
-                + port + ","
                 + "\"" + MACAddress + "\","
-                + "'" + tf.format(lastUpdate) + "',"
-                + "\"" + server + "\","
-                + serverport + ","
-                + "\"" + mqttserver + "\","
-                + mqttport
+                + "'" + tf.format(lastUpdate) + "'"
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "name=\"" + boardName + "\","
                 + "enabled=" + Core.boolToString(enabled) + ","
                 + "description=\"" + description + "\","
-                + "port=" + port + ","
                 + "macaddress=\"" + MACAddress + "\","
-                + "lastupdate='" + tf.format(lastUpdate) + "',"
-                + "server=\"" + server + "\","
-                + "serverport=" + serverport + ","
-                + "mqttserver=\"" + mqttserver + "\","
-                + "mqttport=" + mqttport + ";";
+                + "lastupdate='" + tf.format(lastUpdate) + "';";
 
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -632,6 +579,8 @@ public class Shield extends DBObject/*httpClient*/ {
         if (rs.next()) {
             id = rs.getInt(1);
         }
+
+
         if (sensors != null) {
             for (SensorBase sensor : sensors) {
                 if (sensor.getShieldId() == 0)
@@ -642,6 +591,45 @@ public class Shield extends DBObject/*httpClient*/ {
                 sensor.write(conn);
             }
         }
+
+        deleteMissing(conn);
+
+    }
+
+    private void deleteMissing(Connection conn) throws SQLException {
+        String sql;
+        ResultSet rs;
+        Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        sql = "SELECT * FROM sensors WHERE shieldid=" + id;
+        rs = stmt.executeQuery(sql);
+
+        List<Integer> toBeRemoved = new ArrayList<>();
+
+        while (rs.next()) {
+            int sensorid = rs.getInt(1);
+
+            boolean sensorFound = false;
+            for (SensorBase sensor : getAllSensors()) {
+                if (sensor.getId() == sensorid) {
+                    sensorFound = true;
+                    break;
+                }
+            }
+            if (!sensorFound) {
+                toBeRemoved.add(sensorid);
+            }
+        }
+
+        sql = "DELETE FROM sensors WHERE id in (";
+        int count = 0;
+        for (Integer id: toBeRemoved) {
+            if (count++ >0)
+                sql += ", ";
+            sql += id;
+        }
+        sql += ")";
+        if (count > 0)
+            stmt.executeUpdate(sql);
     }
 
     @Override
@@ -665,4 +653,42 @@ public class Shield extends DBObject/*httpClient*/ {
         }
         return list;
     }
+
+    /*@Override
+    public void onCommandResponse(String response) {
+
+    }*/
+
+
+    class SendCommandThread implements Runnable {
+
+        private volatile boolean execute; // variabile di sincronizzazione
+        Command command;
+
+        public SendCommandThread(Command command) {
+            this.command = command;
+        }
+
+        @Override
+        public void run() {
+            boolean res = command.send();
+
+            if (res) {
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = new JSONObject(command.getResult());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                updateShieldStatus(jsonObject);
+
+            } else {
+
+                // qui bisognerebbe metter qualcosa per fare un retry
+            }
+        }
+
+    }
+
+
 }

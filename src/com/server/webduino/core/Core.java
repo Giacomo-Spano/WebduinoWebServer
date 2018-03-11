@@ -12,6 +12,8 @@ import com.server.webduino.core.webduinosystem.keys.KeyFactory;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
+import com.server.webduino.core.webduinosystem.services.Service;
+import com.server.webduino.core.webduinosystem.services.ServiceFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneFactory;
 import org.json.JSONArray;
@@ -49,6 +51,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     private List<WebduinoSystem> webduinoSystems = new ArrayList<>();
     private static List<Zone> zones = new ArrayList<>();
+    private static List<Service> services = new ArrayList<>();
     private static Triggers triggerClass = new Triggers();
     private Scenarios scenarios = new Scenarios();
     private List<Exit> exits = new ArrayList<>();
@@ -60,10 +63,6 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static Devices mDevices = new Devices();
 
     static SimpleMqttClient smc;
-
-    public static boolean sendRestartCommand(JSONObject json) {
-        return mShields.sendRestartCommand(json);
-    }
 
     public static Trigger triggerFromId(int triggerid) {
         for(Trigger trigger: triggerClass.list) {
@@ -183,6 +182,15 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return null;
     }
 
+    public static Service getServiceFromId(int serviceid) {
+        for (Service service : services) {
+            if (serviceid == service.getId()) {
+                return service;
+            }
+        }
+        return null;
+    }
+
     public static JSONArray getSensorsJSONArray(int shieldid, String type) {
         JSONArray jsonArray = new JSONArray();
         for (SensorBase sensor : mShields.getLastSensorData()) {
@@ -262,6 +270,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
         // caricamento dati scernari e zone
         readZones();
+        readServices();
         readWebduinoSystems();
 
         readTriggers();
@@ -405,6 +414,49 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         }
     }
 
+    public void readServices() {
+
+        LOGGER.info(" readServices");
+
+        try {
+            // Register JDBC driver
+            Class.forName("com.mysql.jdbc.Driver");
+            // Open a connection
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            // Execute SQL query
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM services";//" WHERE systemid=" + systemid;
+            ResultSet servicesResultSet = stmt.executeQuery(sql);
+            // Extract data from result set
+            services.clear();
+            while (servicesResultSet.next()) {
+                ServiceFactory factory = new ServiceFactory();
+                int id = servicesResultSet.getInt("id");
+                String name = servicesResultSet.getString("name");
+                String type = servicesResultSet.getString("type");
+                Service service = factory.createService(id, name, type);
+                if (service != null)
+                    services.add(service);
+            }
+            // Clean-up environment
+            servicesResultSet.close();
+            stmt.close();
+
+            //schedule = new Schedule();
+            //schedule.readZoneSensors(id);
+
+            conn.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }
+    }
+
+
     private void readWebduinoSystems() {
         LOGGER.info(" readWebduinoSystems");
 
@@ -426,6 +478,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 if (system != null) {
                     system.readWebduinoSystemsZones(conn,id);
                     system.readWebduinoSystemsActuators(conn,id);
+                    system.readWebduinoSystemsServices(conn,id);
                     webduinoSystems.add(system);
                 }
             }
@@ -727,28 +780,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.requestShieldSettingStatusUpdate(shieldid);
     }
 
-    public static boolean requestShieldSensorsUpdate(int shieldid) {
-        return mShields.requestShieldSensorsStatusUpdate(shieldid);
+    public static void requestShieldSensorsUpdate(int shieldid) {
+        mShields.requestShieldSensorsStatusUpdate(shieldid);
     }
-
-    public static int registerShield(Shield shield) {
-        return mShields.register(shield);
-    }
-
-
-
-    /*public static Program getProgramFromId(int id) {
-        return mSchedule.getProgramFromId(id);
-    }*/
-
-    /*public ActiveProgram getActiveProgram(int id) {
-        SensorBase sensor = getSensorFromId(id);
-        return sensor.getActiveProgram();
-    }*/
-
-    /*public Date getLastActiveProgramUpdate() {
-        return mSchedule.getLastActiveProgramUpdate();
-    }*/
 
     public static SensorBase getSensorFromId(int id) {
         return mShields.getSensorFromId(id);
@@ -831,6 +865,13 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                     }
                 } else if (list[1].equals("register")) {
                     callCommand("register", 0, message);
+                } else if (list[1].equals("loadsettings")) {
+
+                    String MACAddress = message;
+                    JSONObject jsonResult = Core.loadShieldSettings(MACAddress);
+                    Core.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
+
+
                 } else if (list[1].equals("response")) {
                     if (list.length > 2) {
                         String uuid = list[2];
@@ -853,21 +894,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        } /*else if (command.equals("requestzonetemperature")) {
-            try {
-                JSONObject jsonObj = new JSONObject(json);
-                if (jsonObj.has("shieldid") && jsonObj.has("zoneid")) {
-                    int actuatorid = jsonObj.getInt("id");
-                    int zoneid = jsonObj.getInt("zoneid");
-                    sendTemperature(shieldid, actuatorid, zoneid);
-
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
-        }*/ else if (command.equals("settingsupdate")) {
+        } else if (command.equals("settingsupdate")) {
             try {
                 JSONObject jsonObj = new JSONObject(json);
                 updateSettings(shieldid, jsonObj);
@@ -876,7 +903,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 e.printStackTrace();
             }
         } else if (command.equals("register")) {
-            try {
+            /*try {
                 JSONObject jsonObj = new JSONObject(json);
                 if (jsonObj.has("shield")) {
                     JSONObject shieldJson = jsonObj.getJSONObject("shield");
@@ -890,7 +917,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
-            }
+            }*/
         } else {
             return smc.publish("fromServer", "prova");
         }
@@ -925,9 +952,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.loadShieldSettings(macAddress);
     }
 
-    public static boolean saveShieldSettings(JSONObject json) {
+    /*public static boolean saveShieldSettings(JSONObject json) {
         return mShields.saveShieldSettings(json);
-    }
+    }*/
 
     @Override
     public void addedSensor(SensorBase sensor) {

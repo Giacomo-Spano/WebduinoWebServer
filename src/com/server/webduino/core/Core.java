@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
-public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, SimpleMqttClient.SimpleMqttClientListener, Shields.ShieldsListener {
+public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*//*,* SimpleMqttClient.SimpleMqttClientListener, Shields.ShieldsListener*/ {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
 
@@ -65,7 +65,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     static SimpleMqttClient smc;
 
     public static Trigger triggerFromId(int triggerid) {
-        for(Trigger trigger: triggerClass.list) {
+        for (Trigger trigger : triggerClass.list) {
             if (trigger.id == triggerid)
                 return trigger;
         }
@@ -96,27 +96,46 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
             Actuator actuator = (Actuator) sensor;
             if (actuator.command.commandDataLog != null)
-                return actuator.command.commandDataLog.getDataLog(actuatorId,start,end);
+                return actuator.command.commandDataLog.getDataLog(actuatorId, start, end);
         }
         return null;
 
     }
 
 
-
     public interface CoreListener {
         void onCommandResponse(String uuid, String response);
     }
 
-    static protected List<CoreListener> listeners = new ArrayList<CoreListener>();
+    //static protected List<CoreListener> listeners = new ArrayList<CoreListener>();
+    //static protected List<Command.CommandThread> messageListeners = new ArrayList<Command.CommandThread>();
 
-    static public void addListener(CoreListener toAdd) {
+    /*static public void addListener(CoreListener toAdd) {
         listeners.add(toAdd);
-    }
+    }*/
 
-    static public void removeListener(CoreListener toRemove) {
+    /*static public void removeListener(CoreListener toRemove) {
         listeners.remove(toRemove);
-    }
+
+    }*/
+
+    /*static public void removeMessageListener(Command.CommandThread toRemove) {
+        //listeners.remove(toRemove);
+
+        LOGGER.info("removeMessageListener: command uuid=" + toRemove.command.uuid);
+
+        boolean messageFound = false;
+        for (Iterator<Command.CommandThread> i = messageListeners.iterator(); i.hasNext(); ) {
+            Command.CommandThread listener = i.next();
+            //Do Something
+            if (listener == toRemove) {
+                i.remove();
+                messageFound = true;
+            }
+        }
+        if (!messageFound)
+            LOGGER.info("removeMessageListener: message not found uuid=" + toRemove.command.uuid);
+    }*/
 
 
     public Core() {
@@ -213,7 +232,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return jsonArray;
     }
 
-    public static JSONArray getTriggersJSONArray()  {
+    public static JSONArray getTriggersJSONArray() {
         JSONArray jsonArray = new JSONArray();
         for (Trigger trigger : triggerClass.list) {
             try {
@@ -236,7 +255,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public JSONArray getWebduinoSystemJSONArray() throws JSONException {
         JSONArray jsonArray = new JSONArray();
-        for (WebduinoSystem system:webduinoSystems) {
+        for (WebduinoSystem system : webduinoSystems) {
             jsonArray.put(system.toJson());
         }
         return jsonArray;
@@ -250,9 +269,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         // inizializzazione code MQTT
         smc = new SimpleMqttClient("CoreClient");
         smc.runClient();
-        smc.subscribe("toServer/#");
-        smc.subscribe("uuid/#");
-        smc.addListener(this);
+        //smc.subscribe("toServer/#");
+        //smc.subscribe("uuid/#");
+        //smc.addListener(this);
     }
 
     public void init() {
@@ -281,7 +300,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
         scenarios.initScenarios();
 
-        mShields.addListener(this);
+        //mShields.addListener(this);
 
         // DA ELIMINARE, non più usato
         Settings settings = new Settings();
@@ -476,9 +495,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                 WebduinoSystemFactory factory = new WebduinoSystemFactory();
                 WebduinoSystem system = factory.createWebduinoSystem(id, name, type);
                 if (system != null) {
-                    system.readWebduinoSystemsZones(conn,id);
-                    system.readWebduinoSystemsActuators(conn,id);
-                    system.readWebduinoSystemsServices(conn,id);
+                    system.readWebduinoSystemsZones(conn, id);
+                    system.readWebduinoSystemsActuators(conn, id);
+                    system.readWebduinoSystemsServices(conn, id);
                     webduinoSystems.add(system);
                 }
             }
@@ -722,11 +741,11 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return scenarios.getNextActuatorProgramTimeRangeActionList(actuatorid);
     }
 
-    public List<DataLog> getSensorDataLogList(int actuatorid,Date startdate, Date enddate) {
+    public List<DataLog> getSensorDataLogList(int actuatorid, Date startdate, Date enddate) {
 
         SensorBase sensor = getSensorFromId(actuatorid);
         if (sensor == null) return null;
-        return sensor.datalog.getDataLog(actuatorid,startdate,enddate);
+        return sensor.datalog.getDataLog(actuatorid, startdate, enddate);
     }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
@@ -787,6 +806,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
     public static SensorBase getSensorFromId(int id) {
         return mShields.getSensorFromId(id);
     }
+
     public static Trigger getTriggerFromId(int id) {
         return triggerClass.getFromId(id);
     }
@@ -797,7 +817,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
     public static Date getDate() {
 
-        LOGGER.info("getDate");
+        //LOGGER.info("getDate");
         Date date = new Date();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         df.setTimeZone(TimeZone.getTimeZone("Europe/Rome"));
@@ -837,15 +857,23 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             return "false";
     }
 
-    @Override
-    public void messageReceived(String topic, String message) {
+    /*@Override
+    public synchronized void messageReceived(String topic, String message) {
 
-        parseTopic(topic, message);
+        LOGGER.info("messageReceived: topic[" + topic + "]" + " message[" + message + "]");
+        try {
 
-    }
+
+            parseTopic(topic, message);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+    }*/
 
 
-    public void parseTopic(String topic, String message) {
+    public synchronized void parseTopic(String topic, String message) {
 
         String[] list = topic.split("/");
 
@@ -853,8 +881,10 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
             return;
         }
 
-        if (list[0].equals("toServer")) {
+        /*if (list[0].equals("toServer")) {
+
             if (list.length > 1) {
+
                 if (list[1].equals("shield")) {
                     if (list.length > 2) {
                         int shieldid = Integer.parseInt(list[2]);
@@ -863,27 +893,9 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
                             callCommand(command, shieldid, message);
                         }
                     }
-                } else if (list[1].equals("register")) {
-                    callCommand("register", 0, message);
-                } else if (list[1].equals("loadsettings")) {
-
-                    String MACAddress = message;
-                    JSONObject jsonResult = Core.loadShieldSettings(MACAddress);
-                    Core.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
-
-
-                } else if (list[1].equals("response")) {
-                    if (list.length > 2) {
-                        String uuid = list[2];
-                        for (CoreListener listener : listeners) {
-                            listener.onCommandResponse(uuid, message);
-                        }
-                    }
                 }
             }
-        } else if (list[0].equals("send")) {
-
-        }
+        }*/
     }
 
     public boolean callCommand(String command, int shieldid, String json) {
@@ -948,6 +960,17 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.postCommand(command);
     }
 
+    /*public static boolean postCommand(Command command, Command.CommandThread commandThread) {
+
+        if (mShields.postCommand(command)) {
+            messageListeners.add(commandThread);
+            return true;
+        } else {
+            return false;
+        }
+    }*/
+
+
     public static JSONObject loadShieldSettings(String macAddress) {
         return mShields.loadShieldSettings(macAddress);
     }
@@ -956,7 +979,7 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
         return mShields.saveShieldSettings(json);
     }*/
 
-    @Override
+    /*@Override
     public void addedSensor(SensorBase sensor) {
 
     }
@@ -980,5 +1003,5 @@ public class Core implements SampleAsyncCallBack.SampleAsyncCallBackListener, Si
 
         addZoneSensorListeners();
         //securitySystem.addZoneSensorListeners();
-    }
+    }*/
 }

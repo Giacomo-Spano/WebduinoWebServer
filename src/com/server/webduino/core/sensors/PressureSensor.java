@@ -72,22 +72,14 @@ public class PressureSensor extends SensorBase {
         }
     }
 
+
     @Override
-    public JSONObject toJson() {
-        JSONObject json = new JSONObject();
+    public void getJSONField(JSONObject json) {
         try {
-            json.put("id", getId());
-            json.put("shieldid", shieldid);
-            json.put("online", online);
-            json.put("subaddress", subaddress);
-            json.put("current", pressure);
-            json.put("name", getName());
-            //json.put("lastupdate", getStrLastUpdate());
-            json.put("type", type);
+            json.put("pressure", pressure);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return json;
     }
 }

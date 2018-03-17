@@ -30,5 +30,6 @@ public abstract class Actuator extends SensorBase {
 
     @Override
     public void updateFromJson(Date date, JSONObject json) {
+        super.updateFromJson(date,json);
     }
 }

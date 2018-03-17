@@ -81,10 +81,10 @@ public class TemperatureSensor extends SensorBase {
         super.updateFromJson(date, json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
-            if (json.has("avtemperature"))
-                setAvTemperature(json.getDouble("avtemperature"));
-            if (json.has("temperature"))
-                setTemperature(json.getDouble("temperature"));
+            /*if (json.has("avtemperature"))
+                setAvTemperature(json.getDouble("avtemperature"));*/
+            if (json.has("temp"))
+                setTemperature(json.getDouble("temp"));
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

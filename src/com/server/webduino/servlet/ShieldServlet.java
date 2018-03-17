@@ -5,7 +5,6 @@ import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.webduinosystem.scenario.NextTimeRangeAction;
@@ -24,7 +23,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 //import com.server.webduino.core.SensorData;
@@ -115,13 +113,13 @@ public class ShieldServlet extends HttpServlet {
                         //DoorSensorCommand cmd = new DoorSensorCommand(json);
                         DoorSensorCommand cmd = new DoorSensorCommand(json.getString("command"), actuator.getShieldId(), id, "close");
                         boolean res = cmd.send();
-                        if (res) {
+                        /*if (res) {
                             out.print(cmd.getResult());
                             response.setStatus(HttpServletResponse.SC_OK);
                         } else {
                             out.print("errore");
                             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        }
+                        }*/
                         return;
                     }
                 } else if (json.getString("command").equals("updatesensorstatus")) {
@@ -129,12 +127,24 @@ public class ShieldServlet extends HttpServlet {
                     if (json.has("shieldid")) {
                         int id = json.getInt("shieldid");
                         Shield shield = Core.getShieldFromId(id);
-                        shield.requestSensorStatusUpdate();
+                        shield.requestAllSensorStatusUpdate();
                         out.print("command sent");
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
-                } else if (json.getString("command").equals("manual") || json.getString("command").equals("off")) {
+                } else if (json.getString("command").equals("updatesensor")) {
+
+                    if (json.has("id")) {
+                        int id = json.getInt("id");
+                        SensorBase sensor = Core.getSensorFromId(id);
+                        if (sensor != null) {
+                            sensor.requestSensorStatusUpdate();
+                            out.print("command sent");
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            return;
+                        }
+                    }
+                }else if (json.getString("command").equals("manual") || json.getString("command").equals("off")) {
 
                     if (json.has("actuatorid")) {
                         int id = json.getInt("actuatorid");
@@ -216,14 +226,14 @@ public class ShieldServlet extends HttpServlet {
                                 if (res) {
                                     //out.print(sensor.toJson().toString());
                                     // aggiorna lòo stato del sensore in base alla risposta al comando
-                                    JSONObject jresult = new JSONObject(cmd.getResult());
-                                    actuator.updateFromJson(Core.getDate(),jresult);
+                                    //JSONObject jresult = new JSONObject(cmd.getResult());
+                                    //actuator.updateFromJson(Core.getDate(),jresult);
 
 
 
                                     response.setStatus(HttpServletResponse.SC_OK);
                                     //PrintWriter out = response.getWriter();
-                                    out.print(jresult);
+                                    //out.print(jresult);
                                     return;
                                 } else {
                                     out.print("errore");

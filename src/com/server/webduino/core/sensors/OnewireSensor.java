@@ -41,35 +41,10 @@ public class OnewireSensor extends SensorBase {
 
         super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
-        /*try {
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            LOGGER.info("json error: " + e.toString());
-            writeDataLog("updateFromJson error");
-        }*/
     }
 
     public void getJSONField() {
 
     }
 
-    /*@Override
-    public JSONObject toJson() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("id", getId());
-            json.put("shieldid", shieldid);
-            json.put("online", online);
-            json.put("subaddress", subaddress);
-            json.put("name", getName());
-            json.put("lastupdate", getStrLastUpdate());
-            json.put("type", type);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
-    }*/
 }

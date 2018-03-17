@@ -1,13 +1,12 @@
 package com.server.webduino.core.sensors.commands;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.SimpleMqttClient;
 import com.server.webduino.core.datalog.CommandDataLog;
-import com.server.webduino.core.datalog.HeaterCommandDataLog;
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -23,7 +22,10 @@ public class Command {
     public String uuid;
     public int shieldid;
     public int actuatorid;
-    public CommandResult result;
+    public boolean success = false;
+    public String result = "";
+
+    //public CommandResult result;
     CommandThread commandThread;
 
     public Command(int shieldid, int actuatorid) {
@@ -55,7 +57,7 @@ public class Command {
 
         int timeout = 10000; // 10 secondi in millisecondi
 
-        /*CommandThread */commandThread = new CommandThread(this);
+        commandThread = new CommandThread(this);
         Thread thread = new Thread(commandThread, "commandThread");
         thread.start();
 
@@ -66,82 +68,88 @@ public class Command {
             e.printStackTrace();
         }
 
-        // recupera il risulktato della chiamamata che a questo punto è disponibile
-        // forse bisiognerebbe metttere syncronized
-        /*String json = commandThread.getResultJson();
-        result = new CommandResult();
-        if (json == null) {
-            result.success = false;
-            result.result = "timeout";
-        } else {
-            result.success = true;
-            result.result = json;
-        }*/
-        //HeaterCommandDataLog dl = new HeaterCommandDataLog();
-        if (commandDataLog != null)
-            commandDataLog.writelog("send",this);
-        //return result;
-        String json = commandThread.getResultJson();
-        if (json == null)
-            return false;
-        else
-            return true;
+        if (commandDataLog != null) {
+            commandDataLog.success = commandThread.commandSuccess;
+            commandDataLog.result = commandThread.commandResult;
+            commandDataLog.writelog("send", this);
+        }
+        return commandThread.commandSuccess;
     }
 
-    public String getResult() {
-        return commandThread.getResultJson();
-    }
 
-    class CommandThread implements Runnable, Core.CoreListener {
+    public class CommandThread implements Runnable/*, Core.CoreListener*/ {
 
-        private Command command;
+        public Command command;
         private volatile boolean execute; // variabile di sincronizzazione
-        private String resultJson = null;
-        String jsonResult = null;
+        public String commandResult = "";
+        public boolean commandSuccess = false;
 
         public CommandThread(Command command/*int shieldid, String command*/) {
             this.command = command;
-
         }
 
         @Override
         public void run() {
             Thread t = Thread.currentThread();
-            System.out.println("Thread started: " + t.getName());
+            LOGGER.info("Thread started: " + t.getName());
+            //System.out.println("Thread started: " + t.getName());
 
-            Core.addListener(this);
+            SimpleMqttClient smc = new SimpleMqttClient(command.uuid);
+            smc.runClient();
+            String topic = "toServer/response/#";
+            smc.subscribe(topic);
+            smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+                @Override
+                public synchronized void messageReceived(String topic, String message) {
+                    JSONObject jsonObject = null;
+                    try {
+                        jsonObject = new JSONObject(message);
+                        SensorBase sensor = Core.getSensorFromId(command.actuatorid);
+                        if (sensor != null) {
+                            sensor.updating = false;
+                            sensor.updateFromJson(Core.getDate(), jsonObject);
+                            execute = false; // ferma il thread di attesa
+                            commandSuccess = true;
+                            commandResult = message;
+                        }
+                    } catch (JSONException e) {
+                        commandSuccess = false;
+                        commandResult = e.toString();
+                        e.printStackTrace();
+                    }
+
+                    smc.unsubscribe(topic);
+
+                }
+            });
             Core.postCommand(command);
-            // il thread si mette in attesa di aggiornamento
-            // AGGIUNGERE TIMEOU
+
+            // il thread si mette in attesa di aggiornamento per 10 secondi e poi esce
             this.execute = true;
             while (this.execute) {
                 try {
                     //checkStatusUpdate();
                     Thread.sleep((long) 1000);
                 } catch (InterruptedException e) {
+                    commandSuccess = false;
+                    commandResult = "timeout";
                     this.execute = false;
                 }
             }
-            // aggiornamento ricevuto
-            Core.removeListener(this);
+
+
+
+            smc.unsubscribe(topic);
+
         }
 
-        public String getResultJson() {
-            return jsonResult;
+        public boolean getResult() {
+            return commandSuccess;
         }
 
-        @Override
-        public void onCommandResponse(String uuid, String response) {
-            if (uuid.equals(command.uuid))
-                jsonResult = response;
-            this.execute = false;
-        }
+
     }
 
-    public class CommandResult {
-        public boolean success;
-        public String result;
-    }
 }
 
 

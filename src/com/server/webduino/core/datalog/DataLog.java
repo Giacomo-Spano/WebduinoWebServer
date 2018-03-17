@@ -1,6 +1,7 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.sensors.commands.Command;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,6 +22,7 @@ public class DataLog {
     }
 
     public String getSQLInsert(String event, Object object) {
+
         return "";
     }
 

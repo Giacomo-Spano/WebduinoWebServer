@@ -3,6 +3,8 @@ package com.server.webduino.core.sensors;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
+import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.core.sensors.commands.SensorCommand;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +42,7 @@ public class SensorBase extends DBObject {
     protected boolean testMode;
     protected String status = "";
     protected String oldStatus = "";
+    public boolean updating = false;
 
     protected List<SensorListener> listeners = new ArrayList<>();
 
@@ -54,6 +57,15 @@ public class SensorBase extends DBObject {
         this.pin = pin;
         this.enabled = enabled;
         datalog = new DataLog();
+    }
+
+    public void requestSensorStatusUpdate() {
+        SensorCommand cmd = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, shieldid, id);
+        updating = true;
+
+        SendCommandThread sendCommandThread = new SendCommandThread(cmd, this);
+        Thread thread = new Thread(sendCommandThread, "sendCommandThread");
+        thread.start();
     }
 
     public void addChildSensor(SensorBase childSensor) {
@@ -90,17 +102,13 @@ public class SensorBase extends DBObject {
             return this;
         }
         for (SensorBase child : childSensors) {
-            return child.getSensorFromId(id);
+            if (child.id == id)
+                return child.getSensorFromId(id);
         }
         return null;
     }
 
-    public void setOffline() {
-        online = false;
-        for (SensorBase child : childSensors) {
-            child.setOffline();
-        }
-    }
+
 
     public SensorBase findSensorFromId(int id) {
         if (this.id == id)
@@ -248,11 +256,24 @@ public class SensorBase extends DBObject {
     public void writeDataLog(String event) {
     }
 
+    public SensorBase getFromSubaddress(String subaddress) {
+
+
+            for (SensorBase child : this.getChildSensors()) {
+                if (child.getSubaddress().equals(subaddress))
+                    return child;
+            }
+        return null;
+    }
+
     public void updateFromJson(Date date, JSONObject json) {
+
+        System.out.println("updateFromJson " + json.toString());
 
         try {
             lastUpdate = date;
             online = true;
+
 
             /*if (json.has("name"))
                 name = json.getString("name");*/
@@ -266,6 +287,19 @@ public class SensorBase extends DBObject {
                 enabled = json.getBoolean("enabled");
             /*if (json.has("testmode"))
                 testMode = json.getBoolean("testmode");*/
+
+            if (json.has("children")) {
+                JSONArray jsonChildSensorArray = json.getJSONArray("children");
+                for (int k = 0; k < jsonChildSensorArray.length(); k++) {
+                    JSONObject childSensor = jsonChildSensorArray.getJSONObject(k);
+                    if (childSensor.has("addr")) {
+                        subaddress = childSensor.getString("addr");
+                        SensorBase child = getFromSubaddress(subaddress);
+                        if (child != null)
+                            child.updateFromJson(date, childSensor);
+                    }
+                }
+            }
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -431,4 +465,40 @@ public class SensorBase extends DBObject {
         }
         return sensors;
     }
+
+    class SendCommandThread implements Runnable {
+
+        private volatile boolean execute; // variabile di sincronizzazione
+        Command command;
+        SensorBase sensor;
+
+        public SendCommandThread(Command command, SensorBase sensor) {
+            this.command = command;
+            this.sensor = sensor;
+        }
+
+        @Override
+        public void run() {
+            boolean res = command.send();
+
+            LOGGER.info("SendCommandThread command.uuid=" + command.uuid.toString());
+
+            /*if (res) {
+                JSONObject jsonObject = null;
+                try {
+                    jsonObject = new JSONObject(command.getResult());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                //updateShieldStatus(jsonObject);
+                sensor.updating = false;
+                sensor.updateFromJson(Core.getDate(), jsonObject);
+
+            } else {
+
+                // qui bisognerebbe metter qualcosa per fare un retry
+            }*/
+        }
+    }
 }
+

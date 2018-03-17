@@ -19,7 +19,7 @@ public class ShieldCommand extends Command {
 
     public ShieldCommand(JSONObject json) throws JSONException {
         super(json);
-        commandDataLog = new CommandDataLog();
+        commandDataLog = new CommandDataLog("heatercommanddatalog");
     }
 
     public void fromJson(JSONObject json) throws JSONException {

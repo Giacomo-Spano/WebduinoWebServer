@@ -72,25 +72,6 @@ public class PIRSensor extends SensorBase {
         }
     }
 
-
-    /*@Override
-    public JSONObject toJson() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("id", getId());
-            json.put("shieldid", shieldid);
-            json.put("online", online);
-            json.put("subaddress", subaddress);
-            json.put("current", motionDetected);
-            json.put("name", getName());
-            json.put("type", type);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json;
-    }*/
-
     @Override
     public void getJSONField(JSONObject json) {
         try {

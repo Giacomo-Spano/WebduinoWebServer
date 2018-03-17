@@ -15,9 +15,6 @@ import java.util.List;
 
 public class HeaterCommandDataLog extends CommandDataLog {
 
-
-    public String tableName = "heatercommanddatalog";
-
     int id;
     Date date;
     int shieldid;
@@ -30,6 +27,10 @@ public class HeaterCommandDataLog extends CommandDataLog {
     Boolean success;
     int actionid;
 
+    public HeaterCommandDataLog() {
+        super("heatercommanddatalog");
+    }
+
     @Override
     //public String getSQLInsert(String event, Command command) {
     public String getSQLInsert(String event, Object object) {
@@ -37,7 +38,7 @@ public class HeaterCommandDataLog extends CommandDataLog {
         HeaterActuatorCommand heaterCommand = (HeaterActuatorCommand) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String sql;
-        sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate, success, result) VALUES ("
+        sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate) VALUES ("
                 + "'" + df.format(heaterCommand.date) + "'"
                 + ",'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
@@ -50,8 +51,8 @@ public class HeaterCommandDataLog extends CommandDataLog {
                 + "," + heaterCommand.temperature
                 + "," + heaterCommand.actionid
                 + ",'" + df.format(heaterCommand.enddate) + "'"
-                + "," + heaterCommand.result.success
-                + ",'" + heaterCommand.result.result + "'"
+                /*+ "," + heaterCommand.result.success
+                + ",'" + heaterCommand.result.result + "'"*/
                 + ");";
         return sql;
     }

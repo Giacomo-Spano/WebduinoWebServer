@@ -72,7 +72,7 @@ public class CurrentSensor extends SensorBase {
     }
 
 
-    @Override
+    /*@Override
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
         try {
@@ -89,10 +89,15 @@ public class CurrentSensor extends SensorBase {
             e.printStackTrace();
         }
         return json;
-    }
+    }*/
 
     @Override
     public void getJSONField(JSONObject json) {
+        try {
+            json.put("current", getCurrent());
 
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

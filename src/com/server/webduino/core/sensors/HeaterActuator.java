@@ -193,17 +193,16 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         //int oldTimeInterval = timeInterval;
         String oldStatus = getStatus();
 
-        lastUpdate = date;
-        online = true;
+
         try {
             LOGGER.info("received jsonResultSring=" + json.toString());
 
-            if (json.has("remotetemperature")) {
-                setTemperature(json.getDouble("remotetemperature"));
+            if (json.has("remotetemp")) {
+                setTemperature(json.getDouble("remotetemp"));
             }
-            if (json.has("lasttemperatureupdate") && !json.getString("lasttemperatureupdate").equals("")) {
-                String str = json.getString("lasttemperatureupdate");
-                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            if (json.has("lasttemp") && !json.getString("lasttemp").equals("")) {
+                String str = json.getString("lasttemp");
+                SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm");
                 try {
                     Date lasttemperatureupdate = df.parse(str);
                     setLastTemperatureUpdate(lasttemperatureupdate);
@@ -212,9 +211,9 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
                 }
 
             }
-            if (json.has("lastcommanddate") && !json.getString("lastcommanddate").equals("")) {
-                String str = json.getString("lastcommanddate");
-                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            if (json.has("lastcmnd") && !json.getString("lastcmnd").equals("")) {
+                String str = json.getString("lastcmnd");
+                SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm");
                 try {
                     Date lastcommanddate = df.parse(str);
                     setLastCommandUpdate(lastcommanddate);
@@ -226,7 +225,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
 
             if (json.has("enddate") && !json.getString("enddate").equals("")) {
                 String str = json.getString("enddate");
-                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm");
                 try {
                     Date enddate = df.parse(str);
                     setEndDate(enddate);
@@ -385,9 +384,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
             HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
             //Core.postCommand(cmd);
             boolean res = cmd.send();
-            if (res) {
-                String result = cmd.getResult();
-            }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

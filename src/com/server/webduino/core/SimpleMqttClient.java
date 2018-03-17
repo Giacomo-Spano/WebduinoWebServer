@@ -9,9 +9,11 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class SimpleMqttClient implements MqttCallback {
 
+    private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
 
     public SimpleMqttClient() {
 
@@ -58,18 +60,23 @@ public class SimpleMqttClient implements MqttCallback {
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) /*throws Exception*/ {
 
+        System.out.println("clientid " + clientId + " messageArrived \"" + topic +  " mqttMessage " + mqttMessage);
 
         try {
             String payloadMessage = new String(mqttMessage.getPayload());
 
             synchronized (listeners) {
+            if (listeners != null) {
                 for (SimpleMqttClientListener listener : listeners) {
 
-                    listener.messageReceived(topic, payloadMessage);
+                        if (listener != null)
+                            listener.messageReceived(topic, payloadMessage);
+                    }
                 }
             }
 
         } catch (Exception e) {
+            LOGGER.info("messageArrived error: " + e.toString());
             e.printStackTrace();
         }
 
@@ -132,7 +139,7 @@ public class SimpleMqttClient implements MqttCallback {
         message.setRetained(false);
 
         // Publish the message
-        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS);
+        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS + " message " + message);
         MqttDeliveryToken token = null;
         try {
             // publish message to broker
@@ -157,6 +164,19 @@ public class SimpleMqttClient implements MqttCallback {
         try {
             int subQoS = 0;
             myClient.subscribe(myTopic, subQoS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            connect();
+            return false;
+        }
+        return true;
+    }
+
+    public boolean unsubscribe(String myTopic) {
+
+        // subscribe to topic if subscriber
+        try {
+            myClient.unsubscribe(myTopic);
         } catch (Exception e) {
             e.printStackTrace();
             connect();

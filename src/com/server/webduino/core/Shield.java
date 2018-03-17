@@ -4,6 +4,7 @@ import com.server.webduino.DBObject;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.sensors.commands.ShieldCommand;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -74,7 +75,7 @@ public class Shield extends DBObject /*implements Command.CommandListener*//*htt
 
     // spedisce una richiesta di aggiornamento stato sensori alla shield in unthread separato
     // Non attende la risposta
-    public void requestSensorStatusUpdate() {
+    /*public void requestAllSensorStatusUpdate() {
 
         LOGGER.info("requestStatusUpdate:");
         sensorStatus = updateStatus_updating;
@@ -93,7 +94,20 @@ public class Shield extends DBObject /*implements Command.CommandListener*//*htt
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }*/
+
+    // invia una richiesta di aggiornamento per il singolo sensore
+    public void requestAllSensorStatusUpdate() {
+
+        LOGGER.info("requestSensorStatus:");
+        sensorStatus = updateStatus_updating;
+
+        for (SensorBase sensor : sensors) {
+
+            sensor.requestSensorStatusUpdate();
+        }
     }
+
 
     public boolean requestReboot() { //
 
@@ -290,36 +304,32 @@ public class Shield extends DBObject /*implements Command.CommandListener*//*htt
     }
 
     boolean updateShieldStatus(JSONObject json) {
-        if (json.has("sensors")) {
-            JSONArray jsonArray = null;
-            try {
-                if (json.has("swversion")) {
-                    swVersion = json.getString("swversion");
-                }
 
-                jsonArray = json.getJSONArray("sensors");
-                updateSensors(jsonArray);
-                return true;
-
-            } catch (JSONException e) {
-                e.printStackTrace();
+        JSONArray jsonArray = null;
+        try {
+            if (json.has("swversion")) {
+                swVersion = json.getString("swversion");
             }
+
+            //jsonArray = json.getJSONArray("sensors");
+            //updateSensors(jsonArray);
+            lastUpdate = Core.getDate();
+
+            return true;
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
+
     }
 
     void setOffline() {
 
         online = false;
-        setSensorOffline();
+        //setSensorOffline();
     }
 
-    private void setSensorOffline() {
-
-        for (SensorBase sensor : sensors) {
-            sensor.setOffline();
-        }
-    }
 
     boolean updateSensors(JSONArray jsonArray) {
 
@@ -338,8 +348,8 @@ public class Shield extends DBObject /*implements Command.CommandListener*//*htt
                 if (sensor != null) {
                     sensor.updateFromJson(date, json);
 
-                    if (json.has("childsensors")) {
-                        JSONArray jsonChildSensorArray = json.getJSONArray("childsensors");
+                    if (json.has("children")) {
+                        JSONArray jsonChildSensorArray = json.getJSONArray("children");
                         for (int k = 0; k < jsonChildSensorArray.length(); k++) {
                             JSONObject childSensor = jsonChildSensorArray.getJSONObject(k);
                             if (childSensor.has("addr")) {
@@ -622,8 +632,8 @@ public class Shield extends DBObject /*implements Command.CommandListener*//*htt
 
         sql = "DELETE FROM sensors WHERE id in (";
         int count = 0;
-        for (Integer id: toBeRemoved) {
-            if (count++ >0)
+        for (Integer id : toBeRemoved) {
+            if (count++ > 0)
                 sql += ", ";
             sql += id;
         }
@@ -653,42 +663,5 @@ public class Shield extends DBObject /*implements Command.CommandListener*//*htt
         }
         return list;
     }
-
-    /*@Override
-    public void onCommandResponse(String response) {
-
-    }*/
-
-
-    class SendCommandThread implements Runnable {
-
-        private volatile boolean execute; // variabile di sincronizzazione
-        Command command;
-
-        public SendCommandThread(Command command) {
-            this.command = command;
-        }
-
-        @Override
-        public void run() {
-            boolean res = command.send();
-
-            if (res) {
-                JSONObject jsonObject = null;
-                try {
-                    jsonObject = new JSONObject(command.getResult());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                updateShieldStatus(jsonObject);
-
-            } else {
-
-                // qui bisognerebbe metter qualcosa per fare un retry
-            }
-        }
-
-    }
-
 
 }

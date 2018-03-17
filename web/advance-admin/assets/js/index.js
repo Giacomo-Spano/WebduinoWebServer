@@ -460,10 +460,10 @@ function setSensorElement(element, sensor) {
     statusButton.text(label);
     statusButton.click(function () {
 
-        var command = 'updatesensorstatus'
+        var command = 'updatesensor'
         statusButton.text("sending" + command + " command...");
         var json = {
-            'shieldid': sensor.shieldid,
+            'id': sensor.id,
             'command': command,
         };
         postShieldData(json, function (result, response) {

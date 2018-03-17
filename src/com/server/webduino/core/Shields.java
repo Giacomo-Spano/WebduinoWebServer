@@ -1,9 +1,7 @@
 package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.TemperatureSensor;
 import com.server.webduino.core.sensors.commands.Command;
-import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +13,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
+import static com.server.webduino.core.Core.getShieldFromId;
+import static com.server.webduino.core.Core.loadShieldSettings;
 import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
 
 /**
@@ -43,56 +43,78 @@ public class Shields {
         return shield.getShieldSensorsJson();
     }
 
-    /*public boolean saveShieldSettings(JSONObject json) {  // questo si può rimuovere
-        LOGGER.info(" saveShieldSettings");
-        if (json.has("shieldid")) {
-            try {
-                int id = json.getInt("shieldid");
-                Shield shield = fromId(id);
-                if (shield != null) {
-
-                    Shield updatedShield = shield.saveSettings(json);
-                    if (updatedShield != null) {
-                        list.remove(shield);
-                        list.add(updatedShield);
-                        for (ShieldsListener listener : listeners) {
-                            listener.updatedShields();
-                        }
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return false;
-            }
-
-        }
-        return false;
-    }*/
-
-    interface ShieldsListener {
-        void addedSensor(SensorBase sensor);
-
-        void addedShield(Shield shield);
-
-        void updatedSensor(SensorBase sensor);
-
-        void updatedShields();
-    }
 
     private static final Logger LOGGER = Logger.getLogger(Shields.class.getName());
 
-    public void addListener(ShieldsListener toAdd) {
+    /*public void addListener(ShieldsListener toAdd) {
         listeners.add(toAdd);
     }
 
-    protected List<ShieldsListener> listeners = new ArrayList<>();
+    protected List<ShieldsListener> listeners = new ArrayList<>();*/
 
     public Shields() {
     }
 
+    SimpleMqttClient smc;
+
     public void init() {
 
         read();
+
+        /*SimpleMqttClient*/
+        smc = new SimpleMqttClient("ShieldClient");
+        smc.runClient();
+        smc.subscribe("toServer/shield/#");
+        //smc.subscribe("toServer/sensor");
+        smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+            @Override
+            public synchronized void messageReceived(String topic, String message) {
+
+                if (topic.equals("toServer/shield/loadsettings")) {  // chiamata all'inizio dalla schesa
+
+                    String MACAddress = message;
+                    JSONObject jsonResult = loadShieldSettings(MACAddress);
+                    //Core.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
+                    if (smc != null)
+                        smc.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
+
+                } else if (topic.equals("toServer/shield/sensor/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
+
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("sensorid")) {
+                            int sensorid = json.getInt("sensorid");
+                            SensorBase sensorBase = getSensorFromId(sensorid);
+                            if (sensorBase != null) {
+                                sensorBase.updateFromJson(Core.getDate(), json);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                } else if (topic.equals("toServer/shield/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
+
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("MAC")) {
+                            String MACAddress = json.getString("MAC");
+                            //int sensorid = json.getInt("MAC");
+                            Shield shield = getShieldFromMACAddress(MACAddress);
+                            if (shield != null) {
+                                shield.updateShieldStatus(json);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+            }
+        });
+
+
         requestSensorsStatusUpdate();
     }
 
@@ -209,13 +231,13 @@ public class Shields {
             LOGGER.severe("shieldid null");
             return;
         }
-        shield.requestSensorStatusUpdate();
+        shield.requestAllSensorStatusUpdate();
     }
 
     public void requestSensorsStatusUpdate() {
 
         for (Shield shield : getShields()) {
-            shield.requestSensorStatusUpdate();
+            shield.requestAllSensorStatusUpdate();
         }
     }
 
@@ -353,6 +375,14 @@ public class Shields {
                 if (ret != null)
                     return ret;
             }
+        }
+        return null;
+    }
+
+    public Shield getShieldFromMACAddress(String MACAddress) {
+        for (Shield shield : list) {
+            if (shield.MACAddress.equals(MACAddress))
+                return shield;
         }
         return null;
     }

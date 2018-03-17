@@ -100,8 +100,8 @@ public class HeaterActuatorCommand extends Command {
                 json.put("temperature", temperature);
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 json.put("actionid", actionid);
-                json.put("date", date);
-                json.put("enddate", enddate);
+                json.put("date", df.format(date));
+                json.put("enddate", df.format(enddate));
 
             } else if (command.equals(HeaterActuatorCommand.Command_Off)) {
 
@@ -110,8 +110,9 @@ public class HeaterActuatorCommand extends Command {
                 json.put("scenario", scenario);
                 json.put("timeinterval", timeInterval);
                 json.put("zone", zone);
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 json.put("actionid", actionid);
-                json.put("date", "");
+                json.put("date", df.format(date));
 
             } else if (command.equals(HeaterActuatorCommand.Command_Manual)) {
 
@@ -120,7 +121,8 @@ public class HeaterActuatorCommand extends Command {
                 json.put("target", targetTemperature);
                 json.put("zone", zone);
                 json.put("temperature", temperature);
-                json.put("date", date);
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                json.put("date", df.format(date));
                 json.put("enddate", enddate);
 
             } else if (command.equals(HeaterActuatorCommand.Command_SendTemperature)) {

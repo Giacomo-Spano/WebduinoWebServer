@@ -65,7 +65,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
 
     public void requestSensorStatusUpdate() {
 
-        LOGGER.info("requestSensorStatusUpdate:");
+        LOGGER.info("requestAllSensorStatusUpdate:");
 
         for (ZoneSensor zoneSensor : zoneSensors) {
 
@@ -73,7 +73,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
             if (sensor != null) {
                 Shield shield = Core.getShieldFromId(sensor.getShieldId());
                 if (shield != null) {
-                    shield.requestSensorStatusUpdate();
+                    shield.requestAllSensorStatusUpdate();
                 }
             }
         }

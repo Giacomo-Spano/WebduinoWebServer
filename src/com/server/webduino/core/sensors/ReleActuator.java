@@ -90,8 +90,6 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
 
         boolean oldOn = this.on;
 
-        lastUpdate = date;
-        online = true;
         try {
             LOGGER.info("received jsonResultSring=" + json.toString());
 
@@ -116,23 +114,15 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
 
     }
 
+
     @Override
-    public JSONObject toJson() {
-        JSONObject json = new JSONObject();
+    public void getJSONField(JSONObject json) {
         try {
-            json.put("id", id);
             json.put("on", on);
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            if (lastUpdate != null)
-                json.put("lastupdate", df.format(lastUpdate));
-            json.put("shieldid", shieldid);
-            json.put("online", online);
-            json.put("type", type);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return json;
     }
 
     interface ReleListener extends SensorListener {

@@ -192,7 +192,7 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
             System.out.println("sendCommandThread running");
 
             try {
-                Command.CommandResult result;
+                //Command.CommandResult result;
                 JSONObject json = new JSONObject();
                 json.put("actuatorid", actuatorid);
 
@@ -212,9 +212,9 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
 
                 HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
                 //result = cmd.send();
-                boolean res = cmd.send();
+                cmd.send();
 
-                SensorBase s = Core.getSensorFromId(cmd.actuatorid);
+                /*SensorBase s = Core.getSensorFromId(cmd.actuatorid);
                 if (res && sensor != null) {
                     System.out.println(s.toJson().toString());
 
@@ -230,7 +230,7 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
                     System.out.println("errore");lastSent = Core.getDate();
                     lastSentResult = "error";
                     return;
-                }
+                }*/
 
             } catch (JSONException e1) {
                 e1.printStackTrace();

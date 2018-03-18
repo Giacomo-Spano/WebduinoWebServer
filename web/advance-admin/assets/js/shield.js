@@ -25,10 +25,28 @@ function setShieldElement(element, shield) {
     element.find('td[name="date"]').text(shield.lastupdate);
     element.find('td[name="swversion"]').text(shield.swversion);
 
+    $.getJSON(systemServletPath + "?requestcommand=swversions", function (swversions) {
+        $.each(swversions, function (val, swversion) {
+            element.find('select[name="swversion"]').append(new Option(swversion.name, swversion.version));
+        });
+    });
+
+    var updateButton = element.find('button[name="updatebutton"]');
+    updateButton.click(function () {
+
+    });
+
+
     var editButton = element.find('button[name="editbutton"]');
     editButton.click(function () {
         loadShield(shield);
     });
+
+    var statusButton = element.find('button[name="statusbutton"]');
+    editButton.click(function () {
+
+    });
+
 
 
     var restartButton = element.find('button[name="rebootbutton"]');
@@ -164,6 +182,13 @@ function loadShield(shield) {
             $shieldsPanel.find('input[name="serverport"]').val(shield.serverport);
             $shieldsPanel.find('input[name="mqttname"]').val(shield.mqttserver);
             $shieldsPanel.find('input[name="mqttport"]').val(shield.mqttport);
+
+            /*$.getJSON(systemServletPath + "?requestcommand=swversions", function (swversions) {
+                $.each(swversions, function (val, swversion) {
+                    $shieldsPanel.find('select[name="swversion"]').append(new Option(swversion.name, swversion.version));
+                });
+            });*/
+
 
             $sensorRow = $shieldsPanel.find('tr[name="row"]');
 

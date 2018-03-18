@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
-public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*//*,* SimpleMqttClient.SimpleMqttClientListener, Shields.ShieldsListener*/ {
+public class Core {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
 
@@ -57,7 +57,6 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
     private List<Exit> exits = new ArrayList<>();
     private List<Key> keys = new ArrayList<>();
     public static Shields mShields; // rendere private
-
     private static List<SWVersion> swversions = new ArrayList<>();
 
     public static Devices mDevices = new Devices();
@@ -69,20 +68,6 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
             if (trigger.id == triggerid)
                 return trigger;
         }
-        return null;
-    }
-
-    public JSONArray getNextActuatorTimeRangeJSONArray(int actuatorid) {
-
-        /*JSONArray jsonArray = new JSONArray();
-
-        List<NextScenario> list = scenarios.getNextScenarios(Core.getDate());
-        if (list != null) {
-            for(NextScenario nextScenario: list) {
-                jsonArray.put(nextScenario.toJson());
-            }
-            return jsonArray;
-        }*/
         return null;
     }
 
@@ -102,41 +87,9 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
 
     }
 
-
     public interface CoreListener {
         void onCommandResponse(String uuid, String response);
     }
-
-    //static protected List<CoreListener> listeners = new ArrayList<CoreListener>();
-    //static protected List<Command.CommandThread> messageListeners = new ArrayList<Command.CommandThread>();
-
-    /*static public void addListener(CoreListener toAdd) {
-        listeners.add(toAdd);
-    }*/
-
-    /*static public void removeListener(CoreListener toRemove) {
-        listeners.remove(toRemove);
-
-    }*/
-
-    /*static public void removeMessageListener(Command.CommandThread toRemove) {
-        //listeners.remove(toRemove);
-
-        LOGGER.info("removeMessageListener: command uuid=" + toRemove.command.uuid);
-
-        boolean messageFound = false;
-        for (Iterator<Command.CommandThread> i = messageListeners.iterator(); i.hasNext(); ) {
-            Command.CommandThread listener = i.next();
-            //Do Something
-            if (listener == toRemove) {
-                i.remove();
-                messageFound = true;
-            }
-        }
-        if (!messageFound)
-            LOGGER.info("removeMessageListener: message not found uuid=" + toRemove.command.uuid);
-    }*/
-
 
     public Core() {
         production_envVar = System.getenv("PRODUCTION");
@@ -299,11 +252,7 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
         addZoneSensorListeners(); //
 
         scenarios.initScenarios();
-
         //mShields.addListener(this);
-
-        // DA ELIMINARE, non più usato
-        Settings settings = new Settings();
 
         // inizializzazione client android remoti
         mDevices.read();
@@ -475,7 +424,6 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
         }
     }
 
-
     private void readWebduinoSystems() {
         LOGGER.info(" readWebduinoSystems");
 
@@ -624,7 +572,6 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
     public Trigger removeTrigger(JSONObject json) throws Exception {
 
         Trigger trigger = new Trigger(json);
-        int triggerid = trigger.id;
         trigger.remove();
         Core.readTriggers();
         scenarios.initScenarios();
@@ -767,16 +714,8 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
         return mShields.updateShieldSensors(shieldid, jsonArray);
     }
 
-    static public boolean updateSensor(int id, JSONObject json) {
-        return mShields.updateShieldSensor(id, json);
-    }
-
     static public boolean updateShieldStatus(int shieldid, JSONObject json) {
         return mShields.updateShieldStatus(shieldid, json);
-    }
-
-    boolean updateSettings(int shieldid, JSONObject json) {
-        return mShields.updateSettings(shieldid, json);
     }
 
     static public String getShieldSettingStatus(int shieldid) {
@@ -800,7 +739,10 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
     }
 
     public static void requestShieldSensorsUpdate(int shieldid) {
-        mShields.requestShieldSensorsStatusUpdate(shieldid);
+
+        Shield shield = getShieldFromId(shieldid);
+        if (shield != null)
+            shield.requestAsyncAllSensorStatusUpdate();
     }
 
     public static SensorBase getSensorFromId(int id) {
@@ -857,85 +799,6 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
             return "false";
     }
 
-    /*@Override
-    public synchronized void messageReceived(String topic, String message) {
-
-        LOGGER.info("messageReceived: topic[" + topic + "]" + " message[" + message + "]");
-        try {
-
-
-            parseTopic(topic, message);
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-        }
-    }*/
-
-
-    public synchronized void parseTopic(String topic, String message) {
-
-        String[] list = topic.split("/");
-
-        if (list == null) {
-            return;
-        }
-
-        /*if (list[0].equals("toServer")) {
-
-            if (list.length > 1) {
-
-                if (list[1].equals("shield")) {
-                    if (list.length > 2) {
-                        int shieldid = Integer.parseInt(list[2]);
-                        if (list.length > 3) {
-                            String command = list[3];
-                            callCommand(command, shieldid, message);
-                        }
-                    }
-                }
-            }
-        }*/
-    }
-
-    public boolean callCommand(String command, int shieldid, String json) {
-        if (command.equals("sensorsupdate")) {
-            try {
-                JSONObject jsonObj = new JSONObject(json);
-                updateShieldStatus(shieldid, jsonObj);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        } else if (command.equals("settingsupdate")) {
-            try {
-                JSONObject jsonObj = new JSONObject(json);
-                updateSettings(shieldid, jsonObj);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        } else if (command.equals("register")) {
-            /*try {
-                JSONObject jsonObj = new JSONObject(json);
-                if (jsonObj.has("shield")) {
-                    JSONObject shieldJson = jsonObj.getJSONObject("shield");
-                    Shield shield = new Shield();
-                    shield.fromJson(shieldJson);
-                    int id = registerShield(shield);
-                    //SimpleMqttClient smc = new SimpleMqttClient();
-                    return smc.publish("fromServer/shield/" + shield.MACAddress + "/registerresponse", "" + id);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }*/
-        } else {
-            return smc.publish("fromServer", "prova");
-        }
-        return false;
-    }
-
     static public boolean publish(String topic, String message) {
 
         if (smc != null)
@@ -956,52 +819,7 @@ public class Core /*implements SampleAsyncCallBack.SampleAsyncCallBackListener*/
         return mShields.getShieldSensorsJson(shieldid);
     }
 
-    public static boolean postCommand(Command command) {
-        return mShields.postCommand(command);
-    }
-
-    /*public static boolean postCommand(Command command, Command.CommandThread commandThread) {
-
-        if (mShields.postCommand(command)) {
-            messageListeners.add(commandThread);
-            return true;
-        } else {
-            return false;
-        }
-    }*/
-
-
     public static JSONObject loadShieldSettings(String macAddress) {
         return mShields.loadShieldSettings(macAddress);
     }
-
-    /*public static boolean saveShieldSettings(JSONObject json) {
-        return mShields.saveShieldSettings(json);
-    }*/
-
-    /*@Override
-    public void addedSensor(SensorBase sensor) {
-
-    }
-
-    @Override
-    public void addedShield(Shield shield) {
-
-    }
-
-    @Override
-    public void updatedSensor(SensorBase sensor) {
-
-    }
-
-    @Override
-    public void updatedShields() {
-        // se cambiano i sensori riregistra i listener
-        clearZoneSensorListeners();
-        //securitySystem.clearZoneSensorListeners();
-
-
-        addZoneSensorListeners();
-        //securitySystem.addZoneSensorListeners();
-    }*/
 }

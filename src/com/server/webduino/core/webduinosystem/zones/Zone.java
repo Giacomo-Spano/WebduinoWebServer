@@ -65,16 +65,17 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
 
     public void requestSensorStatusUpdate() {
 
-        LOGGER.info("requestAllSensorStatusUpdate:");
+        LOGGER.info("requestAsyncAllSensorStatusUpdate:");
 
         for (ZoneSensor zoneSensor : zoneSensors) {
 
             SensorBase sensor = Core.getSensorFromId(zoneSensor.getSensorId());
             if (sensor != null) {
-                Shield shield = Core.getShieldFromId(sensor.getShieldId());
+                sensor.requestAsyncSensorStatusUpdate();
+                /*Shield shield = Core.getShieldFromId(sensor.getShieldId());
                 if (shield != null) {
-                    shield.requestAllSensorStatusUpdate();
-                }
+                    shield.requestAsyncAllSensorStatusUpdate();
+                }*/
             }
         }
     }

@@ -1,6 +1,9 @@
 package com.server.webduino.core;
 
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.sql.*;
 
@@ -39,8 +42,8 @@ public class SWVersion {
                 String version = swversionsResultSet.getString("version");
                 String path = swversionsResultSet.getString("path");
                 String filename = swversionsResultSet.getString("filename");
-                swversion = new SWVersion(id,name,version,path,filename);
-             }
+                swversion = new SWVersion(id, name, version, path, filename);
+            }
             swversionsResultSet.close();
             stmt.close();
             conn.close();
@@ -81,4 +84,38 @@ public class SWVersion {
         return false;
     }
 
+    public static JSONArray getSWVersionJSONArray() {
+
+        JSONArray jsonArray = new JSONArray();
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM swversions ORDER BY version";
+            ResultSet swversionsResultSet = stmt.executeQuery(sql);
+            while (swversionsResultSet.next()) {
+                int id = swversionsResultSet.getInt("id");
+                String name = swversionsResultSet.getString("name");
+                String version = swversionsResultSet.getString("version");
+                String path = swversionsResultSet.getString("path");
+                String filename = swversionsResultSet.getString("filename");
+
+                JSONObject json = new JSONObject();
+                json.put("id", id);
+                json.put("version", version);
+                json.put("name", name);
+                jsonArray.put(json);
+            }
+            swversionsResultSet.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonArray;
+    }
 }

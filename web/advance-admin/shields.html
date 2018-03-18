@@ -18,7 +18,8 @@
                                 <th>Nome</th>
                                 <th>MAC address</th>
                                 <th>MQTT server</th>
-                                <th>sw version/th>
+                                <th>sw version</th>
+                                <th>sw update</th>
                                 <th>Comandi</th>
                             </tr>
                             </thead>
@@ -31,6 +32,10 @@
                                 <td name="macaddress">#</td>
                                 <td name="mqttserver">#</td>
                                 <td name="swversion">
+                                <td name="sw update">
+                                    <select class="form-control" name="swversion"></select>
+                                    <button type="button" name="updatebutton" class="btn btn-sm btn-info">update</button>
+                                </td>
                                 <td name="command">
                                     <button type="button" name="editbutton" class="btn btn-sm btn-info">edit</button>
                                     <button type="button" name="statusbutton" class="btn btn-sm btn-info">status</button>

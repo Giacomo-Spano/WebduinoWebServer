@@ -7,6 +7,7 @@ import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.webduinosystem.scenario.NextTimeRangeAction;
 import com.server.webduino.core.webduinosystem.scenario.Scenarios;
 import com.server.webduino.core.webduinosystem.zones.Zone;
@@ -127,7 +128,7 @@ public class ShieldServlet extends HttpServlet {
                     if (json.has("shieldid")) {
                         int id = json.getInt("shieldid");
                         Shield shield = Core.getShieldFromId(id);
-                        shield.requestAllSensorStatusUpdate();
+                        shield.requestAsyncAllSensorStatusUpdate();
                         out.print("command sent");
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
@@ -138,9 +139,20 @@ public class ShieldServlet extends HttpServlet {
                         int id = json.getInt("id");
                         SensorBase sensor = Core.getSensorFromId(id);
                         if (sensor != null) {
-                            sensor.requestSensorStatusUpdate();
-                            out.print("command sent");
-                            response.setStatus(HttpServletResponse.SC_OK);
+
+                            //sensor.requestAsyncSensorStatusUpdate();
+
+                            SensorCommand cmd = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, sensor.getShieldId(), id);
+                            boolean res = cmd.send();
+
+                            if (res) {
+                                out.print("command sent");
+                                response.setStatus(HttpServletResponse.SC_OK);
+                            } else {
+                                out.print("errore");
+                                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                return;
+                            }
                             return;
                         }
                     }

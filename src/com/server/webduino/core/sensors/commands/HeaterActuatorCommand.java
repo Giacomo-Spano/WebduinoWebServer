@@ -137,6 +137,4 @@ public class HeaterActuatorCommand extends Command {
         }
         return json;
     }
-
-
 }

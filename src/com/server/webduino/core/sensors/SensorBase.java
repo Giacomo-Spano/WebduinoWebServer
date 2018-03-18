@@ -59,11 +59,11 @@ public class SensorBase extends DBObject {
         datalog = new DataLog();
     }
 
-    public void requestSensorStatusUpdate() {
+    public void requestAsyncSensorStatusUpdate() { // async sensor status request
         SensorCommand cmd = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, shieldid, id);
         updating = true;
 
-        SendCommandThread sendCommandThread = new SendCommandThread(cmd, this);
+        SendCommandThread sendCommandThread = new SendCommandThread(cmd);
         Thread thread = new Thread(sendCommandThread, "sendCommandThread");
         thread.start();
     }
@@ -470,34 +470,15 @@ public class SensorBase extends DBObject {
 
         private volatile boolean execute; // variabile di sincronizzazione
         Command command;
-        SensorBase sensor;
 
-        public SendCommandThread(Command command, SensorBase sensor) {
+        public SendCommandThread(Command command) {
             this.command = command;
-            this.sensor = sensor;
         }
 
         @Override
         public void run() {
             boolean res = command.send();
-
             LOGGER.info("SendCommandThread command.uuid=" + command.uuid.toString());
-
-            /*if (res) {
-                JSONObject jsonObject = null;
-                try {
-                    jsonObject = new JSONObject(command.getResult());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                //updateShieldStatus(jsonObject);
-                sensor.updating = false;
-                sensor.updateFromJson(Core.getDate(), jsonObject);
-
-            } else {
-
-                // qui bisognerebbe metter qualcosa per fare un retry
-            }*/
         }
     }
 }

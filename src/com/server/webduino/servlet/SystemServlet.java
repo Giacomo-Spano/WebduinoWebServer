@@ -403,6 +403,15 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
+        } else if (requestCommand != null && requestCommand.equals("swversions")) {
+
+            JSONArray jarray = SWVersion.getSWVersionJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
+
         } else if (requestCommand != null && requestCommand.equals("pins")) {
 
             JSONArray jarray = SensorFactory.getPinJSONArray();

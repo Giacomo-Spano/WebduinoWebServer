@@ -1139,7 +1139,7 @@ $("input[type='submit']").click(function () {
 });
 
 
-function postShieldData(/*datatype, */json, callback, param) {
+function postShieldData(json, callback, param) {
 
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {

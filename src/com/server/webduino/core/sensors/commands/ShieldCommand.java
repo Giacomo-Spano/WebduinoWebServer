@@ -1,5 +1,7 @@
 package com.server.webduino.core.sensors.commands;
 
+import com.server.webduino.core.Core;
+import com.server.webduino.core.Shield;
 import com.server.webduino.core.datalog.CommandDataLog;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,13 +15,10 @@ import java.util.logging.Logger;
 public class ShieldCommand extends Command {
 
     private static final Logger LOGGER = Logger.getLogger(ShieldCommand.class.getName());
-    //public String command;
-    //public int shieldId;
-    public JSONArray sensors;
 
     public ShieldCommand(JSONObject json) throws JSONException {
         super(json);
-        commandDataLog = new CommandDataLog("heatercommanddatalog");
+        commandDataLog = new CommandDataLog("commanddatalog");
     }
 
     public void fromJson(JSONObject json) throws JSONException {
@@ -28,9 +27,26 @@ public class ShieldCommand extends Command {
             command = json.getString("command");
         if (json.has("shieldid"))
             shieldid = json.getInt("shieldid");
-        if (json.has("sensors"))
-            sensors = json.getJSONArray("sensors");
+    }
 
+    private boolean messageReceived(String message) {
+        LOGGER.info("Command response received: " + uuid);
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(message);
+            if (jsonObject.has("shieldid")) {
+                int shieldid = jsonObject.getInt("shieldid");
+                Shield shield = Core.getShieldFromId(shieldid);
+                if (shield != null) {
+                    //shield.updating = false;
+                    shield.updateFromJson(jsonObject);
+                    return true;
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public JSONObject getJSON() {
@@ -40,9 +56,6 @@ public class ShieldCommand extends Command {
             json.put("uuid", uuid);
             json.put("command", command);
             json.put("shieldid", shieldid);
-            json.put("sensors", sensors);
-            return json;
-
         } catch (JSONException e) {
             e.printStackTrace();
         }

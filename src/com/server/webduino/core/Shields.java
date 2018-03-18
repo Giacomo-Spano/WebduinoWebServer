@@ -13,8 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.server.webduino.core.Core.getShieldFromId;
-import static com.server.webduino.core.Core.loadShieldSettings;
 import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
 
 /**
@@ -116,6 +114,7 @@ public class Shields {
 
 
         requestSensorsStatusUpdate();
+
     }
 
     public List<SensorBase> getLastSensorData() {
@@ -207,14 +206,6 @@ public class Shields {
         return null;
     }
 
-    public boolean postCommand(Command command) {
-        Shield shield = fromId(command.shieldid);
-        if (shield != null) {
-            return shield.postCommand(command);
-        }
-        return false;
-    }
-
     public boolean requestShieldSettingStatusUpdate(int shieldid) {
         Shield shield = fromId(shieldid);
         if (shield != null) {
@@ -224,20 +215,10 @@ public class Shields {
         return false;
     }
 
-    public void requestShieldSensorsStatusUpdate(int shieldid) {
-        LOGGER.severe("requestShieldSensorsStatusUpdate shieldid=" + shieldid);
-        Shield shield = fromId(shieldid);
-        if (shield == null) {
-            LOGGER.severe("shieldid null");
-            return;
-        }
-        shield.requestAllSensorStatusUpdate();
-    }
-
     public void requestSensorsStatusUpdate() {
 
         for (Shield shield : getShields()) {
-            shield.requestAllSensorStatusUpdate();
+            shield.requestAsyncAllSensorStatusUpdate();
         }
     }
 

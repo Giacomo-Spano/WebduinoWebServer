@@ -34,7 +34,7 @@ public class ReleDataLog extends DataLog {
         HeaterActuator heaterActuator = (HeaterActuator) object;
         String sql = "";
 
-        /*sql = "INSERT INTO heaterdatalog (id, date, event, relestatus, status, localtemperature, remotetemperature, targettemperature, activeprogram, activetimerange, activesensor) " +
+        /*sql = "INSERT INTO heaterdatalog (id, date, event, relestatus, zonesensorstatus, localtemperature, remotetemperature, targettemperature, activeprogram, activetimerange, activesensor) " +
                 " VALUES (" + heaterActuator.id + ", " +
                 getStrDate() + ",'" +
                 event + "'," +
@@ -61,7 +61,7 @@ public class ReleDataLog extends DataLog {
                 json.put("remotetemperature", remoteTemperature);
                 json.put("targettemperature", targetTemperature);
                 json.put("relestatus", releStatus);
-                //json.put("status", status);
+                //json.put("zonesensorstatus", zonesensorstatus);
                 json.put("program", activeProgram);
                 json.put("timerange", activeTimerange);
                 return json;
@@ -97,7 +97,7 @@ public class ReleDataLog extends DataLog {
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 date = df.parse(String.valueOf(rs.getTimestamp("date")));
                 releStatus = rs.getBoolean("relestatus");
-                status = rs.getString("status");
+                status = rs.getString("zonesensorstatus");
                 localTemperature = rs.getDouble("localtemperature");
                 remoteTemperature = rs.getDouble("remotetemperature");
                 targetTemperature = rs.getDouble("targettemperature");

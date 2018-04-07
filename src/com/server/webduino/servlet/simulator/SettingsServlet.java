@@ -36,7 +36,7 @@ public class SettingsServlet extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //questa servlet riceve command dalla app, dalle pagine wed e riceve status update dagli actuator diorettamente
+        //questa servlet riceve command dalla app, dalle pagine wed e riceve zonesensorstatus update dagli actuator diorettamente
 
         StringBuffer jb = new StringBuffer();
         String line = null;
@@ -64,7 +64,7 @@ public class SettingsServlet extends HttpServlet {
 
             boolean res = false;
 
-            if (json.has("event") && json.getString("event").equals("update")) { // receive status update
+            if (json.has("event") && json.getString("event").equals("update")) { // receive zonesensorstatus update
 
                 if (json.has("actuator")) {
                     JSONObject jsonActuator = json.getJSONObject("actuator");

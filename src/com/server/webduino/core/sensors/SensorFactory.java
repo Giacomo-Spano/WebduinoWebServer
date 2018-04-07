@@ -1,6 +1,5 @@
 package com.server.webduino.core.sensors;
 
-import com.server.webduino.core.sensors.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,53 +74,75 @@ public class SensorFactory {
             json = new JSONObject();
             json.put("value", "temperaturesensor");
             json.put("description", "Temperaturesensor");
+            SensorBase sensor = createSensor("temperaturesensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
+            json.put("valuetype", "double");
+            json.put("valuemin", 0.0);
+            json.put("valuemax", 40.0);
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "onewiresensor");
             json.put("description", "Onewiresensor");
+            sensor = createSensor("onewiresensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "currentsensor");
             json.put("description", "Currentsensor");
+            sensor = createSensor("currentsensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "doorsensor");
             json.put("description", "Doorsensor");
+            sensor = createSensor("doorsensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "heatersensor");
             json.put("description", "Heatersensor");
+            sensor = createSensor("heatersensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "humiditysensor");
             json.put("description", "Humiditysensor");
+            sensor = createSensor("humiditysensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "pirsensor");
             json.put("description", "Pirsensor");
+            sensor = createSensor("pirsensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "pressuresensor");
             json.put("description", "Pressuresensor");
+            sensor = createSensor("pressuresensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "relesensor");
             json.put("description", "Relesensor");
+            sensor = createSensor("relesensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 
             json = new JSONObject();
             json.put("value", "hornsensor");
             json.put("description", "Hornsensor");
+            sensor = createSensor("hornsensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
-
 
         } catch (JSONException e) {
             e.printStackTrace();

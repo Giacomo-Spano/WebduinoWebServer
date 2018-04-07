@@ -1,14 +1,11 @@
 package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.Program;
 import com.server.webduino.core.datalog.ActionDataLog;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.scenario.Conflict;
-import com.server.webduino.core.webduinosystem.scenario.Scenario;
-import com.server.webduino.core.webduinosystem.scenario.ScenarioProgram;
-import com.server.webduino.core.webduinosystem.scenario.ScenarioProgramTimeRange;
 import com.server.webduino.core.webduinosystem.zones.Zone;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,6 +34,8 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
     public boolean enabled = true;
     public Date endDate = null;
     public Date startDate = null;
+    protected List<Condition> conditions = new ArrayList<>();
+    protected List<Action> actions = new ArrayList<>();
 
     public boolean active = false;
     private ActionDataLog dataLog = new ActionDataLog();
@@ -184,7 +183,23 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
             json.put("enabled", enabled);
             json.put("priority", priority);
 
-            json.put("status", getStatus());
+            json.put("zonesensorstatus", getStatus());
+
+
+            JSONArray jarray = new JSONArray();
+            if (conditions != null) {
+                for (Condition condition : conditions) {
+                    jarray.put(condition.toJson());
+                }
+                json.put("conditions", jarray);
+            }
+            jarray = new JSONArray();
+            if (actions != null) {
+                for (Action action : actions) {
+                    jarray.put(action.toJson());
+                }
+                json.put("actions", jarray);
+            }
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -259,7 +274,7 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
         java.util.Date time = new java.util.Date(seconds * 1000);
-        sql = "INSERT INTO scenarios_programinstructions (id, timerangeid, type, name, description, priority, actuatorid, targetvalue, thresholdvalue, zoneid, time, enabled)" +
+        sql = "INSERT INTO scenarios_programinactions (id, timerangeid, type, name, description, priority, actuatorid, targetvalue, thresholdvalue, zoneid, time, enabled)" +
                 " VALUES ("
                 + id + ","
                 + timerangeid + ","
@@ -291,6 +306,16 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         ResultSet rs = stmt.getGeneratedKeys();
         if (rs.next()) {
             id = rs.getInt(1);
+        }
+        if (conditions != null) {
+            for (Condition condition : conditions) {
+                condition.write(conn);
+            }
+        }
+        if (actions != null) {
+            for (Action action : actions) {
+                action.write(conn);
+            }
         }
     }
 

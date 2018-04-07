@@ -45,7 +45,7 @@ public class CheckHealthServlet extends HttpServlet {
             LOGGER.info("CheckHealthServlet");
 
             PrintWriter out = response.getWriter();
-            out.println("{\"status\" : \"alive\" }");
+            out.println("{\"zonesensorstatus\" : \"alive\" }");
             response.setStatus(HttpServletResponse.SC_OK);
             out.close();
 

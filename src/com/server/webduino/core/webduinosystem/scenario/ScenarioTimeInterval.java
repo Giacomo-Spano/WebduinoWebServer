@@ -235,9 +235,9 @@ public class ScenarioTimeInterval extends DBObject {
             json.put("priority", priority);
 
             if (isActive(Core.getDate()))
-                json.put("status", "on");
+                json.put("zonesensorstatus", "on");
             else
-                json.put("status", "off");
+                json.put("zonesensorstatus", "off");
 
             return json;
         } catch (JSONException e) {
@@ -292,7 +292,7 @@ public class ScenarioTimeInterval extends DBObject {
                 + "\"" + name + "\","
                 + "\"" + description + "\","
                 + priority + ","
-                + "" + enabled + ","
+                + Core.boolToString(enabled) + ","
                 + "'" + tf.format(startDateTime) + "',"
                 + "'" + tf.format(endDateTime) + "',"
                 + "" + Core.boolToString(sunday) + ","
@@ -307,7 +307,7 @@ public class ScenarioTimeInterval extends DBObject {
                 + "name=\"" + name + "\","
                 + "description=\"" + description + "\","
                 + "priority=" + priority + ","
-                + "enabled='" + enabled + "',"
+                + "enabled=" + Core.boolToString(enabled) + ","
                 + "startdatetime='" + tf.format(startDateTime) + "',"
                 + "enddatetime='" + tf.format(endDateTime) + "',"
                 + "sunday=" + Core.boolToString(sunday) + ","

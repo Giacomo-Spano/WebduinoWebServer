@@ -4,10 +4,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * Created by giaco on 12/05/2017.
@@ -54,7 +58,7 @@ public class ProgramActionFactory {
         return programActions;
     }
 
-    public ProgramAction fromResultSet(ResultSet resultSet) throws Exception {
+    public ProgramAction fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
         int id = resultSet.getInt("id");
         int timerangeid = resultSet.getInt("timerangeid");
         String type = resultSet.getString("type");
@@ -77,11 +81,51 @@ public class ProgramActionFactory {
 
         try {
             ProgramAction action = createProgramAction(id, timerangeid, type, name, description, priority, actuatorid, targetvalue, thresholdvalue, zoneId, seconds, enabled);
+            action.conditions = readConditions(conn,action.id);
+            action.actions = readActions(conn,action.id);
             return action;
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    private List<Condition> readConditions(Connection conn, int programactionid) throws Exception {
+
+        List<Condition> list = new ArrayList<>();
+        String sql;
+        Statement stmt4 = conn.createStatement();
+        sql = "SELECT * FROM scenarios_conditions WHERE programactionid=" + programactionid + " ;";
+        ResultSet resultSet = stmt4.executeQuery(sql);
+        ProgramActionFactory factory = new ProgramActionFactory();
+        while (resultSet.next()) {
+
+            Condition condition = new Condition(conn,resultSet);
+            if (condition != null)
+                list.add(condition);
+        }
+        resultSet.close();
+        stmt4.close();
+        return list;
+    }
+
+    private List<Action> readActions(Connection conn, int programactionid) throws Exception {
+
+        List<Action> list = new ArrayList<>();
+        String sql;
+        Statement stmt4 = conn.createStatement();
+        sql = "SELECT * FROM scenarios_actions WHERE programactionid=" + programactionid + " ;";
+        ResultSet resultSet = stmt4.executeQuery(sql);
+        ProgramActionFactory factory = new ProgramActionFactory();
+        while (resultSet.next()) {
+
+            Action action = new Action(conn,resultSet);
+            if (action != null)
+                list.add(action);
+        }
+        resultSet.close();
+        stmt4.close();
+        return list;
     }
 
     public ProgramAction fromJson(JSONObject json) throws Exception {

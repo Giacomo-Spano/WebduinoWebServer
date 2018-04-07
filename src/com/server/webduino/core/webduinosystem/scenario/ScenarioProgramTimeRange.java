@@ -125,14 +125,14 @@ public class ScenarioProgramTimeRange extends DBObject {
                 for (ProgramAction action : programActionList) {
                     jarray.put(action.toJson());
                 }
-                json.put("actions", jarray);
+                json.put("programactions", jarray);
             }
 
             if (active) {
-                json.put("status", "Attivo");
+                json.put("zonesensorstatus", "Attivo");
                 json.put("actionstatus", getActionStatus());
             } else {
-                json.put("status", "Non attivo");
+                json.put("zonesensorstatus", "Non attivo");
             }
 
         } catch (JSONException e) {
@@ -267,21 +267,21 @@ public class ScenarioProgramTimeRange extends DBObject {
         init(id, programid, name, description, startTime, endTime, enabled, actions, index);
     }
 
-    private static List<ProgramAction> readProgramActions(Connection conn, int programtimerangeid) throws Exception {
+    private /*static*/ List<ProgramAction> readProgramActions(Connection conn, int programtimerangeid) throws Exception {
 
         List<ProgramAction> list = new ArrayList<>();
         String sql;
         Statement stmt4 = conn.createStatement();
-        sql = "SELECT * FROM scenarios_programinstructions WHERE timerangeid=" + programtimerangeid + " ;";
-        ResultSet instructionsResultset = stmt4.executeQuery(sql);
+        sql = "SELECT * FROM scenarios_programactions WHERE timerangeid=" + programtimerangeid + " ;";
+        ResultSet programactionsResultset = stmt4.executeQuery(sql);
         ProgramActionFactory factory = new ProgramActionFactory();
-        while (instructionsResultset.next()) {
+        while (programactionsResultset.next()) {
 
-            ProgramAction action = factory.fromResultSet(instructionsResultset);
+            ProgramAction action = factory.fromResultSet(conn,programactionsResultset);
             if (action != null)
                 list.add(action);
         }
-        instructionsResultset.close();
+        programactionsResultset.close();
         stmt4.close();
         return list;
     }

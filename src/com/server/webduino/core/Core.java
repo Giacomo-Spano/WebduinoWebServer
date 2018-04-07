@@ -10,6 +10,8 @@ import com.server.webduino.core.webduinosystem.exits.ExitFactory;
 import com.server.webduino.core.webduinosystem.keys.Key;
 import com.server.webduino.core.webduinosystem.keys.KeyFactory;
 import com.server.webduino.core.webduinosystem.scenario.*;
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
+import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
 import com.server.webduino.core.webduinosystem.services.Service;
@@ -87,6 +89,34 @@ public class Core {
 
     }
 
+    public Condition removeCondition(JSONObject json) throws Exception {
+        Condition condition = new Condition(json);
+        condition.remove();
+        scenarios.initScenarios();
+        return condition;
+    }
+
+    public Action removeAction(JSONObject json) throws Exception {
+        Action action = new Action(json);
+        action.remove();
+        scenarios.initScenarios();
+        return action;
+    }
+
+    public Action saveAction(JSONObject json) throws Exception {
+        Action action = new Action(json);
+        action.save();
+        scenarios.initScenarios();
+        return action;
+    }
+
+    public Condition saveCondition(JSONObject json) throws Exception {
+        Condition condition = new Condition(json);
+        condition.save();
+        scenarios.initScenarios();
+        return condition;
+    }
+
     public interface CoreListener {
         void onCommandResponse(String uuid, String response);
     }
@@ -161,6 +191,14 @@ public class Core {
             }
         }
         return null;
+    }
+
+    public static JSONArray getServicesJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for (Service service : services) {
+            jsonArray.put(service.toJson());
+        }
+        return jsonArray;
     }
 
     public static JSONArray getSensorsJSONArray(int shieldid, String type) {
@@ -544,14 +582,17 @@ public class Core {
         return program;
     }
 
-    public Scenario removeScenarioProgram(JSONObject json) throws Exception {
+    public Scenario removeScenarioProgram(int programid) throws Exception {
 
-        ScenarioProgram program = new ScenarioProgram(json);
-        int scenarioid = program.scenarioId;
-        program.remove();
-        scenarios.initScenarios();
-        Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
-        return scenario;
+        ScenarioProgram program = Scenarios.getScenarioProgramFromId(programid);
+        if  (program != null) {
+            int scenarioid = program.scenarioId;
+            program.remove();
+            scenarios.initScenarios();
+            Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
+            return scenario;
+        }
+        return null;
     }
 
     public Trigger saveTrigger(JSONObject json) throws Exception {

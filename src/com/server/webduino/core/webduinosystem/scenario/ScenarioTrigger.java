@@ -27,7 +27,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
     public String name;
     public String description;
     public boolean enabled;
-    //public boolean status;
+    //public boolean zonesensorstatus;
     public int priority;
 
     public boolean active = false;
@@ -87,8 +87,8 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         json.put("description", description);
         json.put("type", type);
         json.put("enabled", enabled);
-        //json.put("status", status);
-        json.put("status", trigger.status);
+        //json.put("zonesensorstatus", zonesensorstatus);
+        json.put("zonesensorstatus", trigger.status);
         json.put("priority", priority);
 
         return json;
@@ -103,7 +103,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         if (json.has("description")) description = json.getString("description");
         if (json.has("type")) type = json.getString("type");
         if (json.has("enabled")) enabled = json.getBoolean("enabled");
-        //if (json.has("status")) status = json.getBoolean("status");
+        //if (json.has("zonesensorstatus")) zonesensorstatus = json.getBoolean("zonesensorstatus");
         if (json.has("priority")) priority = json.getInt("priority");
     }
 
@@ -157,7 +157,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
                 + "\"" + description + "\","
                 + "\"" + type + "\","
                 + enabled + ","
-                //+ status + ","
+                //+ zonesensorstatus + ","
                 + priority
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
@@ -167,7 +167,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
                 + "description=\"" + description + "\","
                 + "type=\"" + type + "\","
                 + "enabled=" + enabled + ","
-                //+ "status=" + status + ","
+                //+ "zonesensorstatus=" + zonesensorstatus + ","
                 + "priority=" + priority + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -214,7 +214,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         name = timeintervalsResultSet.getString("name");
         description = timeintervalsResultSet.getString("description");
         type = timeintervalsResultSet.getString("type");
-        //status = timeintervalsResultSet.getBoolean("status");
+        //zonesensorstatus = timeintervalsResultSet.getBoolean("zonesensorstatus");
         enabled = timeintervalsResultSet.getBoolean("enabled");
         priority = timeintervalsResultSet.getInt("priority");
     }

@@ -6,6 +6,7 @@ import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.webduinosystem.scenario.Scenario;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONException;
@@ -56,9 +57,13 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "heatersensor";
 
+        ActionCommand cmd = new ActionCommand("keeptemperature","Mantieni temperatura");
+        cmd.addTarget("Temperatura",0,30);
+        cmd.addZone("Zona");
+        actionCommandList.add(cmd);
+
         command = new HeaterActuatorCommand(shieldid,id);
         datalog = new HeaterDataLog(id);
-
     }
 
     public void init() {
@@ -239,10 +244,10 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
                 setZoneId(json.getInt("zoneid"));
             if (json.has("relestatus"))
                 setReleStatus(json.getBoolean("relestatus"));
-            if (json.has("status")) { // attenzione. Lostatus deve essere impostato do zoneid altrimenti in caso di manual non funziona
+            /*if (json.has("status")) { // attenzione. Lostatus deve essere impostato do zoneid altrimenti in caso di manual non funziona
                 String status = json.getString("status");
                 setStatus(status);
-            }
+            }*/
             if (json.has("duration"))
                 setDuration(json.getInt("duration"));
             if (json.has("remaining"))
@@ -286,7 +291,7 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
     public void getJSONField(JSONObject json) {
         try {
             json.put("temperature", temperature);
-            json.put("status", getStatus());
+            //json.put("status", getStatus());
 
             DateFormat timeFormat = new SimpleDateFormat("HH:mm");
             Calendar cal = Calendar.getInstance();

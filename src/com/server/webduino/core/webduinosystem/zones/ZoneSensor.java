@@ -6,7 +6,7 @@ import java.util.Date;
  * Created by giaco on 12/05/2017.
  */
 public class ZoneSensor {
-    int id;
+    public int id;
     private int sensorId;
     public String name;
 

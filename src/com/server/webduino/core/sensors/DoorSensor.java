@@ -21,6 +21,13 @@ public class DoorSensor extends SensorBase {
         datalog = new DoorSensorDataLog(id);
     }
 
+    @Override
+    protected void createStatusList() {
+        super.createStatusList();
+        statusList.add("open");
+        statusList.add("close");
+    }
+
     public void setStatus(boolean open) {
         LOGGER.info("setStatus");
 

@@ -364,9 +364,9 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             json.put("priority", priority);
             // dynamic values
             if (active)
-                json.put("status", "Attivo");
+                json.put("zonesensorstatus", "Attivo");
             else
-                json.put("status", "Non attivo");
+                json.put("zonesensorstatus", "Non attivo");
             SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             if (nextJobDate != null)
                 json.put("nextjobdate", df.format(nextJobDate));

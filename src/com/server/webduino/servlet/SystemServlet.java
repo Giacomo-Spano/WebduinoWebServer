@@ -6,7 +6,10 @@ import com.server.webduino.core.datalog.CommandDataLog;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.webduinosystem.scenario.*;
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
+import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
 import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
@@ -68,11 +71,14 @@ public class SystemServlet extends HttpServlet {
             if (data != null && data.equals("scenario")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        JSONArray jarray = core.removeScenario(json);
-                        if (jarray != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(jarray.toString());
-                            return;
+                        if (json.has("id")) {
+                            int scenarioid = json.getInt("id");
+                            JSONArray jarray = core.removeScenario(json);
+                            if (jarray != null) {
+                                response.setStatus(HttpServletResponse.SC_OK);
+                                out.print(jarray.toString());
+                                return;
+                            }
                         }
                     } else {
                         Scenario scenario = core.saveScenario(json);
@@ -151,10 +157,13 @@ public class SystemServlet extends HttpServlet {
             } else if (data != null && data.equals("program")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        Scenario scenario = core.removeScenarioProgram(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(scenario.toJson());
-                        return;
+                        if (json.has("id")) {
+                            int programid = json.getInt("id");
+                            Scenario scenario = core.removeScenarioProgram(programid);
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(scenario.toJson());
+                            return;
+                        }
                     } else {
                         ScenarioProgram program = core.saveScenarioProgram(json);
                         response.setStatus(HttpServletResponse.SC_OK);
@@ -191,7 +200,7 @@ public class SystemServlet extends HttpServlet {
                     out.print(e.toString());
                     return;
                 }
-            } else if (data != null && data.equals("trigger")) {
+            } else if (data != null && data.equals("trigger")) { // questo è diverso da scenariotrigger
 
                 try {
                     int id = json.getInt("id");
@@ -216,7 +225,7 @@ public class SystemServlet extends HttpServlet {
                     out.print(e.toString());
                     return;
                 }
-            } else if (data != null && data.equals("instruction")) {
+            } else if (data != null && data.equals("programaction")) {
 
                 try {
                     if (param != null && param.equals("delete")) {
@@ -238,7 +247,51 @@ public class SystemServlet extends HttpServlet {
                     out.print(e.toString());
                     return;
                 }
-            } else if (data != null && data.equals("zone")) {
+            } else if (data != null && data.equals("condition")) {
+
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Condition condition = core.removeCondition(json);
+                        if (condition != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(condition.toJson());
+                            return;
+                        }
+                    } else {
+                        Condition condition= core.saveCondition(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(condition.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+            } else if (data != null && data.equals("action")) {
+
+                try {
+                    if (param != null && param.equals("delete")) {
+                        Action action = core.removeAction(json);
+                        if (action != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(action.toJson());
+                            return;
+                        }
+                    } else {
+                        Action action = core.saveAction(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(action.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+            }else if (data != null && data.equals("zone")) {
                 try {
                     if (param != null && param.equals("delete")) {
 
@@ -383,6 +436,15 @@ public class SystemServlet extends HttpServlet {
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
+            }
+
+        } else if (requestCommand != null && requestCommand.equals("services")) {
+
+            JSONArray jarray = Core.getServicesJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
             }
 
         } else if (requestCommand != null && requestCommand.equals("sensortypes")) {

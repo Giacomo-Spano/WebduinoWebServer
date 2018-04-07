@@ -67,7 +67,7 @@ public class ShieldServlet extends HttpServlet {
             String error = "";
 
             if (json.has("event")) {
-                /*if (json.getString("event").equals("register")) { // receive status update
+                /*if (json.getString("event").equals("register")) { // receive zonesensorstatus update
                     if (json.has("shield")) {
                         JSONObject jsonShield = json.getJSONObject("shield");
                         jsonResponse = handleRegisterEvent(jsonShield);
@@ -81,7 +81,7 @@ public class ShieldServlet extends HttpServlet {
                     out.print(jsonResponse.toString());
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
-                } else if (json.getString("event").equals("restart")) { // receive status update
+                } else if (json.getString("event").equals("restart")) { // receive zonesensorstatus update
                     jsonResponse = handleRestartEvent();
                     out.print(jsonResponse.toString());
                     response.setStatus(HttpServletResponse.SC_OK);

@@ -588,7 +588,7 @@ public class ScenarioProgram extends DBObject {
         this.timeRanges = readProgramTimeRanges(conn, id);
     }
 
-    private /*static*/ List<ScenarioProgramTimeRange> readProgramTimeRanges(Connection conn, int programid) throws Exception {
+    private List<ScenarioProgramTimeRange> readProgramTimeRanges(Connection conn, int programid) throws Exception {
 
         List<ScenarioProgramTimeRange> list = new ArrayList<>();
         String sql;
@@ -598,21 +598,6 @@ public class ScenarioProgram extends DBObject {
         while (resultSet.next()) {
             ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(conn, programid, resultSet);
             if (timeRange != null) {
-                /*timeRange.addListener(new ScenarioProgramTimeRange.ActionListener() {
-                    @Override
-                    public void onStart(ProgramAction action, int timerangeIndex) {
-                        for (ActionListener listener : listeners) {
-                            listener.onStart(action, timerangeIndex, priority);
-                        }
-                    }
-
-                    @Override
-                    public void onStop(ProgramAction action) {
-                        for (ActionListener listener : listeners) {
-                            listener.onStop(action);
-                        }
-                    }
-                });*/
                 list.add(timeRange);
             }
         }

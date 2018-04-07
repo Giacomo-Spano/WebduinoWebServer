@@ -3,22 +3,27 @@ package com.server.webduino.core;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.quartz.TriggerListener;
 
+import java.awt.*;
 import java.sql.*;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created by giaco on 17/05/2017.
  */
 public class Trigger extends DBObject {
 
+    private List<ActionCommand> actionCommandList = new ArrayList<>();
     public int id = 0;
     public String name = "";
     public boolean status = false;
@@ -51,6 +56,12 @@ public class Trigger extends DBObject {
         this.name = name;
         this.status = status;
         this.date = date;
+        ActionCommand cmd = new ActionCommand("enable","Abilita");
+        cmd.addStatus("Stato");
+        actionCommandList.add(cmd);
+        cmd = new ActionCommand("disable","Disabilita");
+        cmd.addStatus("Stato");
+        actionCommandList.add(cmd);
     }
 
     public Trigger(JSONObject json) throws Exception {
@@ -66,12 +77,21 @@ public class Trigger extends DBObject {
         JSONObject json = new JSONObject();
         json.put("id", id);
         json.put("name", name);
-        json.put("status", status);
+        json.put("zonesensorstatus", status);
         SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         if (date != null)
             json.put("nextjobdate", df.format(date));
+        json.put("actioncommandlist", getActionCommandListJSONArray());
 
         return json;
+    }
+
+    public JSONArray getActionCommandListJSONArray() throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (ActionCommand command: actionCommandList) {
+            jsonArray.put(command.toJson());
+        }
+        return jsonArray;
     }
 
     @Override
@@ -81,8 +101,8 @@ public class Trigger extends DBObject {
             id = json.getInt("id");
         if (json.has("name"))
             name = json.getString("name");
-        if (json.has("status"))
-            status = json.getBoolean("status");
+        if (json.has("zonesensorstatus"))
+            status = json.getBoolean("zonesensorstatus");
     }
 
     @Override
@@ -148,4 +168,6 @@ public class Trigger extends DBObject {
             }
         }
     }
+
+
 }

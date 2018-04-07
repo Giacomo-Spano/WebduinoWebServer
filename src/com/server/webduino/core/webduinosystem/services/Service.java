@@ -6,6 +6,7 @@ import com.server.webduino.core.Devices;
 import com.server.webduino.core.Shield;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.TemperatureSensor;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +30,10 @@ public class Service {
     public int id;
     private String name;
     private String type;
+    private String status = "idle";
+
+    protected List<String> statusList = new ArrayList<String>();
+    protected List<ActionCommand> actionCommandList = new ArrayList<ActionCommand>();
 
     public Service(int id, String name, String type) {
         this.id = id;
@@ -49,6 +54,46 @@ public class Service {
     }
 
     public void init() {
+
+    }
+
+    public JSONArray getStatusListJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for (String status: statusList) {
+            jsonArray.put(status);
+        }
+        return jsonArray;
+    }
+
+    public JSONArray getActionCommandListJSONArray() throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (ActionCommand command: actionCommandList) {
+            jsonArray.put(command.toJson());
+        }
+        return jsonArray;
+    }
+
+    public JSONObject toJson() {
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("id", id);
+            json.put("name", name);
+            json.put("status", status);
+            json.put("statuslist", getStatusListJSONArray());
+            json.put("actioncommandlist", getActionCommandListJSONArray());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        // get custom json field
+        getJSONField(json);
+
+        return json;
+    }
+    public void getJSONField(JSONObject json) {
 
     }
 }

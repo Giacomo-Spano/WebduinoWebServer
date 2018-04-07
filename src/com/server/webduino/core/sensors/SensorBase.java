@@ -5,6 +5,7 @@ import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.SensorCommand;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,9 +39,12 @@ public class SensorBase extends DBObject {
     protected String pin;
     protected List<SensorBase> childSensors = new ArrayList<SensorBase>();
 
+    protected List<String> statusList = new ArrayList<String>();
+    protected List<ActionCommand> actionCommandList = new ArrayList<ActionCommand>();
+
     // dynamic state
     protected boolean testMode;
-    protected String status = "";
+    protected String status = "idle";
     protected String oldStatus = "";
     public boolean updating = false;
 
@@ -57,9 +61,15 @@ public class SensorBase extends DBObject {
         this.pin = pin;
         this.enabled = enabled;
         datalog = new DataLog();
+
+        createStatusList();
     }
 
-    public void requestAsyncSensorStatusUpdate() { // async sensor status request
+    protected void createStatusList() {
+        statusList.add("idle");
+    }
+
+    public void requestAsyncSensorStatusUpdate() { // async sensor zonesensorstatus request
         SensorCommand cmd = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, shieldid, id);
         updating = true;
 
@@ -74,6 +84,22 @@ public class SensorBase extends DBObject {
 
     public List<SensorBase> getChildSensors() { // ritorna la lista dei figli diretti
         return childSensors;
+    }
+
+    public JSONArray getStatusListJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for (String status: statusList) {
+            jsonArray.put(status);
+        }
+        return jsonArray;
+    }
+
+    public JSONArray getActionCommandListJSONArray() throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (ActionCommand command: actionCommandList) {
+            jsonArray.put(command.toJson());
+        }
+        return jsonArray;
     }
 
     public void setChildSensors(List<SensorBase> chidren) {
@@ -285,8 +311,8 @@ public class SensorBase extends DBObject {
                 pin = json.getString("pin");*/
             if (json.has("enabled"))
                 enabled = json.getBoolean("enabled");
-            /*if (json.has("testmode"))
-                testMode = json.getBoolean("testmode");*/
+            if (json.has("zonesensorstatus"))
+                status = json.getString("zonesensorstatus");
 
             if (json.has("children")) {
                 JSONArray jsonChildSensorArray = json.getJSONArray("children");
@@ -330,6 +356,11 @@ public class SensorBase extends DBObject {
             json.put("pin", pin);
             json.put("addr", subaddress);
             json.put("testmode", testMode);
+
+            json.put("status", getStatus());
+
+            json.put("statuslist", getStatusListJSONArray());
+            json.put("actioncommandlist", getActionCommandListJSONArray());
 
             JSONArray children = new JSONArray();
             for (SensorBase sensor : childSensors) {

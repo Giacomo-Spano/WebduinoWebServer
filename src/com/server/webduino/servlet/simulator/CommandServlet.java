@@ -49,7 +49,7 @@ public class CommandServlet extends HttpServlet {
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //questa servlet riceve command dalla app, dalle pagine wed e riceve status update dagli actuator diorettamente
+        //questa servlet riceve command dalla app, dalle pagine wed e riceve zonesensorstatus update dagli actuator diorettamente
 
         StringBuffer jb = new StringBuffer();
         String line = null;
@@ -73,8 +73,8 @@ public class CommandServlet extends HttpServlet {
                     JSONObject jsonResult = new JSONObject();
                     jsonResult.put("answer", "success");
                     String status = "";
-                    if (json.has("status"))
-                        status = json.getString("status");
+                    if (json.has("zonesensorstatus"))
+                        status = json.getString("zonesensorstatus");
                     jsonResult.put("power", status);
                     out.print(jsonResult.toString());
                     return;

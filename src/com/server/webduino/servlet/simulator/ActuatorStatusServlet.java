@@ -33,7 +33,7 @@ public class ActuatorStatusServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
 
 
-            String json = "{\"shieldid\":0,\"enabled\":true,\"heaterpin\":\"D4\",\"remotetemperature\":0.00,\"addr\":\"HeaterActuator-18:fe:34:d4:c6:87\",\"status\":\"idle\",\"type\":\"heater\",\"name\":\"Riscaldamento\",\"relestatus\":\"false\"}";
+            String json = "{\"shieldid\":0,\"enabled\":true,\"heaterpin\":\"D4\",\"remotetemperature\":0.00,\"addr\":\"HeaterActuator-18:fe:34:d4:c6:87\",\"zonesensorstatus\":\"idle\",\"type\":\"heater\",\"name\":\"Riscaldamento\",\"relestatus\":\"false\"}";
             out.print(json);
 
 
@@ -42,7 +42,7 @@ public class ActuatorStatusServlet extends HttpServlet {
 
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //questa servlet riceve command dalla app, dalle pagine wed e riceve status update dagli actuator diorettamente
+        //questa servlet riceve command dalla app, dalle pagine wed e riceve zonesensorstatus update dagli actuator diorettamente
 
         StringBuffer jb = new StringBuffer();
         String line = null;
@@ -70,7 +70,7 @@ public class ActuatorStatusServlet extends HttpServlet {
 
             boolean res = false;
 
-            if (json.has("event") && json.getString("event").equals("update")) { // receive status update
+            if (json.has("event") && json.getString("event").equals("update")) { // receive zonesensorstatus update
 
                 if (json.has("actuator")) {
                     JSONObject jsonActuator = json.getJSONObject("actuator");

@@ -57,9 +57,9 @@ public class HeaterActuator extends Actuator implements SensorBase.SensorListene
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "heatersensor";
 
-        ActionCommand cmd = new ActionCommand("keeptemperature","Mantieni temperatura");
+        ActionCommand cmd = new ActionCommand("keeptemperature","Temperatura target");
         cmd.addTarget("Temperatura",0,30);
-        cmd.addZone("Zona");
+        cmd.addZone("Zona", TemperatureSensor.temperaturesensortype);
         actionCommandList.add(cmd);
 
         command = new HeaterActuatorCommand(shieldid,id);

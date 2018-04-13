@@ -18,6 +18,7 @@ public class ActionCommand {
 
     boolean haszone = false;
     String zonename = "Target";
+    String zonesensortype = "";
 
     boolean hasparam = false;
     String paramname = "paramname";
@@ -37,9 +38,10 @@ public class ActionCommand {
         mintargetvalue = min;
         maxtargetvalue = max;
     }
-    public void addZone(String name) {
+    public void addZone(String name, String zoneSensorType) {
         haszone = true;
         zonename = name;
+        zonesensortype = zoneSensorType;
     }
     public void addParam(String name, int len) {
         hasparam = true;
@@ -66,6 +68,7 @@ public class ActionCommand {
         if (haszone) {
             json.put("zone",true);
             json.put("zonename",zonename);
+            json.put("zonesensortype",zonesensortype);
         }
 
         if (hasparam) {

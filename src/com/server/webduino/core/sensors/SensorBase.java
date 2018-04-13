@@ -348,7 +348,8 @@ public class SensorBase extends DBObject {
             json.put("parentid", parentid);
             json.put("online", online);
             json.put("subaddress", subaddress);
-            json.put("lastupdate", Core.getStrLastUpdate(lastUpdate));
+            if (lastUpdate != null)
+                json.put("lastupdate", Core.getStrLastUpdate(lastUpdate));
             json.put("type", type);
             json.put("name", name);
             json.put("description", description);

@@ -13,13 +13,14 @@ public class TemperatureSensor extends SensorBase {
 
     private static Logger LOGGER = Logger.getLogger(TemperatureSensor.class.getName());
 
+    public static String temperaturesensortype = "temperaturesensor";
     private double temperature;
     private double avTemperature;
 
     public TemperatureSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
 
         super(id, name, description, subaddress, shieldid, pin, enabled);
-        type = "temperaturesensor";
+        type = temperaturesensortype;
         datalog = new TemperatureSensorDataLog(id);
     }
 

@@ -22,6 +22,7 @@ public class Condition {
     public int programactionid = 0;
     public int zoneid;
     public int zonesensorid;
+    public int triggerid = 0;
     public String status = "";
     public String type;
     public String valueoperator;
@@ -41,6 +42,7 @@ public class Condition {
         if (json.has("programactionid")) programactionid = json.getInt("programactionid");
         if (json.has("zoneid")) zoneid = json.getInt("zoneid");
         if (json.has("zonesensorid")) zonesensorid = json.getInt("zonesensorid");
+        if (json.has("triggerid")) triggerid = json.getInt("triggerid");
         if (json.has("status")) status = json.getString("status");
         if (json.has("type")) type = json.getString("type");
         if (json.has("value")) value = json.getInt("value");
@@ -51,6 +53,7 @@ public class Condition {
         id = resultSet.getInt("id");
         zoneid = resultSet.getInt("zoneid");
         zonesensorid = resultSet.getInt("zonesensorid");
+        triggerid = resultSet.getInt("triggerid");
         status = resultSet.getString("status");
         type = resultSet.getString("type");
         value = resultSet.getDouble("value");
@@ -63,6 +66,7 @@ public class Condition {
             json.put("id", id);
             json.put("zoneid", zoneid);
             json.put("zonesensorid", zonesensorid);
+            json.put("triggerid", triggerid);
             json.put("status", status);
             json.put("type", type);
             json.put("value", value);
@@ -143,18 +147,22 @@ public class Condition {
         String zoneidstr ="null";
         if (zoneid>0)
             zoneidstr = "" + zoneid;
-        String zonesensoridstr ="null";
+        String zonesensoridstr = "null";
         if (zonesensorid>0)
-            zonesensoridstr = "" + zonesensoridstr;
+            zonesensoridstr = "" + zonesensorid;
+        String triggerstr = "null";
+        if (triggerid>0)
+            triggerstr = "" + triggerid;
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_conditions (id, programactionid, zoneid, zonesensorid, status,type,value,valueoperator)" +
+        sql = "INSERT INTO scenarios_conditions (id, programactionid, zoneid, zonesensorid, triggerid, status,type,value,valueoperator)" +
                 " VALUES ("
                 + id + ","
                 + programactionid + ","
                 + zoneidstr + ","
                 + zonesensoridstr + ","
+                + triggerstr + ","
                 + "\"" + status + "\","
                 + "\"" + type + "\","
                 + value + ","
@@ -165,6 +173,7 @@ public class Condition {
                 + "programactionid=" + programactionid + ","
                 + "zoneid=" + zoneidstr + ","
                 + "zonesensorid=" + zonesensoridstr + ","
+                + "triggerid=" + triggerstr + ","
                 + "status=\"" + status + "\","
                 + "type=\"" + type + "\","
                 + "value=" + value + ","

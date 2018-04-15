@@ -24,6 +24,7 @@ import java.util.List;
 public class Trigger extends DBObject {
 
     private List<ActionCommand> actionCommandList = new ArrayList<>();
+    protected List<String> statusList = new ArrayList<String>();
     public int id = 0;
     public String name = "";
     public boolean status = false;
@@ -50,8 +51,15 @@ public class Trigger extends DBObject {
         listeners.remove(toRemove);
     }
 
+    protected void createStatusList() {
+        statusList.add("on");
+        statusList.add("off");
+    }
+
+
 
     public Trigger(int id, String name, boolean status, java.util.Date date) {
+        createStatusList();
         this.id = id;
         this.name = name;
         this.status = status;
@@ -65,6 +73,7 @@ public class Trigger extends DBObject {
     }
 
     public Trigger(JSONObject json) throws Exception {
+        createStatusList();
         fromJson(json);
     }
 
@@ -82,8 +91,17 @@ public class Trigger extends DBObject {
         if (date != null)
             json.put("nextjobdate", df.format(date));
         json.put("actioncommandlist", getActionCommandListJSONArray());
+        json.put("statuslist", getStatusListJSONArray());
 
         return json;
+    }
+
+    public JSONArray getStatusListJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for (String status: statusList) {
+            jsonArray.put(status);
+        }
+        return jsonArray;
     }
 
     public JSONArray getActionCommandListJSONArray() throws JSONException {

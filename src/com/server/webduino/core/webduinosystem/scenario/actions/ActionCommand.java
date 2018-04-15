@@ -27,6 +27,10 @@ public class ActionCommand {
     boolean hasstatus = false;
     String statusname = "stato";
 
+    boolean hasduration = false;
+    int duration = 0;
+    String durationname = "Durata";
+
     public ActionCommand(String command, String name) {
         this.command = command;
         this.name = name;
@@ -37,6 +41,9 @@ public class ActionCommand {
         targetname = name;
         mintargetvalue = min;
         maxtargetvalue = max;
+        haszone = false;
+        hasparam = false;
+        hasstatus = false;
     }
     public void addZone(String name, String zoneSensorType) {
         haszone = true;
@@ -47,6 +54,12 @@ public class ActionCommand {
         hasparam = true;
         paramname = name;
         paramlen = len;
+    }
+
+    public void addDuration(String name) {
+        hasduration = false;
+        //duration = seconds;
+        durationname = name;
     }
 
     public void addStatus(String name) {
@@ -85,5 +98,6 @@ public class ActionCommand {
 
         return json;
     }
+
 
 }

@@ -1,6 +1,11 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.datalog.DoorSensorDataLog;
+import com.server.webduino.core.datalog.HornSensorDataLog;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
+import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.sensors.commands.HornActuatorCommand;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,7 +14,7 @@ import java.util.logging.Logger;
 
 //import static com.server.webduino.core.sensors.DoorSensor.DoorSensorListener.DoorEvents;
 
-public class HornSensor extends SensorBase {
+public class HornSensor extends Actuator {
 
     private static Logger LOGGER = Logger.getLogger(HornSensor.class.getName());
 
@@ -18,7 +23,22 @@ public class HornSensor extends SensorBase {
     public HornSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = "hornsensor";
-        datalog = new DoorSensorDataLog(id);
+
+        ActionCommand cmd = new ActionCommand("on","Attiva sirena");
+        cmd.addDuration("Durata");
+        actionCommandList.add(cmd);
+
+        cmd = new ActionCommand("off","Disattiva sirena");
+        cmd.addDuration("Durata");
+        actionCommandList.add(cmd);
+
+        command = new HornActuatorCommand(shieldid,id);
+        datalog = new HornSensorDataLog(id);
+    }
+
+    @Override
+    public ActuatorCommand getCommandFromJson(JSONObject json) {
+        return null;
     }
 
     public void setStatus(boolean open) {
@@ -38,6 +58,11 @@ public class HornSensor extends SensorBase {
     @Override
     public void writeDataLog(String event) {
         datalog.writelog(event, this);
+    }
+
+    @Override
+    public Boolean sendCommand(ActuatorCommand cmd) {
+        return null;
     }
 
     public boolean getAlarmActiveStatus() {

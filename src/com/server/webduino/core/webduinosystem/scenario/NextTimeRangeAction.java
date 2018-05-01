@@ -1,11 +1,10 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
-import org.json.JSONArray;
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -20,7 +19,8 @@ public class NextTimeRangeAction implements Comparable<NextTimeRangeAction>{
     public LocalDate date;
     public LocalTime start;
     public LocalTime end;
-    public ProgramAction action;
+    public Action action;
+    public ScenarioProgramInstruction programInstruction;
     public ScenarioProgramTimeRange timeRange;
     public ScenarioProgram program;
     public int timeintervalid;
@@ -51,9 +51,9 @@ public class NextTimeRangeAction implements Comparable<NextTimeRangeAction>{
 
             if (timeRange != null) {
                 json.put("actionid", action.id);
-                json.put("actionname", action.name);
-                json.put("actiontype", action.type + " " + action.targetvalue);
                 json.put("action", action.toJson());
+                json.put("programinstructionid", programInstruction.id);
+                json.put("programinstructionname", programInstruction.name);
                 json.put("timerangeid", timeRange.id);
                 json.put("timerangename", timeRange.name);
                 json.put("programid", program.id);
@@ -61,8 +61,6 @@ public class NextTimeRangeAction implements Comparable<NextTimeRangeAction>{
                 json.put("scenarioid", scenario.id);
                 json.put("scenarioname", scenario.name);
                 json.put("timeintervalid", timeintervalid);
-                json.put("actuatorid", action.actuatorid);
-                //json.put("actuatorname", action.);
                 String str = "";
                 int i = 0;
                 for(Conflict conflict:conflictList) {

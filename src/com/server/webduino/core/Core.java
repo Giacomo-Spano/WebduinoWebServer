@@ -3,7 +3,6 @@ package com.server.webduino.core;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.Actuator;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.exits.Exit;
 import com.server.webduino.core.webduinosystem.exits.ExitFactory;
@@ -12,8 +11,8 @@ import com.server.webduino.core.webduinosystem.keys.KeyFactory;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
 import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.webduinosystem.services.ServiceFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
@@ -687,17 +686,17 @@ public class Core {
         return program;
     }
 
-    public ProgramAction saveScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
-        ProgramActionFactory factory = new ProgramActionFactory();
-        ProgramAction action = factory.fromJson(json);
+    public ScenarioProgramInstruction saveScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
+        ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
+        ScenarioProgramInstruction action = factory.fromJson(json);
         action.save();
         scenarios.initScenarios();
         return action;
     }
 
     public ScenarioProgramTimeRange removeScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
-        ProgramActionFactory factory = new ProgramActionFactory();
-        ProgramAction instruction = factory.fromJson(json);
+        ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
+        ScenarioProgramInstruction instruction = factory.fromJson(json);
         int timerangeid = instruction.timerangeid;
         instruction.remove();
         scenarios.initScenarios();

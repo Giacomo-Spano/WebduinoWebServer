@@ -5,14 +5,13 @@ import com.server.webduino.core.webduinosystem.scenario.Conflict;
 /**
  * Created by giaco on 17/05/2017.
  */
-public class KeepOffProgramActions extends ProgramAction {
-    public KeepOffProgramActions(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
-                                 int zoneId, int seconds, boolean enabled) {
-        super(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
-                zoneId, seconds, enabled);
+public class KeepOffScenarioProgramInstruction extends ScenarioProgramInstruction {
+    public KeepOffScenarioProgramInstruction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
+                                             int zoneId, int seconds, boolean enabled) {
+        super(id, programtimerangeid, name, description, priority, enabled);
     }
 
-    @Override
+    /*@Override
     public void addConflict(Conflict newconflict) {
 
         // controlla che non ci sia già nella lista altrimenti
@@ -23,10 +22,11 @@ public class KeepOffProgramActions extends ProgramAction {
         }
 
         // se la action ha lo stesso actuator aggiunge il conflitto
+        // DA RIFARE
         if (newconflict.action.actuatorid == this.actuatorid) {
-            if (newconflict.action instanceof KeepTemperatureProgramAction || newconflict.action instanceof KeepOffProgramActions ) {
+            if (newconflict.action instanceof KeepTemperatureScenarioProgramInstruction || newconflict.action instanceof KeepOffScenarioProgramInstruction) {
                 conflictList.add(newconflict);
             }
         }
-    }
+    }*/
 }

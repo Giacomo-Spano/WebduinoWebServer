@@ -26,8 +26,6 @@ public abstract class Actuator extends SensorBase {
 
     public abstract void writeDataLog(String event);
 
-    public abstract Boolean sendCommand(ActuatorCommand cmd);
-
     @Override
     public void updateFromJson(Date date, JSONObject json) {
         super.updateFromJson(date,json);

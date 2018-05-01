@@ -2,7 +2,6 @@ package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.datalog.ActionDataLog;
-import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.scenario.Conflict;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
@@ -18,104 +17,67 @@ import java.util.Date;
 /**
  * Created by giaco on 17/05/2017.
  */
-public class ProgramAction implements Zone.WebduinoZoneListener {
+public class ScenarioProgramInstruction implements Zone.WebduinoZoneListener {
 
     public int id = 0;
     public int timerangeid = 0;
-    public String type = "";
     public String name = "";
     public String description = "";
     public int priority = 0;
-    public int actuatorid = 0;
-    public double targetvalue = 0;
-    public double thresholdvalue = 0;
-    public int zoneId = 0;
-    public int seconds = 0;
+    //public int actuatorid = 0;
     public boolean enabled = true;
     public Date endDate = null;
     public Date startDate = null;
     protected List<Condition> conditions = new ArrayList<>();
-    protected List<Action> actions = new ArrayList<>();
+    public List<Action> actions = new ArrayList<>();
 
     public boolean active = false;
     private ActionDataLog dataLog = new ActionDataLog();
 
-    protected List<ActionListener> listeners = new ArrayList<>();
+   //protected List<ProgramInstructionListener> listeners = new ArrayList<>();
 
-    public interface ActionListener {
-        void onStart(ProgramAction action);
+    private boolean conditionsActive = false;
+    private Condition.ConditionListener conditionListener = new Condition.ConditionListener() {
+        @Override
+        public void onActiveChange(boolean active) {
+            checkConditions();
+        }
+    };
 
-        void onStop(ProgramAction action);
+    public void setActionListener(Action.ActionListener toAdd) {
+        if (actions != null) {
+            for (Action action : actions) {
+                action.addListener(toAdd);
+            }
+        }
     }
 
-    public void addListener(ActionListener toAdd) {
+
+    /*public interface ProgramInstructionListener {
+        void onStart(ScenarioProgramInstruction action);
+
+        void onStop(ScenarioProgramInstruction action);
+    }*/
+
+    /*public void addListener(ProgramInstructionListener toAdd) {
         listeners.add(toAdd);
     }
 
-    public void deleteListener(ActionListener toRemove) {
+    public void deleteListener(ProgramInstructionListener toRemove) {
         listeners.remove(toRemove);
-    }
+    }*/
 
 
-    public ProgramAction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
-                         int zoneId, int seconds, boolean enabled) {
+    public ScenarioProgramInstruction(int id, int programtimerangeid, String name, String description, int priority, boolean enabled) {
         this.id = id;
         this.timerangeid = programtimerangeid;
-        this.type = type;
         this.name = name;
         this.description = description;
         this.priority = priority;
-        this.actuatorid = actuatorid;
-        this.targetvalue = targevalue;
-        this.thresholdvalue = thresholdvalue;
-        this.zoneId = zoneId;
-        this.seconds = seconds;
         this.enabled = enabled;
     }
 
-    List<Conflict> conflictList = new ArrayList<>();
 
-    public boolean hasConflict(ProgramAction action) {
-
-        if (action ==  null) return false;
-
-        if (action.actuatorid == this.actuatorid) {
-            if ((action instanceof KeepTemperatureProgramAction || action instanceof KeepOffProgramActions) &&
-                    (this instanceof KeepTemperatureProgramAction || this instanceof KeepOffProgramActions)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void addConflict(Conflict newconflict) {
-
-        // controlla che non ci sia già nella lista altrimenti
-        for (Conflict conflict : conflictList) {
-            if (conflict.action.id == newconflict.action.id) {
-                return;
-            }
-        }
-
-        // se la action ha lo stesso actuator aggiunge il conflitto
-        //if (newconflict.action.actuatorid == this.actuatorid) {
-
-            conflictList.add(newconflict);
-            /*if ((newconflict.action instanceof KeepTemperatureProgramAction || newconflict.action instanceof KeepOffProgramActions) &&
-                    (this instanceof KeepTemperatureProgramAction || this instanceof KeepOffProgramActions)) {
-                conflictList.add(newconflict);
-            }*/
-        //}
-    }
-
-    public void removeConflict(ProgramAction action) {
-        for (Conflict conflict : conflictList) {
-            if (conflict.action.id == action.id) {
-                conflictList.remove(conflict);
-                break;
-            }
-        }
-    }
 
     public void setEndDate(Date date) {
         endDate = date;
@@ -144,17 +106,54 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         dataLog.id = dataLog.writelog("start",this);
 
         active = true;
-        for (ActionListener listener : listeners) {
+
+        // questo serve???
+        /*for (ProgramInstructionListener listener : listeners) {
             listener.onStart(this);
+        }*/
+
+        for (Condition condition:conditions) {
+            condition.start();
+            condition.addListener(conditionListener);
         }
+
+        checkConditions();
     }
 
     public void stop() {
         if (active)
             dataLog.writelog("stop",this);
         active = false;
-        for (ActionListener listener : listeners) {
+        /*for (ProgramInstructionListener listener : listeners) {
             listener.onStop(this);
+        }*/
+
+        for (Condition condition:conditions) {
+            condition.stop();
+            condition.deleteListener(conditionListener);
+        }
+    }
+
+    public void checkConditions() {
+
+        boolean active = true;
+
+        for (Condition condition:conditions) {
+            if (!condition.isActive()) {
+                active = false;
+                break;
+            }
+        }
+
+        if (conditionsActive != active) {
+            conditionsActive = active;
+            for (Action action : actions) {
+                if (conditionsActive) {
+                    action.start();
+                } else {
+                    action.stop();
+                }
+            }
         }
     }
 
@@ -168,23 +167,10 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         try {
             json.put("id", id);
             json.put("timerangeid", timerangeid);
-            json.put("type", type);
             json.put("name", name);
             json.put("description", description);
-            json.put("actuatorid", actuatorid);
-            SensorBase actuator = Core.getSensorFromId(actuatorid);
-            if (actuator != null) json.put("actuatorname", actuator.getName());
-            json.put("targetvalue", targetvalue);
-            json.put("thresholdvalue", thresholdvalue);
-            json.put("zoneid", zoneId);
-            Zone zone = Core.getZoneFromId(zoneId);
-            if (zone != null) json.put("zonename", zone.getName());
-            json.put("seconds", seconds);
             json.put("enabled", enabled);
             json.put("priority", priority);
-
-            json.put("zonesensorstatus", getStatus());
-
 
             JSONArray jarray = new JSONArray();
             if (conditions != null) {
@@ -273,33 +259,20 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
 
-        java.util.Date time = new java.util.Date(seconds * 1000);
-        sql = "INSERT INTO scenarios_programinactions (id, timerangeid, type, name, description, priority, actuatorid, targetvalue, thresholdvalue, zoneid, time, enabled)" +
+        sql = "INSERT INTO scenarios_programinstructions (id, timerangeid, name, description, priority, enabled)" +
                 " VALUES ("
                 + id + ","
                 + timerangeid + ","
-                + "\"" + type + "\","
                 + "\"" + name + "\","
                 + "\"" + description + "\","
                 + priority + ","
-                + actuatorid + ","
-                + targetvalue + ","
-                + thresholdvalue + ","
-                + zoneId + ","
-                + "'" + df.format(time) + "',"
                 + Core.boolToString(enabled) + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "id=" + id + ","
                 + "timerangeid=" + timerangeid + ","
-                + "type=\"" + type + "\","
                 + "name=\"" + name + "\","
                 + "name=\"" + description + "\","
                 + "priority=" + priority + ","
-                + "actuatorid=" + actuatorid + ","
-                + "targetvalue=" + targetvalue + ","
-                + "thresholdvalue=" + thresholdvalue + ","
-                + "zoneId=" + zoneId + ","
-                + "time='" + df.format(time) + "',"
                 + "enabled=" + Core.boolToString(enabled) + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
@@ -325,4 +298,5 @@ public class ProgramAction implements Zone.WebduinoZoneListener {
         stmt.executeUpdate(sql);
 
     }
+
 }

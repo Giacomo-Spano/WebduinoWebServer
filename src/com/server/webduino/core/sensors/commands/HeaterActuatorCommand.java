@@ -32,8 +32,8 @@ public class HeaterActuatorCommand extends Command {
     public Date date;
     public Date enddate;
 
-    public HeaterActuatorCommand(int shieldid, int actuatorid){
-        super(shieldid,actuatorid);
+    public HeaterActuatorCommand(int shieldid, int actuatorid) {
+        super(shieldid, actuatorid);
         commandDataLog = new HeaterCommandDataLog();
 
     }
@@ -46,41 +46,41 @@ public class HeaterActuatorCommand extends Command {
     @Override
     public void fromJson(JSONObject json) throws JSONException {
 
-            if (json.has("actuatorid"))
-                actuatorid = json.getInt("actuatorid");
-            if (json.has("shieldid"))
-                shieldid = json.getInt("shieldid");
-            if (json.has("command"))
-                command = json.getString("command");
-            if (json.has("duration"))
-                duration = json.getInt("duration");
-            if (json.has("target"))
-                targetTemperature = json.getDouble("target");
-            if (json.has("temperature"))
-                temperature = json.getDouble("temperature");
-            if (json.has("actionid"))
-                actionid = json.getInt("actionid");
-            if (json.has("zone"))
-                zone = json.getInt("zone");
-            SimpleDateFormat df = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
-            if (json.has("date")) {
-                String str = json.getString("date");
-                try {
-                    date = df.parse(str);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                    date = null;
-                }
+        if (json.has("actuatorid"))
+            actuatorid = json.getInt("actuatorid");
+        if (json.has("shieldid"))
+            shieldid = json.getInt("shieldid");
+        if (json.has("command"))
+            command = json.getString("command");
+        if (json.has("duration"))
+            duration = json.getInt("duration");
+        if (json.has("target"))
+            targetTemperature = json.getDouble("target");
+        if (json.has("temperature"))
+            temperature = json.getDouble("temperature");
+        if (json.has("actionid"))
+            actionid = json.getInt("actionid");
+        if (json.has("zone"))
+            zone = json.getInt("zone");
+        SimpleDateFormat df = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+        if (json.has("date")) {
+            String str = json.getString("date");
+            try {
+                date = df.parse(str);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                date = null;
             }
-            if (json.has("enddate")) {
-                String str = json.getString("enddate");
-                try {
-                    enddate = df.parse(str);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                    enddate = null;
-                }
+        }
+        if (json.has("enddate")) {
+            String str = json.getString("enddate");
+            try {
+                enddate = df.parse(str);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                enddate = null;
             }
+        }
     }
 
     @Override
@@ -90,7 +90,7 @@ public class HeaterActuatorCommand extends Command {
 
         try {
             json.put("actuatorid", actuatorid);
-            json.put("uuid",uuid);
+            json.put("uuid", uuid);
             if (command.equals(HeaterActuatorCommand.Command_KeepTemperature)) {
 
                 json.put("command", HeaterActuatorCommand.Command_KeepTemperature);

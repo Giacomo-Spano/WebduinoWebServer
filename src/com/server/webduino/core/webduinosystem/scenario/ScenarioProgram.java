@@ -4,7 +4,8 @@ import com.quartz.NextScenarioProgramTimeIntervalQuartzJob;
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,7 +61,7 @@ public class ScenarioProgram extends DBObject {
     private Date programLastEndDate = null;
     public List<ScenarioProgramTimeRange> timeRanges = new ArrayList<>();
 
-    public void setActionListener(ProgramAction.ActionListener toAdd) {
+    public void setActionListener(Action.ActionListener toAdd) {
 
         if (timeRanges != null) {
             for (ScenarioProgramTimeRange timeRange : timeRanges) {
@@ -120,7 +121,7 @@ public class ScenarioProgram extends DBObject {
 
         // controlla se all'ora corrente di oggi c'è una TimeRange attiva e la avvia
         Calendar c = Calendar.getInstance();
-        ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromTimeAndDay(currentTime,c.get(Calendar.DAY_OF_WEEK));
+        ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromTimeAndDay(currentTime, c.get(Calendar.DAY_OF_WEEK));
 
         if (activeTimeRange != null && dayOfWeekActive(c.get(Calendar.DAY_OF_WEEK))) {
             active = true;
@@ -229,7 +230,7 @@ public class ScenarioProgram extends DBObject {
                 Calendar c = Calendar.getInstance();
                 c.setTime(activeTimeRangeEndDate);
                 // imposta la prossima data ad un secondo dopo la fine del'activeTimerange
-                c.add(Calendar.SECOND,1);
+                c.add(Calendar.SECOND, 1);
                 nexJobDate = c.getTime();
             }
         } else {
@@ -238,7 +239,7 @@ public class ScenarioProgram extends DBObject {
                 Calendar c = Calendar.getInstance();
                 c.setTime(nextTimeRangeStartDate);
                 // imposta la prossima data ad un secondo dopo la fine del'activeTimerange
-                c.add(Calendar.SECOND,1);
+                c.add(Calendar.SECOND, 1);
                 nexJobDate = c.getTime();
             }
         }
@@ -273,7 +274,7 @@ public class ScenarioProgram extends DBObject {
             timeRange = getActiveTimeRangeFromTimeAndDay(time, nextDateCalendar.get(Calendar.DAY_OF_WEEK));
 
             Date startDate = nextDate;
-            nextDate = getNextJobDate(startDate,timeRange);
+            nextDate = getNextJobDate(startDate, timeRange);
 
             if (nextDate == null)
                 break;
@@ -281,29 +282,33 @@ public class ScenarioProgram extends DBObject {
             if (maxDate != null && nextDate.after(maxDate))
                 nextDate = maxDate;
 
-            if (timeRange != null && timeRange.programActionList != null) {
+            if (timeRange != null && timeRange.scenarioProgramInstructionList != null) {
                 // aggiunge un time range se esiste e se c'è almeno una action
-                for (ProgramAction action: timeRange.programActionList) {
-                    NextTimeRangeAction range = new NextTimeRangeAction();
-                    range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
-                    range.start = time;
-                    range.timeRange = timeRange;
+                for (ScenarioProgramInstruction programInstruction : timeRange.scenarioProgramInstructionList) {
+                    for (Action action : programInstruction.actions) {
 
-                    instant = Instant.ofEpochMilli(nextDate.getTime());
-                    time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
-                    // mette la data di fine del range alla prima data tra la fine
-                    // del time range e l'inizio del successivo
-                    if (time.isBefore(timeRange.endTime)) {
-                        range.end = time;
-                    } else {
-                        range.end = timeRange.endTime;
+                        NextTimeRangeAction range = new NextTimeRangeAction();
+                        range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
+                        range.start = time;
+                        range.timeRange = timeRange;
+                        range.programInstruction = programInstruction;
+
+                        instant = Instant.ofEpochMilli(nextDate.getTime());
+                        time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+                        // mette la data di fine del range alla prima data tra la fine
+                        // del time range e l'inizio del successivo
+                        if (time.isBefore(timeRange.endTime)) {
+                            range.end = time;
+                        } else {
+                            range.end = timeRange.endTime;
+                        }
+                        range.action = action;
+                        list.add(range);
+
+                        range = new NextTimeRangeAction();
+                        range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
+                        range.start = time;
                     }
-                    range.action = action;
-                    list.add(range);
-
-                    range = new NextTimeRangeAction();
-                    range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
-                    range.start = time;
                 }
 
             }
@@ -478,7 +483,7 @@ public class ScenarioProgram extends DBObject {
             if (endDate != null)
                 json.put("enddate", df.format(endDate));
             Calendar c = Calendar.getInstance();
-            ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromTimeAndDay(Core.getTime(),c.get(Calendar.DAY_OF_WEEK));
+            ScenarioProgramTimeRange activeTimeRange = getActiveTimeRangeFromTimeAndDay(Core.getTime(), c.get(Calendar.DAY_OF_WEEK));
             if (activeTimeRange != null)
                 json.put("activetimerange", activeTimeRange.toJson());
 

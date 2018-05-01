@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Created by giaco on 12/05/2017.
  */
-public class ProgramActionFactory {
+public class ScenarioProgramInstructionFactory {
 
     public static final String DELAYALARM = "delayalarm";
     public static final String KEEPTEMPERATURE = "keeptemperature";
@@ -24,80 +24,66 @@ public class ProgramActionFactory {
     public static final String VOIPCALL = "voipcall";
     public static final String TRIGGERSTATUS = "triggerstatus";
 
-    public ProgramAction createProgramAction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
-                                             int zoneId, int seconds, boolean enabled) throws Exception {
-        ProgramAction programActions = null;
-        if (type.equals(DELAYALARM)) {
-            programActions = new DelayAlarmProgramActions(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+    public ScenarioProgramInstruction createProgramAction(int id, int programtimerangeid, String name, String description, int priority, boolean enabled) throws Exception {
+        ScenarioProgramInstruction programActions = null;
+        /*if (type.equals(DELAYALARM)) {
+            programActions = new DelayAlarmScenarioProgramActions(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(VOIPCALL)) {
-            programActions = new VoIPCallProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new VoIPCallScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(TRIGGERSTATUS)) {
-            programActions = new TriggerStatusProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new TriggerStatusScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(KEEPTEMPERATURE)) {
-            programActions = new KeepTemperatureProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new KeepTemperatureScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(KEEPOFF)) {
-            programActions = new KeepOffProgramActions(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
-                    zoneId, seconds, enabled);
-        } else if (type.equals("immediatealarm") || type.equals("perimetrale") || type.equals("path") || type.equals("24hours")) {
-            programActions = new ProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new KeepOffScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
+                    zoneId, seconds, enabled);*/
+        /*} else if (type.equals("immediatealarm") || type.equals("perimetrale") || type.equals("path") || type.equals("24hours")) {
+            programActions = new ScenarioProgramInstruction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
             zoneId, seconds, enabled);
         } else if (type.equals("instruction")) { // istruzione generica vuota per inserimento nuoiva
-            programActions = new ProgramAction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new ScenarioProgramInstruction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
-        } else {
-            throw new Exception("type:" + type + "does not exist");
-        }
-
-
+        *//*} else {*/
+            //throw new Exception("type:" + type + "does not exist");
+            programActions = new ScenarioProgramInstruction(id, programtimerangeid, name, description, priority, enabled);
+        //}
 
         programActions.init();
         return programActions;
     }
 
-    public ProgramAction fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
+    public ScenarioProgramInstruction fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
         int id = resultSet.getInt("id");
         int timerangeid = resultSet.getInt("timerangeid");
-        String type = resultSet.getString("type");
         String name = resultSet.getString("name");
         String description = resultSet.getString("description");
-        int actuatorid = resultSet.getInt("actuatorid");
-        double targetvalue = (double) resultSet.getDouble("targetvalue");
-        double thresholdvalue = resultSet.getDouble("thresholdvalue");
-        int zoneId = resultSet.getInt("zoneid");
-        int seconds = 0;
-        Time time = resultSet.getTime("time");
-        if (time != null) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(time);
-            seconds = cal.get(Calendar.SECOND);
-        }
         Boolean enabled = resultSet.getBoolean("enabled");
         int priority = resultSet.getInt("priority");
 
 
         try {
-            ProgramAction action = createProgramAction(id, timerangeid, type, name, description, priority, actuatorid, targetvalue, thresholdvalue, zoneId, seconds, enabled);
-            action.conditions = readConditions(conn,action.id);
-            action.actions = readActions(conn,action.id);
-            return action;
+            ScenarioProgramInstruction programInstruction = createProgramAction(id, timerangeid, name, description, priority, enabled);
+            programInstruction.conditions = readConditions(conn,programInstruction.id);
+            programInstruction.actions = readActions(conn,programInstruction.id);
+            return programInstruction;
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
         }
     }
 
-    private List<Condition> readConditions(Connection conn, int programactionid) throws Exception {
+    private List<Condition> readConditions(Connection conn, int programinstructionid) throws Exception {
 
         List<Condition> list = new ArrayList<>();
         String sql;
         Statement stmt4 = conn.createStatement();
-        sql = "SELECT * FROM scenarios_conditions WHERE programactionid=" + programactionid + " ;";
+        sql = "SELECT * FROM scenarios_conditions WHERE programinstructionid=" + programinstructionid + " ;";
         ResultSet resultSet = stmt4.executeQuery(sql);
-        ProgramActionFactory factory = new ProgramActionFactory();
+        ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
         while (resultSet.next()) {
 
             Condition condition = new Condition(conn,resultSet);
@@ -109,14 +95,14 @@ public class ProgramActionFactory {
         return list;
     }
 
-    private List<Action> readActions(Connection conn, int programactionid) throws Exception {
+    private List<Action> readActions(Connection conn, int programinstructionid) throws Exception {
 
         List<Action> list = new ArrayList<>();
         String sql;
         Statement stmt4 = conn.createStatement();
-        sql = "SELECT * FROM scenarios_actions WHERE programactionid=" + programactionid + " ;";
+        sql = "SELECT * FROM scenarios_actions WHERE programinstructionid=" + programinstructionid + " ;";
         ResultSet resultSet = stmt4.executeQuery(sql);
-        ProgramActionFactory factory = new ProgramActionFactory();
+        ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
         while (resultSet.next()) {
 
             Action action = new Action(conn,resultSet);
@@ -128,13 +114,13 @@ public class ProgramActionFactory {
         return list;
     }
 
-    public ProgramAction fromJson(JSONObject json) throws Exception {
+    public ScenarioProgramInstruction fromJson(JSONObject json) throws Exception {
 
-            String type = "";
+            /*String type = "";
             if (json.has("type"))
                 type = json.getString("type");
             else
-                throw new JSONException("type key missing");
+                throw new JSONException("type key missing");*/
 
             int id = 0, timerangeid = 0, actuatorid = 0, zoneId = 0, seconds = 0, priority = 0;
             String name = "";
@@ -158,10 +144,10 @@ public class ProgramActionFactory {
             if (json.has("name")) name = json.getString("name");
             if (json.has("description")) description = json.getString("description");
             if (json.has("priority")) priority = json.getInt("priority");
-            if (json.has("actuatorid")) actuatorid = json.getInt("actuatorid");
+            /*if (json.has("actuatorid")) actuatorid = json.getInt("actuatorid");
             if (json.has("targetvalue")) targetvalue = json.getDouble("targetvalue");
             if (json.has("thresholdvalue")) thresholdvalue = json.getDouble("thresholdvalue");
-            if (json.has("zoneid")) zoneId = json.getInt("zoneid");
+            if (json.has("zoneid")) zoneId = json.getInt("zoneid");*/
             /*if (json.has("seconds")) {
                 DateFormat timeFormat = new SimpleDateFormat("HH:mm");
                 String timeStr = json.getString("seconds");
@@ -177,10 +163,9 @@ public class ProgramActionFactory {
             if (json.has("enabled")) enabled = json.getBoolean("enabled");
 
 
-        ProgramAction action = null;
+        ScenarioProgramInstruction action = null;
         try {
-            action = createProgramAction(id, timerangeid, type, name, description, priority, actuatorid, targetvalue, thresholdvalue,
-                    zoneId, seconds, enabled);
+            action = createProgramAction(id, timerangeid, name, description, priority, enabled);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;

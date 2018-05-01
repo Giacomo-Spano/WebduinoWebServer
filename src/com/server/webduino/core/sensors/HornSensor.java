@@ -60,10 +60,10 @@ public class HornSensor extends Actuator {
         datalog.writelog(event, this);
     }
 
-    @Override
+    /*@Override
     public Boolean sendCommand(ActuatorCommand cmd) {
         return null;
-    }
+    }*/
 
     public boolean getAlarmActiveStatus() {
         return alarmActive;

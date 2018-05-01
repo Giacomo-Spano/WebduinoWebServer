@@ -3,7 +3,8 @@ package com.server.webduino.core.webduinosystem.scenario;
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,7 +13,6 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import java.sql.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Calendar;
@@ -25,7 +25,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * Created by giaco on 18/05/2017.
  */
-public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ActionListener*/ {
+public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ProgramInstructionListener*/ {
 
     private static final Logger LOGGER = Logger.getLogger(NextScenarioTimeIntervalQuartzJob.class.getName());
 
@@ -252,7 +252,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
-    public void setActionListener(ProgramAction.ActionListener listener) {
+    public void setActionListener(Action.ActionListener listener) {
         if (programs != null)
             for (ScenarioProgram program : programs) {
                 program.setActionListener(listener);

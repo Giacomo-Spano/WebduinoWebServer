@@ -815,6 +815,19 @@ function getScenario(id, callback) {
     });
 }
 
+function getSensor(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=sensor&id=" + id, function (sensor) {
+        callback(sensor);
+    });
+}
+
+function getProgramInstruction(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=instruction&id=" + id, function (instruction) {
+        callback(instruction);
+    });
+}
+
+
 function loadScenarioTimeinterval(timeinterval) {
 
     $("#result").load("scenariotimeinterval.html", function () {

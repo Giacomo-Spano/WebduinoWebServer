@@ -29,8 +29,8 @@ public class SendActuatorCommandThread extends Thread {
 
         Actuator actuator = (Actuator) Core.getSensorFromId(actuatorId);
         boolean res;
-        if (actuator != null)
-            res = actuator.sendCommand(command);
+        /*if (actuator != null)
+            res = actuator.sendCommand(command);*/
     }
 }
 

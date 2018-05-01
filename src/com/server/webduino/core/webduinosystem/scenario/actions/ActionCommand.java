@@ -11,6 +11,14 @@ public class ActionCommand {
     public String command;
     public String name;
 
+    public interface Command
+    {
+        public void execute(JSONObject json);
+        public void end();
+    }
+
+    public Command commandMethod;
+
     boolean hastarget = false;
     double mintargetvalue = 0.0;
     double maxtargetvalue = 30.0;
@@ -35,6 +43,15 @@ public class ActionCommand {
         this.command = command;
         this.name = name;
     }
+
+    public void addCommand(Command command) {
+        //command.execute(data);
+        commandMethod = command;
+    }
+
+    /*public void callCommand(JSONObject json) {
+        commandMethod.execute(json);
+    }*/
 
     public void addTarget(String name, int min, int max) {
         hastarget = true;

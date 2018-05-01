@@ -3,6 +3,7 @@ package com.server.webduino.core.sensors;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
+import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
@@ -38,6 +39,10 @@ public class SensorBase extends DBObject {
     protected boolean enabled;
     protected String pin;
     protected List<SensorBase> childSensors = new ArrayList<SensorBase>();
+    protected boolean hasIntValue = false;
+    protected boolean hasDoubleValue = false;
+    protected double doubleValue, minDoubleValue, maxDoubleValue, stepDoubleValue;
+    protected int intValue;
 
     protected List<String> statusList = new ArrayList<String>();
     protected List<ActionCommand> actionCommandList = new ArrayList<ActionCommand>();
@@ -147,20 +152,58 @@ public class SensorBase extends DBObject {
         return null;
     }
 
+    public Boolean sendCommand(String cmd,JSONObject json) {
+        return false;
+    }
+
+    public Boolean endCommand() {
+        return false;
+    }
+
+    public Boolean hasIntValue() {
+        return hasIntValue;
+    }
+
+    public Boolean hasDoubleValue() {
+        return hasDoubleValue;
+    }
+
+    public double getDoubleValue() {
+        return doubleValue;
+    }
+
+    public double getMinDoubleValue() {
+        return minDoubleValue;
+    }
+
+    public double getMaxDoubleValue() {
+        return maxDoubleValue;
+    }
+
+    public double getStepDoubleValue() {
+        return stepDoubleValue;
+    }
+
+    public int getIntValue() {
+        return intValue;
+    }
+
     public interface SensorListener {
         static public String SensorEvents = "sensor event";
-        void changeOnlineStatus(boolean online);
-        void changeOnlineStatus(int sensorId, boolean online);
-        void onChangeStatus(String newStatus, String oldStatus);
+        public void changeOnlineStatus(boolean online);
+        public void changeOnlineStatus(int sensorId, boolean online);
+        public void onChangeStatus(String newStatus, String oldStatus);
 
-        public abstract void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
+        public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
+
+        public abstract void changeValue(double value);
     }
 
     public void addListener(SensorListener toAdd) {
         listeners.add(toAdd);
     }
 
-    public void deleteListener(SensorListener toRemove) {
+    public void removeListener(SensorListener toRemove) {
         listeners.remove(toRemove);
     }
 
@@ -362,6 +405,14 @@ public class SensorBase extends DBObject {
 
             json.put("statuslist", getStatusListJSONArray());
             json.put("actioncommandlist", getActionCommandListJSONArray());
+            if (hasIntValue)
+                json.put("intvalue", intValue);
+            if (hasDoubleValue) {
+                json.put("doublevalue", doubleValue);
+                json.put("mindoublevalue", minDoubleValue);
+                json.put("maxdoublevalue", maxDoubleValue);
+                json.put("stepdoublevalue", stepDoubleValue);
+            }
 
             JSONArray children = new JSONArray();
             for (SensorBase sensor : childSensors) {

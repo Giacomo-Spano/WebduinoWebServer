@@ -2,16 +2,14 @@ package com.server.webduino.servlet;
 
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
-import com.server.webduino.core.datalog.CommandDataLog;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -72,7 +70,6 @@ public class SystemServlet extends HttpServlet {
                 try {
                     if (param != null && param.equals("delete")) {
                         if (json.has("id")) {
-                            int scenarioid = json.getInt("id");
                             JSONArray jarray = core.removeScenario(json);
                             if (jarray != null) {
                                 response.setStatus(HttpServletResponse.SC_OK);
@@ -225,7 +222,7 @@ public class SystemServlet extends HttpServlet {
                     out.print(e.toString());
                     return;
                 }
-            } else if (data != null && data.equals("programaction")) {
+            } else if (data != null && data.equals("programinstruction")) {
 
                 try {
                     if (param != null && param.equals("delete")) {
@@ -236,7 +233,7 @@ public class SystemServlet extends HttpServlet {
                             return;
                         }
                     } else {
-                        ProgramAction instruction = core.saveScenarioProgramTimeRangeInstruction(json);
+                        ScenarioProgramInstruction instruction = core.saveScenarioProgramTimeRangeInstruction(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(instruction.toJson());
                         return;
@@ -458,7 +455,7 @@ public class SystemServlet extends HttpServlet {
 
         } else if (requestCommand != null && requestCommand.equals("instructiontypes")) {
 
-            JSONArray jarray = ProgramActionFactory.getProgramIntructionTypesJSONArray();
+            JSONArray jarray = ScenarioProgramInstructionFactory.getProgramIntructionTypesJSONArray();
             if (jarray != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(jarray.toString());
@@ -501,6 +498,18 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
+        } else if (requestCommand != null && requestCommand.equals("trigger") && id != null) {
+            int triggerid = Integer.parseInt(id);
+            Trigger trigger = core.getTriggerFromId(triggerid);
+            if (trigger != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                try {
+                    out.print(trigger.toJson());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
         } else if (requestCommand != null && requestCommand.equals("zones")) {
 
             JSONArray jarray = core.getZonesJSONArray();
@@ -572,6 +581,14 @@ public class SystemServlet extends HttpServlet {
             if (timerange != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(timerange.toJson());
+                return;
+            }
+        } else if (requestCommand != null && requestCommand.equals("instruction") && id != null) {
+            int programinstructionid = Integer.parseInt(id);
+            ScenarioProgramInstruction programInstruction = Scenarios.getScenarioProgramInstructionFromId(programinstructionid);
+            if (programInstruction != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(programInstruction.toJson());
                 return;
             }
         } else if (requestCommand != null && requestCommand.equals("instructions") && id != null) {

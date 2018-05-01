@@ -1,0 +1,148 @@
+<div id="panel" class="row">
+    <div class="col-md-12">
+        <div class="panel panel-info">
+                <div class="panel-heading">
+                Istruzione programmma <p style="display: inline-block;" name="headingleft"></p>
+                <p style="float: right;" name="headingright">xx.xx</p>
+            </div>
+            <div class="panel-body" name="body">
+
+                <form role="form">
+
+                    <div class="form-group col-md-2">
+                        <label>Abilitato</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="programinstructionenabled" checked data-toggle="toggle">Abilitato
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-10">
+                        <label>Nome</label>
+                        <input class="form-control" name="name" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Descrizione</label>
+                        <textarea class="form-control" rows="3" name="description"></textarea>
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-2">
+                        <label>Priorità</label>
+                        <input class="form-control" type="number" name="priority" value="0" min="0" max="30" step="1">
+                        <p class="help-block">Help text here.</p>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Condizioni</label>
+                        <div id="conditions" class="table-responsive">
+                            <table id="tbl2" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>Tipo</th>
+                                    <th>Zona</th>
+                                    <th>Sensore zona</th>
+                                    <th>Trigger</th>
+                                    <th>Statosensore</th>
+                                    <th>Stato trigger</th>
+                                    <th>Valore</th>
+                                    <th>Operatore valore</th>
+                                    <th>Stato</th>
+                                    <th>comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="conditionlist">
+                                <tr name="conditionrow">
+                                    <td name="id"></td>
+                                    <td><select class="form-control" name="type"></select></td>
+                                    <td><select class="form-control" name="zone"></select></td>
+                                    <td><select class="form-control" name="zonesensor"></select></td>
+                                    <td><select class="form-control" name="trigger"></select></td>
+                                    <td><select class="form-control" name="sensorstatus"></select></td>
+                                    <td><select class="form-control" name="triggerstatus"></select></td>
+                                    <td><input class="form-control" type="number" name="value" value="0" min="0"
+                                               max="30" step="0.01"></td>
+                                    <td><select class="form-control" name="operatorvalue"></select></td>
+
+                                    <td name="status"></td>
+                                    <td name="command">
+                                        <button type="button" name="editcondition" class="btn btn-sm btn-info">dettagli</button>
+                                        <button type="button" name="deletecondition" class="btn btn-sm btn-info">rimuovi</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Azioni</label>
+                        <div id="actions" class="table-responsive">
+                            <table id="tbl3" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>Tipo</th>
+                                    <th>Comando azione</th>
+                                    <th>Valore</th>
+                                    <th>Secondi</th>
+                                    <th>Attuatore</th>
+                                    <th>Servizio</th>
+                                    <th>Zona</th>
+                                    <th>Sensore zona</th>
+                                    <th>Trigger</th>
+                                    <th>Parametro</th>
+
+                                    <th>Stato</th>
+                                    <th>comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="actionlist">
+                                <tr name="actionrow">
+                                    <td name="id"></td>
+                                    <td><select class="form-control" name="type"></select></td>
+                                    <td><select class="form-control" name="actioncommand"></select></td>
+                                    <td><input class="form-control" type="number" name="value" value="0" min="0"
+                                               max="30" step="0.01"></td>
+                                    <td><input class="form-control" type="number" name="seconds" value="0" min="0"
+                                               max="30" step="0.01"></td>
+                                    <td><select class="form-control" name="actuator"></select></td>
+                                    <td><select class="form-control" name="service"></select></td>
+                                    <td><select class="form-control" name="zone"></select></td>
+                                    <td><select class="form-control" name="zonesensor"></select></td>
+                                    <td><select class="form-control" name="trigger"></select></td>
+                                    <td><input class="form-control" type="text" name="param"></td>
+
+                                    <td name="status"></td>
+                                    <td name="command">
+                                        <button type="button" name="editaction" class="btn btn-sm btn-info">dettagli</button>
+                                        <button type="button" name="deleteaction" class="btn btn-sm btn-info">rimuovi</button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <button type="button" name="addcondition" class="btn btn-info">Aggiungi condizione</button>
+                        <button type="button" name="addaction" class="btn btn-info">Aggiungi azione</button>
+                        <button type="button" name="save" class="btn btn-info">Salva</button>
+                        <button type="button" name="cancel" class="btn btn-info">Annulla</button>
+                        <button type="button" name="edit" class="btn btn-info">Modifica</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+

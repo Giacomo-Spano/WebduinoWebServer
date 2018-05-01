@@ -2,13 +2,13 @@ package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramAction;
-import com.server.webduino.core.webduinosystem.scenario.actions.ProgramActionFactory;
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
+import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.ejb.Local;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -36,7 +36,7 @@ public class ScenarioProgramTimeRange extends DBObject {
     public int index;
 
 
-    public List<ProgramAction> programActionList = new ArrayList<>();
+    public List<ScenarioProgramInstruction> scenarioProgramInstructionList = new ArrayList<>();
 
     public ScenarioProgramTimeRange(Connection conn, int programid, ResultSet resultSet) throws Exception {
         fromResultSet(conn, programid, resultSet);
@@ -46,7 +46,7 @@ public class ScenarioProgramTimeRange extends DBObject {
         fromJson(json);
     }
 
-    private void init(int id, int programid, String name, String description, LocalTime startTime, LocalTime endTime, boolean enabled, List<ProgramAction> actions, int index) {
+    private void init(int id, int programid, String name, String description, LocalTime startTime, LocalTime endTime, boolean enabled, List<ScenarioProgramInstruction> actions, int index) {
         this.id = id;
         this.programid = programid;
         this.name = name;
@@ -54,25 +54,25 @@ public class ScenarioProgramTimeRange extends DBObject {
         this.startTime = startTime;
         this.endTime = endTime;
         this.enabled = enabled;
-        this.programActionList = actions;
+        this.scenarioProgramInstructionList = actions;
         this.index = index;
     }
 
     public void start() {
         active = true;
-        for (ProgramAction action : programActionList) {
-            action.start();
+        for (ScenarioProgramInstruction programInstruction : scenarioProgramInstructionList) {
+            programInstruction.start();
             Calendar cal = Calendar.getInstance();
             cal.set(Calendar.HOUR_OF_DAY, endTime.getHour());
             cal.set(Calendar.MINUTE, endTime.getMinute());
             cal.set(Calendar.SECOND, endTime.getSecond());
-            action.setEndDate(cal.getTime());
+            programInstruction.setEndDate(cal.getTime());
         }
     }
 
     public void stop() {
         active = false;
-        for (ProgramAction action : programActionList) {
+        for (ScenarioProgramInstruction action : scenarioProgramInstructionList) {
             action.stop();
         }
     }
@@ -80,7 +80,7 @@ public class ScenarioProgramTimeRange extends DBObject {
     public String getActionStatus() {
         String status = "";
         boolean first = true;
-        for (ProgramAction action : programActionList) {
+        for (ScenarioProgramInstruction action : scenarioProgramInstructionList) {
             if (!first)
                 status += "; ";
             first = false;
@@ -121,11 +121,11 @@ public class ScenarioProgramTimeRange extends DBObject {
             json.put("index", index);
 
             JSONArray jarray = new JSONArray();
-            if (programActionList != null) {
-                for (ProgramAction action : programActionList) {
+            if (scenarioProgramInstructionList != null) {
+                for (ScenarioProgramInstruction action : scenarioProgramInstructionList) {
                     jarray.put(action.toJson());
                 }
-                json.put("programactions", jarray);
+                json.put("programinstructions", jarray);
             }
 
             if (active) {
@@ -169,16 +169,16 @@ public class ScenarioProgramTimeRange extends DBObject {
         if (json.has("index"))
             index = json.getInt("index");
 
-        if (json.has("actions")) {
+        if (json.has("programinstructions")) {
 
-            ProgramActionFactory factory = new ProgramActionFactory();
-            JSONArray jsonArray = json.getJSONArray("actions");
+            ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
+            JSONArray jsonArray = json.getJSONArray("programinstructions");
             for (int i = 0; i < jsonArray.length(); i++) {
                 JSONObject jo = jsonArray.getJSONObject(i);
-                ProgramAction action = null;
+                ScenarioProgramInstruction action = null;
                 try {
                     action = factory.fromJson(jo);
-                    programActionList.add(action);
+                    scenarioProgramInstructionList.add(action);
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new Exception(e.toString());
@@ -231,7 +231,7 @@ public class ScenarioProgramTimeRange extends DBObject {
             id = rs.getInt(1);
         }
 
-        for (ProgramAction action : programActionList) {
+        for (ScenarioProgramInstruction action : scenarioProgramInstructionList) {
             action.write(conn);
         }
         stmt.close();
@@ -263,21 +263,21 @@ public class ScenarioProgramTimeRange extends DBObject {
         Boolean enabled = resultSet.getBoolean("enabled");
         int index = resultSet.getInt("index");
 
-        List<ProgramAction> actions = readProgramActions(conn, id);
+        List<ScenarioProgramInstruction> actions = readProgramInstrructions(conn, id);
         init(id, programid, name, description, startTime, endTime, enabled, actions, index);
     }
 
-    private /*static*/ List<ProgramAction> readProgramActions(Connection conn, int programtimerangeid) throws Exception {
+    private List<ScenarioProgramInstruction> readProgramInstrructions(Connection conn, int programtimerangeid) throws Exception {
 
-        List<ProgramAction> list = new ArrayList<>();
+        List<ScenarioProgramInstruction> list = new ArrayList<>();
         String sql;
         Statement stmt4 = conn.createStatement();
-        sql = "SELECT * FROM scenarios_programactions WHERE timerangeid=" + programtimerangeid + " ;";
+        sql = "SELECT * FROM scenarios_programinstructions WHERE timerangeid=" + programtimerangeid + " ;";
         ResultSet programactionsResultset = stmt4.executeQuery(sql);
-        ProgramActionFactory factory = new ProgramActionFactory();
+        ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
         while (programactionsResultset.next()) {
 
-            ProgramAction action = factory.fromResultSet(conn,programactionsResultset);
+            ScenarioProgramInstruction action = factory.fromResultSet(conn,programactionsResultset);
             if (action != null)
                 list.add(action);
         }
@@ -286,10 +286,16 @@ public class ScenarioProgramTimeRange extends DBObject {
         return list;
     }
 
-    public void setActionListener(ProgramAction.ActionListener toAdd) {
+    public void setActionListener(Action.ActionListener toAdd) {
 
-        for (ProgramAction action : programActionList) {
-            action.addListener(toAdd);
+        if (scenarioProgramInstructionList != null) {
+            for (ScenarioProgramInstruction programInstruction : scenarioProgramInstructionList) {
+                programInstruction.setActionListener(toAdd);
+            }
         }
+
+        /*for (ScenarioProgramInstruction action : scenarioProgramInstructionList) {
+            action.addListener(toAdd);
+        }*/
     }
 }

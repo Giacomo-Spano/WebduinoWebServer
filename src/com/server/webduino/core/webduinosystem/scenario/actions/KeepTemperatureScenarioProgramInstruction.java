@@ -1,7 +1,5 @@
 package com.server.webduino.core.webduinosystem.scenario.actions;
 
-import com.quartz.QuartzListener;
-import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
@@ -18,7 +16,7 @@ import java.util.Date;
 /**
  * Created by giaco on 17/05/2017.
  */
-public class KeepTemperatureProgramAction extends ProgramAction /*implements SensorBase.SensorListener*/ /*implements Command.CommandListener*/ {
+public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramInstruction /*implements SensorBase.SensorListener*/ /*implements Command.CommandListener*/ {
 
     private double targetTemperature;
     private long duration = 1000;
@@ -28,12 +26,11 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
 
     private HeaterListenerClass heaterListener = new HeaterListenerClass();
 
-    public KeepTemperatureProgramAction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
-                                        int zoneId, int seconds, boolean enabled) {
-        super(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
-                zoneId, seconds, enabled);
+    public KeepTemperatureScenarioProgramInstruction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
+                                                     int zoneId, int seconds, boolean enabled) {
+        super(id, programtimerangeid, name, description, priority, enabled);
 
-        targetTemperature = targetvalue;
+        //targetTemperature = targetvalue;
     }
 
     @Override
@@ -41,7 +38,7 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
         super.start();
         requestZoneStatusUpdate();
 
-        SensorBase sensor = Core.getSensorFromId(actuatorid);
+        /*SensorBase sensor = Core.getSensorFromId(actuatorid);
         if (sensor != null) {
             if (sensor instanceof HeaterActuator) {
                 HeaterActuator heater = (HeaterActuator) sensor;
@@ -49,34 +46,34 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
             }
         } else {
 
-        }
+        }*/
 
     }
 
     private void requestZoneStatusUpdate() {
 
-        Zone zone = Core.getZoneFromId(zoneId);
+        /*Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
             zone.addListener(this);
             zone.requestSensorStatusUpdate();
-        }
+        }*/
     }
 
     @Override
     public void stop() {
         super.stop();
-        Zone zone = Core.getZoneFromId(zoneId);
+        /*Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
             zone.removeListener(this);
         }
 
         SensorBase sensor = Core.getSensorFromId(actuatorid);
         if (sensor != null) {
-            sensor.deleteListener(heaterListener);
-        }
+            sensor.removeListener(heaterListener);
+        }*/
     }
 
-    @Override
+    /*@Override
     public void addConflict(Conflict newconflict) {
 
         // controlla che non ci sia già nella lista altrimenti
@@ -87,12 +84,13 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
         }
 
         // se la action ha lo stesso actuator aggiunge il conflitto
+        //DA RIFARE
         if (newconflict.action.actuatorid == this.actuatorid) {
-            if (newconflict.action instanceof KeepTemperatureProgramAction || newconflict.action instanceof KeepOffProgramActions ) {
+            if (newconflict.action instanceof KeepTemperatureScenarioProgramInstruction || newconflict.action instanceof KeepOffScenarioProgramInstruction) {
                 conflictList.add(newconflict);
             }
         }
-    }
+    }*/
 
     @Override
     public void finalize() {
@@ -113,23 +111,23 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
 
         status += " active:";
         if (active) {
-            if (conflictList.size() > 0)
+            /*if (conflictList.size() > 0)
                 status += "conflict ";
             else
-                status += "true ";
+                status += "true ";*/
         } else {
             status += "false ";
         }
 
-        Zone zone = Core.getZoneFromId(zoneId);
+        /*Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
             status += "Zona: " + zoneId + "." + zone.getName() + " - Temperatura: " + zone.getTemperature() + " °C";
             status += " - Target: " + targetTemperature + " °C";
         } else {
             status += zone + "not found";
-        }
+        }*/
 
-        status += " - Actuator: ";
+        /*status += " - Actuator: ";
         SensorBase sensor = Core.getSensorFromId(actuatorid);
         if (sensor != null && sensor instanceof HeaterActuator) {
 
@@ -143,7 +141,7 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
                 status += "spento";
         } else {
             status += actuatorid + " not found";
-        }
+        }*/
 
         if (lastSent != null) {
             DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
@@ -153,11 +151,11 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
         }
 
         status += " - conflicts: ";
-        if (conflictList.size() > 0) {
+        /*if (conflictList.size() > 0) {
             for (Conflict conflict: conflictList) {
                 status += conflict.action.id + "." + conflict.action.description;
             }
-        }
+        }*/
 
         return status;
     }
@@ -173,7 +171,7 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
         temperature = newTemperature;
 
 
-        if (conflictList.size() == 0) {
+        /*if (conflictList.size() == 0) {
 
             duration = (endDate.getTime() - Core.getDate().getTime()) / 1000;  // durata in secondi
             if (duration <= 0)
@@ -183,7 +181,7 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
             // altrrimenti non si riceve la risposta
             sendCommandThread commandThread = new sendCommandThread();
             commandThread.start();
-        }
+        }*/
     }
 
     public class sendCommandThread extends Thread {
@@ -194,11 +192,11 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
             try {
                 //Command.CommandResult result;
                 JSONObject json = new JSONObject();
-                json.put("actuatorid", actuatorid);
+                //json.put("actuatorid", actuatorid);
 
-                SensorBase sensor = Core.getSensorFromId(actuatorid);
-                if (sensor != null)
-                    json.put("shieldid", sensor.getShieldId());
+                //SensorBase sensor = Core.getSensorFromId(actuatorid);
+                /*if (sensor != null)
+                    json.put("shieldid", sensor.getShieldId());*/
                 json.put("command", HeaterActuatorCommand.Command_KeepTemperature);
                 json.put("duration", duration);
                 SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
@@ -206,12 +204,11 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
                 json.put("target", targetTemperature);
                 json.put("actionid", id);
                 json.put("date", df.format(Core.getDate()));
-                json.put("zone", zoneId);
+                //json.put("zone", zoneId);
                 json.put("temperature", temperature);
 
 
                 HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
-                //result = cmd.send();
                 cmd.send();
 
                 /*SensorBase s = Core.getSensorFromId(cmd.actuatorid);
@@ -259,6 +256,11 @@ public class KeepTemperatureProgramAction extends ProgramAction /*implements Sen
 
         @Override
         public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
+
+        }
+
+        @Override
+        public void changeValue(double value) {
 
         }
     }

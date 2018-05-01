@@ -1,6 +1,8 @@
 package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.scenario.Conflict;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,14 +10,20 @@ import org.json.JSONObject;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by giaco on 17/05/2017.
  */
 public class Action {
 
+    public final String ACTION_ACTUATOR = "actuator";
+    public final String ACTION_SERVICE = "service";
+    public final String ACTION_TRIGGER = "trigger";
+
     public int id = 0;
-    public int programactionid = 0;
+    public int programinstructionid = 0;
     public String type = "";
     public String actioncommand = "";
     public double targetvalue = 0;
@@ -27,6 +35,8 @@ public class Action {
     public int triggerid = 0;
     public String param = "";
 
+    protected List<ActionListener> listeners = new ArrayList<>();
+
     public Action(Connection conn, ResultSet resultSet) throws Exception {
         fromResultSet(conn, resultSet);
     }
@@ -35,9 +45,122 @@ public class Action {
         fromJson(json);
     }
 
+    public interface ActionListener {
+        void onStart(Action action);
+        void onStop(Action action);
+    }
+
+    public void addListener(ActionListener toAdd) {
+        listeners.add(toAdd);
+    }
+
+    public void deleteListener(ActionListener toRemove) {
+        listeners.remove(toRemove);
+    }
+
+    List<Conflict> conflictList = new ArrayList<>();
+
+    public boolean hasConflict(Action action) {
+
+        if (action ==  null)
+            return false;
+
+        if (type.equals(ACTION_ACTUATOR)) {
+            if (action.actuatorid == this.actuatorid) {
+                return true;
+            }
+        } else if (type.equals(ACTION_SERVICE)) {
+            return false;
+        } else if (type.equals(ACTION_TRIGGER)) {
+            if (action.triggerid == this.triggerid) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void addConflict(Conflict newconflict) {
+
+        // controlla che non ci sia già nella lista altrimenti
+        for (Conflict conflict : conflictList) {
+            if (conflict.action.id == newconflict.action.id) {
+                return;
+            }
+        }
+
+        // DA RIFARE in base al tipo di action decide se aggiungere un conflito
+        // se la action ha lo stesso actuator aggiunge il conflitto
+        //if (newconflict.action.actuatorid == this.actuatorid) {
+
+        conflictList.add(newconflict);
+            /*if ((newconflict.action instanceof KeepTemperatureScenarioProgramInstruction || newconflict.action instanceof KeepOffScenarioProgramInstruction) &&
+                    (this instanceof KeepTemperatureScenarioProgramInstruction || this instanceof KeepOffScenarioProgramInstruction)) {
+                conflictList.add(newconflict);
+            }*/
+        //}
+    }
+
+    public void removeConflict(Action action) {
+        for (Conflict conflict : conflictList) {
+            if (conflict.action.id == action.id) {
+                conflictList.remove(conflict);
+                break;
+            }
+        }
+    }
+
+    public void start() {
+
+        for (ActionListener listener : listeners) {
+            listener.onStart(this);
+        }
+
+        if (type.equals(ACTION_ACTUATOR)) {
+            SensorBase sensor = Core.getSensorFromId(actuatorid);
+            if (sensor != null) {
+                JSONObject json = new JSONObject();
+                try {
+                    json.put("targetvalue", targetvalue);
+                    json.put("seconds", seconds);
+                    json.put("zoneid", zoneid);
+                    json.put("zonesensorid", zonesensorid);
+                    sensor.sendCommand(actioncommand,json);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        } else if (type.equals(ACTION_SERVICE)) {
+
+        } else if (type.equals(ACTION_TRIGGER)) {
+
+        }
+    }
+
+    public void stop() {
+
+        for (ActionListener listener : listeners) {
+            listener.onStop(this);
+        }
+
+        if (type.equals(ACTION_ACTUATOR)) {
+            SensorBase sensor = Core.getSensorFromId(actuatorid);
+            if (sensor != null) {
+                sensor.endCommand();
+            }
+        } else if (type.equals(ACTION_SERVICE)) {
+
+        } else if (type.equals(ACTION_TRIGGER)) {
+
+        }
+    }
+
+
     public void fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
         id = resultSet.getInt("id");
-        programactionid = resultSet.getInt("programactionid");
+        programinstructionid = resultSet.getInt("programinstructionid");
         type = resultSet.getString("type");
         actioncommand = resultSet.getString("actioncommand");
         targetvalue = resultSet.getDouble("targetvalue");
@@ -53,7 +176,7 @@ public class Action {
 
     public void fromJson(JSONObject json) throws Exception {
         if (json.has("id")) id = json.getInt("id");
-        if (json.has("programactionid")) programactionid = json.getInt("programactionid");
+        if (json.has("programinstructionid")) programinstructionid = json.getInt("programinstructionid");
         if (json.has("type")) type = json.getString("type");
         if (json.has("actioncommand")) actioncommand = json.getString("actioncommand");
         if (json.has("targetvalue")) targetvalue = json.getDouble("targetvalue");
@@ -70,7 +193,7 @@ public class Action {
         JSONObject json = new JSONObject();
         try {
             json.put("id", id);
-            json.put("programactionid", programactionid);
+            json.put("programinstructionid", programinstructionid);
             json.put("type", type);
             json.put("actioncommand", actioncommand);
             json.put("targetvalue", targetvalue);
@@ -155,21 +278,21 @@ public class Action {
         if (actuatorid>0)
             actuatoridstr = "" + actuatorid;
         String triggeridstr ="null";
-        if (actuatorid>0)
-            actuatoridstr = "" + actuatorid;
+        if (triggerid>0)
+            triggeridstr = "" + triggerid;
         String zoneidstr ="null";
-        if (actuatorid>0)
-            actuatoridstr = "" + actuatorid;
+        if (zoneid>0)
+            zoneidstr = "" + zoneid;
         String zonesensoridstr ="null";
-        if (actuatorid>0)
-            actuatoridstr = "" + actuatorid;
+        if (zonesensorid>0)
+            zonesensoridstr = "" + zonesensorid;
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_actions (id, programactionid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, param)" +
+        sql = "INSERT INTO scenarios_actions (id, programinstructionid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, param)" +
                 " VALUES ("
                 + id + ","
-                + programactionid + ","
+                + programinstructionid + ","
                 + "\"" + type + "\","
                 + "\"" + actioncommand + "\","
                 + targetvalue + ","
@@ -183,7 +306,7 @@ public class Action {
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "id=" + id + ","
-                + "programactionid=" + programactionid + ","
+                + "programinstructionid=" + programinstructionid + ","
                 + "type=\"" + type + "\","
                 + "type=\"" + actioncommand + "\","
                 + "targetvalue=" + targetvalue + ","

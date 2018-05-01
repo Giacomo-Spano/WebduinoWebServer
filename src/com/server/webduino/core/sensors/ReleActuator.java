@@ -46,13 +46,13 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
         datalog.writelog(event, this);
     }
 
-    public Boolean sendCommand(String command, boolean status) {
+    /*public Boolean sendCommand(String command) {
 
         ReleActuatorCommand cmd = new ReleActuatorCommand();
         cmd.command = command;
         cmd.on = on;
         return sendCommand(cmd);
-    }
+    }*/
 
     @Override
     public ActuatorCommand getCommandFromJson(JSONObject json) {
@@ -63,7 +63,7 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
             return null;
     }
 
-    @Override
+    /*@Override
     public Boolean sendCommand(ActuatorCommand cmd) {
         // sendcommand è usata anche da actuatorservlet per mandare i command dalle app
         ReleActuatorCommand releActuatorCommand = (ReleActuatorCommand) cmd;
@@ -81,7 +81,7 @@ public class ReleActuator extends Actuator /*implements TemperatureSensor.Temper
         LOGGER.info("sendCommand command=" + releActuatorCommand.command + ",on=" + releActuatorCommand.on);
 
         return releActuatorCommand.send(this);
-    }
+    }*/
 
     @Override
     public void updateFromJson(Date date, JSONObject json) {

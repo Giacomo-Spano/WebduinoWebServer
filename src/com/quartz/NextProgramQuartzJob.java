@@ -4,7 +4,7 @@
 package com.quartz;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.Schedule;
+//import com.server.webduino.core.Schedule;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -24,8 +24,8 @@ public class NextProgramQuartzJob implements Job {
             Date date = Core.getDate();
             LOGGER.info("" + date.toString() + " NextProgramQuartzJob");
 
-            Schedule schedule = (Schedule) context.getMergedJobDataMap().get("schedule");
-            schedule.checkProgram();
+            //Schedule schedule = (Schedule) context.getMergedJobDataMap().get("schedule");
+            //schedule.checkProgram();
 
 
             /*ServletContext servletContext = (ServletContext) context.getMergedJobDataMap().get("servletContext");

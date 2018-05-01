@@ -3,7 +3,6 @@ package com.server.webduino.core.webduinosystem.zones;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
-import com.server.webduino.core.Shield;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.TemperatureSensor;
 import org.json.JSONArray;
@@ -196,8 +195,16 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     public void clearSensorListeners() {
         for(ZoneSensor zonesensor: zoneSensors) {
             SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
-            sensor.deleteListener(this);
+            sensor.removeListener(this);
         }
+    }
+
+    public ZoneSensor zoneSensorFromId(int zonesensorid) {
+        for(ZoneSensor zonesensor: zoneSensors) {
+            if (zonesensor.getSensorId() == zonesensorid)
+                return zonesensor;
+        }
+        return null;
     }
 
     @Override
@@ -241,6 +248,11 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
             listener.onDoorStatusChange(id,open,oldOpen);
         }
         this.doorStatusOpen = open;
+    }
+
+    @Override
+    public void changeValue(double value) {
+
     }
 
     public boolean getDoorStatusOpen() {

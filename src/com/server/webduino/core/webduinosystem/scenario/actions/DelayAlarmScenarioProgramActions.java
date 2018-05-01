@@ -9,14 +9,13 @@ import java.util.TimerTask;
 /**
  * Created by giaco on 17/05/2017.
  */
-public class DelayAlarmProgramActions extends ProgramAction {
+public class DelayAlarmScenarioProgramActions extends ScenarioProgramInstruction {
 
     private boolean alarmActive = false;
 
-    public DelayAlarmProgramActions(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
-                                    int zoneId, int seconds, boolean enabled) {
-        super(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
-                zoneId, seconds, enabled);
+    public DelayAlarmScenarioProgramActions(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
+                                            int zoneId, int seconds, boolean enabled) {
+        super(id, programtimerangeid,  name, description, priority, enabled);
 
         Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
@@ -44,8 +43,9 @@ public class DelayAlarmProgramActions extends ProgramAction {
 
     @Override
     public String getStatus() {
-        String status = "";
-        Zone zone = Core.getZoneFromId(zoneId);
+        /*String status = "";
+        int zoneId;
+        //Zone zone = Core.getZoneFromId(zoneId);
 
         if (zone != null) {
             status = "Zona: (" + zoneId + ")" + zone.getName() + " Stato: ";
@@ -61,6 +61,7 @@ public class DelayAlarmProgramActions extends ProgramAction {
             status += " active";
         else
             status += " not active";
-        return status;
+        return status;*/
+        return "";
     }
 }

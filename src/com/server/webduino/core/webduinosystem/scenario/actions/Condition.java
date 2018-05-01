@@ -1,7 +1,9 @@
 package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.ScenarioProgramTimeRange;
+import com.server.webduino.core.Trigger;
+import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.SensorListenerClass;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
 import org.json.JSONArray;
@@ -11,23 +13,168 @@ import org.json.JSONObject;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by giaco on 17/05/2017.
  */
-public class Condition {
+public class Condition extends SensorListenerClass {
 
     public int id = 0;
-    public int programactionid = 0;
+    public int programinstructionid = 0;
     public int zoneid;
     public int zonesensorid;
     public int triggerid = 0;
-    public String status = "";
+    public String sensorstatus = "";
+    public String triggerstatus = "";
     public String type;
     public String valueoperator;
     public double value;
     public String[] valueoperators = {">", "<", "="};
+
+    private boolean active = false;
+
+    Zone zone = null;
+    ZoneSensor zoneSensor = null;
+    SensorBase sensor = null;
+    Trigger trigger = null;
+
+    protected List<ConditionListener> listeners = new ArrayList<>();
+
+    public interface ConditionListener {
+        void onActiveChange(boolean active);
+    }
+
+    public void addListener(ConditionListener toAdd) {
+        listeners.add(toAdd);
+    }
+
+    public void deleteListener(ConditionListener toRemove) {
+        listeners.remove(toRemove);
+    }
+
+    public void start() {
+        active = false;
+
+        if (type.equals("zonesensorvalue")) {
+            handleZoneSensorValue();
+        } else if (type.equals("zonesensorstatus")) {
+            handleZoneSensorStatus();
+        } else if (type.equals("triggerstatus")) {
+            handleTriggerStatus();
+        }
+    }
+
+    public void stop() {
+        if (sensor != null)
+            sensor.removeListener(this);
+        active = false;
+    }
+
+    private void handleTriggerStatus() {
+        trigger = Core.getTriggerFromId(triggerid);
+        if (trigger != null) {
+            trigger.addListener(new Trigger.TriggerListener() {
+                @Override
+                public void onChangeStatus(boolean status) {
+
+                }
+            });
+        }
+    }
+
+    private void handleZoneSensorStatus() {
+        zone = Core.getZoneFromId(zoneid);
+        if (zone != null) {
+            zone.addListener(new Zone.WebduinoZoneListener() {
+                @Override
+                public void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature) {
+
+                }
+
+                @Override
+                public void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus) {
+
+                }
+            });
+        }
+    }
+
+    private void handleZoneSensorValue() {
+        zone = Core.getZoneFromId(zoneid);
+        if (zone != null) {
+            zoneSensor = zone.zoneSensorFromId(zonesensorid);
+            if (zoneSensor != null) {
+                sensor = Core.getSensorFromId(zoneSensor.getSensorId());
+                if (sensor != null) {
+                    sensor.addListener(new SensorBase.SensorListener() {
+                        @Override
+                        public void changeOnlineStatus(boolean online) {
+
+                        }
+
+                        @Override
+                        public void changeOnlineStatus(int sensorId, boolean online) {
+
+                        }
+
+                        @Override
+                        public void onChangeStatus(String newStatus, String oldStatus) {
+
+                        }
+
+                        @Override
+                        public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
+
+                        }
+
+                        @Override
+                        public void changeValue(double val) {
+
+                            boolean oldactive = active;
+
+                            if (valueoperator.equals(">")) {
+                                if (val > value)
+                                    active = true;
+                                else
+                                    active = false;
+                            } else if (valueoperator.equals("<")) {
+                                if (val < value)
+                                    active = true;
+                                else
+                                    active = false;
+                            } else if (valueoperator.equals("=")) {
+                                if (val == value)
+                                    active = true;
+                                else
+                                    active = false;
+                            } else {
+                                active = false;
+                            }
+
+                            if (oldactive != active) {
+                                for (ConditionListener listener : listeners) {
+                                    listener.onActiveChange(active);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    @Override
+    public void changeValue(double value) {
+
+    }
+
+
+    public boolean isActive() {
+        return active;
+    }
+
 
     public Condition(JSONObject json) throws Exception {
         fromJson(json);
@@ -39,11 +186,12 @@ public class Condition {
 
     public void fromJson(JSONObject json) throws Exception {
         if (json.has("id")) id = json.getInt("id");
-        if (json.has("programactionid")) programactionid = json.getInt("programactionid");
+        if (json.has("programinstructionid")) programinstructionid = json.getInt("programinstructionid");
         if (json.has("zoneid")) zoneid = json.getInt("zoneid");
         if (json.has("zonesensorid")) zonesensorid = json.getInt("zonesensorid");
         if (json.has("triggerid")) triggerid = json.getInt("triggerid");
-        if (json.has("status")) status = json.getString("status");
+        if (json.has("sensorstatus")) sensorstatus = json.getString("sensorstatus");
+        if (json.has("triggerstatus")) triggerstatus = json.getString("triggerstatus");
         if (json.has("type")) type = json.getString("type");
         if (json.has("value")) value = json.getInt("value");
         if (json.has("valueoperator")) valueoperator = json.getString("valueoperator");
@@ -51,10 +199,12 @@ public class Condition {
 
     public void fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
         id = resultSet.getInt("id");
+        programinstructionid = resultSet.getInt("programinstructionid");
         zoneid = resultSet.getInt("zoneid");
         zonesensorid = resultSet.getInt("zonesensorid");
         triggerid = resultSet.getInt("triggerid");
-        status = resultSet.getString("status");
+        sensorstatus = resultSet.getString("sensorstatus");
+        triggerstatus = resultSet.getString("triggerstatus");
         type = resultSet.getString("type");
         value = resultSet.getDouble("value");
         valueoperator = resultSet.getString("valueoperator");
@@ -65,14 +215,16 @@ public class Condition {
         try {
             json.put("id", id);
             json.put("zoneid", zoneid);
+            json.put("programinstructionid", programinstructionid);
             json.put("zonesensorid", zonesensorid);
             json.put("triggerid", triggerid);
-            json.put("status", status);
+            json.put("sensorstatus", sensorstatus);
+            json.put("triggerstatus", triggerstatus);
             json.put("type", type);
             json.put("value", value);
             json.put("valueoperator", valueoperator);
             JSONArray jsonArray = new JSONArray();
-            for(int  i = 0; i < valueoperators.length; i++) {
+            for (int i = 0; i < valueoperators.length; i++) {
                 jsonArray.put(valueoperators[i]);
             }
             json.put("valueoperators", jsonArray);
@@ -144,37 +296,39 @@ public class Condition {
     }
 
     public void write(Connection conn) throws SQLException {
-        String zoneidstr ="null";
-        if (zoneid>0)
+        String zoneidstr = "null";
+        if (zoneid > 0)
             zoneidstr = "" + zoneid;
         String zonesensoridstr = "null";
-        if (zonesensorid>0)
+        if (zonesensorid > 0)
             zonesensoridstr = "" + zonesensorid;
         String triggerstr = "null";
-        if (triggerid>0)
+        if (triggerid > 0)
             triggerstr = "" + triggerid;
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_conditions (id, programactionid, zoneid, zonesensorid, triggerid, status,type,value,valueoperator)" +
+        sql = "INSERT INTO scenarios_conditions (id, programinstructionid, zoneid, zonesensorid, triggerid, sensorstatus,triggerstatus,type,value,valueoperator)" +
                 " VALUES ("
                 + id + ","
-                + programactionid + ","
+                + programinstructionid + ","
                 + zoneidstr + ","
                 + zonesensoridstr + ","
                 + triggerstr + ","
-                + "\"" + status + "\","
+                + "\"" + sensorstatus + "\","
+                + "\"" + triggerstatus + "\","
                 + "\"" + type + "\","
                 + value + ","
                 + "\"" + valueoperator + "\""
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "id=" + id + ","
-                + "programactionid=" + programactionid + ","
+                + "programinstructionid=" + programinstructionid + ","
                 + "zoneid=" + zoneidstr + ","
                 + "zonesensorid=" + zonesensoridstr + ","
                 + "triggerid=" + triggerstr + ","
-                + "status=\"" + status + "\","
+                + "sensorstatus=\"" + sensorstatus + "\","
+                + "triggerstatus=\"" + triggerstatus + "\","
                 + "type=\"" + type + "\","
                 + "value=" + value + ","
                 + "valueoperator=\"" + valueoperator + "\""

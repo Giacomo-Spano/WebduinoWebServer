@@ -10,14 +10,13 @@ import java.util.logging.Logger;
 /**
  * Created by giaco on 17/05/2017.
  */
-public class TriggerStatusProgramAction extends ProgramAction {
+public class TriggerStatusScenarioProgramInstruction extends ScenarioProgramInstruction {
 
-    private static final Logger LOGGER = Logger.getLogger(TriggerStatusProgramAction.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TriggerStatusScenarioProgramInstruction.class.getName());
 
-    public TriggerStatusProgramAction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
-                                      int zoneId, int seconds, boolean enabled) {
-        super(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
-                zoneId, seconds, enabled);
+    public TriggerStatusScenarioProgramInstruction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
+                                                   int zoneId, int seconds, boolean enabled) {
+        super(id, programtimerangeid,  name, description, priority, enabled);
     }
 
     @Override

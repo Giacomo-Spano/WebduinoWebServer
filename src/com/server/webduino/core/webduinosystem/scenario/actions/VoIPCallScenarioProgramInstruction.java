@@ -10,16 +10,15 @@ import java.util.logging.Logger;
 /**
  * Created by giaco on 17/05/2017.
  */
-public class VoIPCallProgramAction extends ProgramAction {
+public class VoIPCallScenarioProgramInstruction extends ScenarioProgramInstruction {
 
-    private static final Logger LOGGER = Logger.getLogger(VoIPCallProgramAction.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(VoIPCallScenarioProgramInstruction.class.getName());
 
     private boolean alarmActive = false;
 
-    public VoIPCallProgramAction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
-                                 int zoneId, int seconds, boolean enabled) {
-        super(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
-                zoneId, seconds, enabled);
+    public VoIPCallScenarioProgramInstruction(int id, int programtimerangeid, String type, String name, String description, int priority, int actuatorid, double targevalue, double thresholdvalue,
+                                              int zoneId, int seconds, boolean enabled) {
+        super(id, programtimerangeid,  name, description, priority, enabled);
 
     }
 

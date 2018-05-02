@@ -10,7 +10,9 @@ import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
 import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
+import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.webduinosystem.zones.Zone;
+import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -444,6 +446,18 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
+        } else if (requestCommand != null && requestCommand.equals("service") && id != null) {
+            int serviceid = Integer.parseInt(id);
+            Service service = core.getServiceFromId(serviceid);
+            if (service != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                //try {
+                    out.print(service.toJson());
+                /*} catch (JSONException e) {
+                    e.printStackTrace();
+                }*/
+                return;
+            }
         } else if (requestCommand != null && requestCommand.equals("sensortypes")) {
 
             JSONArray jarray = SensorFactory.getSensorTypesJSONArray();
@@ -526,6 +540,25 @@ public class SystemServlet extends HttpServlet {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(zone.toJson());
                 return;
+            }
+        } else if (requestCommand != null && requestCommand.equals("zonesensor")) {
+            String zoneidstr = request.getParameter("zoneid");
+            String zonesensoridstr = request.getParameter("zonesensorid");
+            if (zoneidstr != null && zonesensoridstr != null) {
+                int zoneid = Integer.parseInt(zoneidstr);
+                int zonesensorid = Integer.parseInt(zonesensoridstr);
+                Zone zone = core.getZoneFromId(zoneid);
+                if (zone != null) {
+                    ZoneSensor zoneSensor = zone.zoneSensorFromId(zonesensorid);
+                    if (zoneSensor != null) {
+                        SensorBase sensor = Core.getSensorFromId(zoneSensor.getSensorId());
+                        if (sensor != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(sensor.toJson());
+                            return;
+                        }
+                    }
+                }
             }
         } else if (requestCommand != null && requestCommand.equals("shields")) {
             List<Shield> list = core.getShields();

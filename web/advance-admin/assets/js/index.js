@@ -821,8 +821,20 @@ function getSensor(id, callback) {
     });
 }
 
+function getSensorFromZoneSensor(zoneid, zonesensorid, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=zonesensor&zoneid=" + zoneid + "&zonesensorid=" +zonesensorid , function (sensor) {
+        callback(sensor);
+    });
+}
+
 function getProgramInstruction(id, callback) {
     $.getJSON(systemServletPath + "?requestcommand=instruction&id=" + id, function (instruction) {
+        callback(instruction);
+    });
+}
+
+function getService(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=service&id=" + id, function (instruction) {
         callback(instruction);
     });
 }

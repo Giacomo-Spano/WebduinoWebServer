@@ -6,7 +6,7 @@ var $triggerRow;
 var $triggers;
 
 function getTimerange(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=program&id=" + id, function (program) {
+    $.getJSON(systemServletPath + "?requestcommand=timerange&id=" + id, function (program) {
         callback(program);
     });
 }

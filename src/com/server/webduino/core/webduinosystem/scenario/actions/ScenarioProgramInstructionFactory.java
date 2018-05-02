@@ -116,12 +116,6 @@ public class ScenarioProgramInstructionFactory {
 
     public ScenarioProgramInstruction fromJson(JSONObject json) throws Exception {
 
-            /*String type = "";
-            if (json.has("type"))
-                type = json.getString("type");
-            else
-                throw new JSONException("type key missing");*/
-
             int id = 0, timerangeid = 0, actuatorid = 0, zoneId = 0, seconds = 0, priority = 0;
             String name = "";
             String description = "";

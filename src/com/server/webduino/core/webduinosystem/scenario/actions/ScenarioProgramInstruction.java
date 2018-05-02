@@ -77,6 +77,11 @@ public class ScenarioProgramInstruction implements Zone.WebduinoZoneListener {
         this.enabled = enabled;
     }
 
+    public ScenarioProgramInstruction(JSONObject json) throws Exception {
+        fromJson(json);
+    }
+
+
 
 
     public void setEndDate(Date date) {
@@ -161,6 +166,32 @@ public class ScenarioProgramInstruction implements Zone.WebduinoZoneListener {
         return "--";
     }
 
+    public void fromJson(JSONObject json) throws Exception {
+
+        if (json.has("id"))
+            id = json.getInt("id");
+        if (json.has("timerangeid")) timerangeid = json.getInt("timerangeid");
+        if (json.has("name")) name = json.getString("name");
+        if (json.has("description")) description = json.getString("description");
+        if (json.has("priority")) priority = json.getInt("priority");
+        if (json.has("enabled")) enabled = json.getBoolean("enabled");
+        if (json.has("conditions")) {
+            JSONArray jsonArray = json.getJSONArray("conditions");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject j = jsonArray.getJSONObject(i);
+                Condition condition = new Condition(j);
+                conditions.add(condition);
+            }
+        }
+        if (json.has("actions")) {
+            JSONArray jsonArray = json.getJSONArray("actions");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject j = jsonArray.getJSONObject(i);
+                Action action = new Action(j);
+                actions.add(action);
+            }
+        }
+    }
 
     public JSONObject toJson() {
         JSONObject json = new JSONObject();

@@ -48,7 +48,7 @@ function addProgramInstruction(idx, elem, triggers, zones, sensors, services) {
     programinstruction.find('button[name="editaction"]').attr("idx", idx);
     programinstruction.find('button[name="editaction"]').click(function () {
         var index = $(this).attr("idx");
-        loadProgramInstruction($timerange.programinstructions[index], triggers, zones, sensors, services);
+        loadProgramInstruction($("#result"),$timerange.programinstructions[index], triggers, zones, sensors, services);
     });
     programinstruction.find('button[name="deleteaction"]').attr("idx", idx);
     programinstruction.find('button[name="deleteaction"]').click(function () {

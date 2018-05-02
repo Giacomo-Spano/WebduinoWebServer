@@ -687,11 +687,13 @@ public class Core {
     }
 
     public ScenarioProgramInstruction saveScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
-        ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
-        ScenarioProgramInstruction action = factory.fromJson(json);
-        action.save();
+        //ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
+        //ScenarioProgramInstruction action = factory.fromJson(json);
+        //action.save();
+        ScenarioProgramInstruction programInstruction = new ScenarioProgramInstruction(json);
+        programInstruction.save();
         scenarios.initScenarios();
-        return action;
+        return programInstruction;
     }
 
     public ScenarioProgramTimeRange removeScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {

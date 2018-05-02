@@ -101,6 +101,12 @@ public class ActionCommand {
             json.put("zonesensortype",zonesensortype);
         }
 
+        if (hasduration) {
+            json.put("duration",true);
+            json.put("durationname",durationname);
+        }
+
+
         if (hasparam) {
             json.put("param",true);
             json.put("paramname",paramname);

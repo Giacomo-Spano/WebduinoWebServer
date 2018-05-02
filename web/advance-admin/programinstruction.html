@@ -1,13 +1,19 @@
 <div id="panel" class="row">
     <div class="col-md-12">
         <div class="panel panel-info">
-                <div class="panel-heading">
+            <div class="panel-heading">
                 Istruzione programmma <p style="display: inline-block;" name="headingleft"></p>
                 <p style="float: right;" name="headingright">xx.xx</p>
             </div>
             <div class="panel-body" name="body">
 
                 <form role="form">
+
+                    <div class="form-group col-md-8">
+                        <label>Nome</label>
+                        <input class="form-control" name="name" type="text">
+                        <p class="help-block">Help text here.</p>
+                    </div>
 
                     <div class="form-group col-md-2">
                         <label>Abilitato</label>
@@ -18,9 +24,9 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-md-10">
-                        <label>Nome</label>
-                        <input class="form-control" name="name" type="text">
+                    <div class="form-group col-md-2">
+                        <label>Priorità</label>
+                        <input class="form-control" type="number" name="priority" value="0" min="0" max="30" step="1">
                         <p class="help-block">Help text here.</p>
                     </div>
 
@@ -30,11 +36,6 @@
                         <p class="help-block">Help text here.</p>
                     </div>
 
-                    <div class="form-group col-md-2">
-                        <label>Priorità</label>
-                        <input class="form-control" type="number" name="priority" value="0" min="0" max="30" step="1">
-                        <p class="help-block">Help text here.</p>
-                    </div>
 
                     <div class="form-group col-md-12">
                         <label>Condizioni</label>
@@ -66,12 +67,13 @@
                                     <td><select class="form-control" name="triggerstatus"></select></td>
                                     <td><input class="form-control" type="number" name="value" value="0" min="0"
                                                max="30" step="0.01"></td>
-                                    <td><select class="form-control" name="operatorvalue"></select></td>
+                                    <td><select class="form-control" name="valueoperator"></select></td>
 
                                     <td name="status"></td>
                                     <td name="command">
-                                        <button type="button" name="editcondition" class="btn btn-sm btn-info">dettagli</button>
-                                        <button type="button" name="deletecondition" class="btn btn-sm btn-info">rimuovi</button>
+                                        <button type="button" name="deletecondition" class="btn btn-sm btn-info">
+                                            rimuovi
+                                        </button>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -120,8 +122,8 @@
 
                                     <td name="status"></td>
                                     <td name="command">
-                                        <button type="button" name="editaction" class="btn btn-sm btn-info">dettagli</button>
-                                        <button type="button" name="deleteaction" class="btn btn-sm btn-info">rimuovi</button>
+                                        <button type="button" name="deleteaction" class="btn btn-sm btn-info">rimuovi
+                                        </button>
                                     </td>
                                 </tr>
                                 </tbody>
@@ -134,7 +136,6 @@
                         <button type="button" name="addaction" class="btn btn-info">Aggiungi azione</button>
                         <button type="button" name="save" class="btn btn-info">Salva</button>
                         <button type="button" name="cancel" class="btn btn-info">Annulla</button>
-                        <button type="button" name="edit" class="btn btn-info">Modifica</button>
                     </div>
 
                 </form>

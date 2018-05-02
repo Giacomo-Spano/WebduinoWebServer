@@ -201,7 +201,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
 
     public ZoneSensor zoneSensorFromId(int zonesensorid) {
         for(ZoneSensor zonesensor: zoneSensors) {
-            if (zonesensor.getSensorId() == zonesensorid)
+            if (zonesensor.id == zonesensorid)
                 return zonesensor;
         }
         return null;

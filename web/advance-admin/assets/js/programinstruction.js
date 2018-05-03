@@ -17,27 +17,21 @@ var $conditionTypes = {
     'triggerstatus': 'Stato trigger'
 };
 
-var $operatorTypes = {
-    '=': 'Equals',
-    '>': 'Greater',
-    '<': 'Lower'
-};
 
-//var $programinstructionPanel;
+var $programinstructionPanel;
 
-//var $conditionRow;
-//var $actionRow;
-//var $programinstruction;
-var $tag;
+var $conditionRow;
+var $actionRow;
+var $programinstruction;
 
 function getTimerange(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=timerange&id=" + id, function (program) {
+    $.getJSON(systemServletPath + "?requestcommand=program&id=" + id, function (program) {
         callback(program);
     });
 }
 
-function addCondition(_conditionRow, _programinstruction,_programinstructionPanel, idx, elem, triggers, zones, sensors, services) {
-    var condition = _conditionRow.clone();
+function addCondition(idx, elem, triggers, zones, sensors, services) {
+    var condition = $conditionRow.clone();
 
     condition.find('td[name="id"]').text(elem.id);
 
@@ -46,36 +40,21 @@ function addCondition(_conditionRow, _programinstruction,_programinstructionPane
         condition.find('td  select[name="zone"]').append(new Option(zone.name, zone.id));
     });
     condition.find('td select[name="zone"]').change(function () {
-        zoneid = this.value;
         $('option', condition.find('td select[name="zonesensor"]')).remove();
         getZone(zoneid, function (zone) {
             // zonesensor
             $.each(zone.zonesensors, function (index, elem) {
                 var option = new Option(elem.name, elem.id);
-
                 condition.find('td select[name="zonesensor"]').append($(option));
             });
             condition.find('td select[name="zonesensor"]').change(function () {
-                getSensorFromZoneSensor(zoneid, this.value, function (sensor) {
-                    //condition.find('td select[name="zonesensor"]').attr('sensorid', '' + sensor.id);
+                getSensor(zonesensorid, function (sensor) {
                     if (sensor.doublevalue != null) {
                         condition.find('td input[name="value"]').prop('min', sensor.mindoublevalue);
                         condition.find('td input[name="value"]').prop('max', sensor.maxdoublevalue);
                         condition.find('td input[name="value"]').prop('step', sensor.stepdoublevalue);
                     }
-                    $('option', condition.find('td select[name="sensorstatus"]')).remove();
-                    //sensorid = condition.find('td select[name="zonesensor"]').attr('sensorid');
-                    $.each(sensor.statuslist, function (index, elem) {
-                        var option = new Option(elem, elem);
-                        condition.find('td select[name="sensorstatus"]').append($(option));
-                    });
-
-                    if (elem.sensorstatus == null || elem.sensorstatus == "") {
-                        elem.sensorstatus = sensor.statuslist[0];
-                    }
-                    condition.find('td select[name="sensorstatus"]').val(elem.sensorstatus);
-                })
-
+                });
             });
             condition.find('td input[name="value"]').val(elem.value);
             zonesensorid = 0;
@@ -84,7 +63,7 @@ function addCondition(_conditionRow, _programinstruction,_programinstructionPane
             } else {
                 zonesensorid = elem.zonesensorid;
             }
-            condition.find('td  select[name="zonesensor"]').val(zonesensorid).change();
+            condition.find('td  select[name="zonesensor"]').val(elem.zonesensorid).change();
         });
 
     });
@@ -96,7 +75,7 @@ function addCondition(_conditionRow, _programinstruction,_programinstructionPane
     }
     condition.find('td select[name="zone"]').val(zoneid).change();
 
-    // trigger
+// trigger
     $.each(triggers, function (val, trigger) {
         condition.find('td  select[name="trigger"]').append(new Option(trigger.name, trigger.id));
     });
@@ -115,25 +94,15 @@ function addCondition(_conditionRow, _programinstruction,_programinstructionPane
     } else {
         triggerid = elem.triggerid;
     }
-    condition.find('td  select[name="trigger"]').val(triggerid).change();
+    condition.find('td  select[name="trigger"]').val(elem.triggerid).change();
 
-    // valueoperator
-    $.each($operatorTypes, function (text, key) {
-        var option = new Option(key, text);
-        condition.find('td select[name="valueoperator"]').append($(option));
-
-    });
-    if (elem.valueoperator == null)
-        elem.valueoperator = "=";
-    condition.find('td select[name="valueoperator"]').val(elem.valueoperator);
-
-    // condition types
     $.each($conditionTypes, function (text, key) {
         var option = new Option(key, text);
         condition.find('td select[name="type"]').append($(option));
 
     });
     condition.find('td select[name="type"]').change(function () {
+
         if (this.value == "zonesensorvalue" && zones.length > 0) {
             condition.find('td select[name="zone"]').prop('disabled', false);
             condition.find('td select[name="zonesensor"]').prop('disabled', false);
@@ -160,74 +129,43 @@ function addCondition(_conditionRow, _programinstruction,_programinstructionPane
             condition.find('td select[name="triggerstatus"]').prop('disabled', false);
         }
     });
+
     condition.find('td select[name="type"]').val(elem.type).change();
-    _programinstructionPanel.find('tbody[name="conditionlist"]').append(condition);
+    condition.find('td select[name="type"]').on(function () {
 
+    });
+    condition.find('td select[name="type"]').off(function () {
 
+    });
+
+    $programinstructionPanel.find('tbody[name="conditionlist"]').append(condition);
+
+    condition.find('button[name="editcondition"]').attr("idx", idx);
+    condition.find('button[name="editcondition"]').click(function () {
+        var index = $(this).attr("idx");
+        loadProgramInstruction($programinstruction.programinstructions[index], triggers, zones, sensors, services);
+    });
     condition.find('button[name="deletecondition"]').attr("idx", idx);
     condition.find('button[name="deletecondition"]').click(function () {
         var index = $(this).attr("idx");
-        _programinstruction.conditions.splice(index, 1);
-        loadProgramInstruction($tag, _programinstruction, triggers, zones, sensors, services);
+        $programinstruction.actions.splice(index, 1);
+        loadProgramInstructions($programinstruction.actions, actiontypes, zones, sensors);
+        programinstructionDisableEdit(false);
     });
+
+
 }
 
-function handleActionCommandList(sensor, action, elem) {
-    if (sensor.actioncommandlist.length != null && sensor.actioncommandlist.length > 0) {
-        action.find('td select[name="actioncommand"]').prop('disabled', false);
-        var index = 0;
-        $.each(sensor.actioncommandlist, function (index, elem) {
 
-            var option = new Option(elem.name, elem.command);
-            action.find('td select[name="actioncommand"]').append($(option));
-        });
-        action.find('td select[name="actioncommand"]').change(function () {
-            for (i = 0; i < sensor.actioncommandlist.length; i++) {
-                if (sensor.actioncommandlist[i].command == this.value) {
-                    actioncommand = sensor.actioncommandlist[i];
-                    if (actioncommand.zone) {
-                        action.find('td select[name="zone"]').prop('disabled', false);
-                        action.find('td select[name="zonesensor"]').prop('disabled', false);
-                        action.find('td select[name="zone"]').val(zoneid).change();
-                    } else {
-                        action.find('td select[name="zone"]').prop('disabled', true);
-                        action.find('td select[name="zonesensor"]').prop('disabled', true);
-                    }
-                    if (actioncommand.targetvalue) {
-                        action.find('td input[name="value"]').prop('disabled', false);
-                    } else {
-                        action.find('td input[name="value"]').prop('disabled', true);
-                    }
-                    if (actioncommand.duration) {
-                        action.find('td input[name="seconds"]').prop('disabled', false);
-                    } else {
-                        action.find('td input[name="seconds"]').prop('disabled', true);
-                    }
-                    if (actioncommand.param) {
-                        action.find('td input[name="param "]').prop('disabled', false);
-                    } else {
-                        action.find('td input[name="param"]').prop('disabled', true);
-                    }
-                    break;
-                }
-            }
-        });
-        actioncommand = sensor.actioncommandlist[this.value];
-        if (elem.actioncommand == null || elem.actioncommand == "")
-            actioncommand = sensor.actioncommandlist[0];
-        action.find('td select[name="actioncommand"]').val(actioncommand.command).change();
-    } else {
-        action.find('td select[name="actioncommand"]').prop('disabled', true);
-        action.find('td select[name="zone"]').prop('disabled', true);
-        action.find('td select[name="zonesensor"]').prop('disabled', true);
-        action.find('td input[name="value"]').prop('disabled', true);
-        action.find('td input[name="seconds"]').prop('disabled', true);
-        action.find('td input[name="param"]').prop('disabled', true);
-    }
-}
+/*function getActuatorCommand(id, callback) {
+ $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (scenario) {
+ callback(scenario);
+ });
+ }*/
 
-function addAction(_actionRow, _programinstruction,_programinstructionPanel, idx, elem, triggers, zones, sensors, services) {
-    var action = _actionRow.clone();
+
+function addAction(idx, elem, triggers, zones, sensors, services) {
+    var action = $actionRow.clone();
 
     action.find('td[name="id"]').text(elem.id);
 
@@ -235,96 +173,36 @@ function addAction(_actionRow, _programinstruction,_programinstructionPanel, idx
     $.each(sensors, function (val, sensor) {
         action.find('td  select[name="actuator"]').append(new Option(sensor.name, sensor.id));
     });
-    action.find('td select[name="actuator"]').change(function () {
-        actuatorid = this.value;
-        actioncommand = 0;
-        $('option', action.find('td select[name="actioncommand"]')).remove();
-        getSensor(actuatorid, function (sensor) {
-                handleActionCommandList.call(this, sensor, action, elem);
-            }
-        )
-        ;
-    });
-    actuatorid = 0;
-    if (elem.actuatorid == 0 || elem.actuatorid == null) {
-        actuatorid = sensors[0].id;
-    } else {
-        actuatorid = elem.actuatorid;
-    }
-    action.find('td select[name="actuator"]').val(actuatorid).change();
+    action.find('td  select[name="actuator"]').val(elem.actuatorid);
 
     // trigger
     $.each(triggers, function (val, trigger) {
         action.find('td  select[name="trigger"]').append(new Option(trigger.name, trigger.id));
     });
-    action.find('td select[name="trigger"]').change(function () {
-        triggerid = this.value;
-        $('option', action.find('td select[name="actioncommand"]')).remove();
-        getTrigger(actuatorid, function (trigger) {
-            handleActionCommandList.call(this, trigger, action, elem);
-        });
-    });
-    triggerid = 0;
-    if (elem.triggerid == 0 || elem.triggerid == null) {
-        triggerid = triggers[0].id;
-    } else {
-        triggerid = elem.triggerid;
-    }
-    action.find('td select[name="trigger"]').val(triggerid).change();
+    action.find('td  select[name="trigger"]').val(elem.triggerid);
 
     // service
     $.each(services, function (val, service) {
         action.find('td  select[name="service"]').append(new Option(service.name, service.id));
     });
-    action.find('td select[name="service"]').change(function () {
-        serviceid = this.value;
-        $('option', action.find('td select[name="actioncommand"]')).remove();
-        getService(serviceid, function (service) {
-                handleActionCommandList.call(this, service, action, elem);
-            }
-        );
-    });
-    serviceid = 0;
-    if (elem.serviceid == 0 || elem.serviceid == null) {
-        serviceid = services[0].id;
-    } else {
-        serviceid = elem.serviceid;
-    }
-    action.find('td select[name="service"]').val(serviceid).change();
-
+    action.find('td  select[name="service"]').val(elem.serviceid);
 
     // zone
     $.each(zones, function (index, zone) {
         action.find('td  select[name="zone"]').append(new Option(zone.name, zone.id));
     });
     action.find('td select[name="zone"]').change(function () {
-        zoneid = this.value;
         $('option', action.find('td select[name="zonesensor"]')).remove();
-        getZone(zoneid, function (zone) {
+        getZone(elem.zoneid, function (zone) {
             $.each(zone.zonesensors, function (index, elem) {
-                var option = new Option(elem.name, elem.id);
+                var option = new Option(elem.id, elem.name);
                 action.find('td select[name="zonesensor"]').append($(option));
             });
-            action.find('td select[name="zone"]').change(function () {
-                zonesensorid = this.value;
-            });
-            //zonesensorid = 0;
-            if (elem.zonesensorid == null || elem.zonesensorid == 0) {
-                zonesensorid = zone.zonesensors[0].id;
-            } else {
-                zonesensorid = elem.zonesensorid;
-            }
-            action.find('td  select[name="zonesensor"]').val(zonesensorid).change();
         })
 
     });
-    zoneid = 0;
-    if (elem.zoneid == 0 || elem.zoneid == null) {
-        zoneid = zones[0].id;
-    } else {
-        zoneid = elem.zoneid;
-    }
-    action.find('td select[name="zone"]').val(zoneid).change();
+    action.find('td select[name="zone"]').val(elem.zoneid);
+    action.find('td select[name="zone"]').val(elem.zoneid).change();
 
     $.each($actionTypes, function (text, key) {
         var option = new Option(key, text);
@@ -336,59 +214,98 @@ function addAction(_actionRow, _programinstruction,_programinstructionPanel, idx
             action.find('td select[name="actuator"]').prop('disabled', false);
             action.find('td select[name="trigger"]').prop('disabled', true);
             action.find('td select[name="service"]').prop('disabled', true);
-            action.find('td select[name="actuator"]').val(actuatorid).change();
+
+            $('option', action.find('td select[name="actioncommand"]')).remove();
+            getSensor(elem.actuatorid, function (sensor) {
+                $.each(sensor.actioncommandlist, function (index, elem) {
+                    var option = new Option(elem.command, elem.name);
+                    action.find('td select[name="actioncommand"]').append($(option));
+                });
+            });
+
         } else if (this.value == 'trigger') {
             action.find('td select[name="actuator"]').prop('disabled', true);
             action.find('td select[name="trigger"]').prop('disabled', false);
             action.find('td select[name="service"]').prop('disabled', true);
-            action.find('td select[name="trigger"]').val(triggerid).change();
+
         } else if (this.value == 'service') {
             action.find('td select[name="actuator"]').prop('disabled', true);
             action.find('td select[name="trigger"]').prop('disabled', true);
             action.find('td select[name="service"]').prop('disabled', false);
-            action.find('td select[name="service"]').val(serviceid).change();
+
         }
     });
     action.find('td select[name="type"]').val(elem.type).change();
-    _programinstructionPanel.find('tbody[name="actionlist"]').append(action);
 
+    action.find('td input[name="name"]').val(elem.name);
+    action.find('td input[name="description"]').val(elem.description);
+
+
+    action.find('td  input[name="targetvalue"]').val(elem.targetvalue);
+
+
+    action.find('button[name="editaction"]').attr("idx", idx);
+    action.find('button[name="editaction"]').click(function () {
+        var index = $(this).attr("idx");
+        loadAction($programinstruction.actions[index], sensors, zones, triggers, services);
+    });
     action.find('button[name="deleteaction"]').attr("idx", idx);
     action.find('button[name="deleteaction"]').click(function () {
         var index = $(this).attr("idx");
-        _programinstruction.actions.splice(index, 1);
-        loadProgramInstruction($tag, _programinstruction, triggers, zones, sensors, services);
+        $programinstruction.actions.splice(index, 1);
+        loadProgramInstructions($programinstruction.actions, triggers, zones, sensors, services);
+        programinstructionDisableEdit(false);
     });
 
-
+    $programinstructionPanel.find('tbody[name="actionlist"]').append(action);
 }
 
-function loadProgramActionsAndConditions(_conditionRow, _actionRow, _programinstruction,_programinstructionPanel, conditions, actions, triggers, zones, sensors, services) {
-    var tbodycondition = _programinstructionPanel.find('tbody[name="conditionlist"]');
+function loadProgramActionsAndConditions(conditions, actions, triggers, zones, sensors, services) {
+    var tbodycondition = $programinstructionPanel.find('tbody[name="conditionlist"]');
     tbodycondition[0].innerHTML = "";
     if (conditions != null) {
         $.each(conditions, function (idx, elem) {
-            addCondition(_conditionRow, _programinstruction,_programinstructionPanel, idx, elem, triggers, zones, sensors, services);
+            addCondition(idx, elem, triggers, zones, sensors, services);
         });
     }
 
-    var tbodyaction = _programinstructionPanel.find('tbody[name="actionlist"]');
+    var tbodyaction = $programinstructionPanel.find('tbody[name="actionlist"]');
     tbodyaction[0].innerHTML = "";
     if (actions != null) {
         $.each(actions, function (idx, elem) {
-            addAction(_actionRow, _programinstruction,_programinstructionPanel, idx, elem, triggers, zones, sensors, services);
+            addAction(idx, elem, triggers, zones, sensors, services);
         });
     }
 }
 
-function loadProgramInstruction(tag, programinstruction, triggers, zones, sensors, services) {
+function programinstructionDisableEdit(enabled) {
+    $programinstructionPanel.find('input').prop('disabled', enabled);
+    $programinstructionPanel.find('textarea').prop('disabled', enabled);
+    $programinstructionPanel.find('select').prop('disabled', enabled);
 
-    //var _programinstructionPanel;
+    if (!enabled)
+        $programinstructionPanel.find('p[class="help-block"]').hide();
+    else
+        $programinstructionPanel.find('p[class="help-block"]').show();
 
-    $tag = tag;
-    //$programinstruction = programinstruction;
+    //$programinstructionPanel.find('button[name="addaction"]').prop('disabled', enabled);
+    //$programinstructionPanel.find('button[name="addcondition"]').prop('disabled', enabled);
+    $programinstructionPanel.find('button[name="deletecondition"]').prop('disabled', enabled);
+    $programinstructionPanel.find('button[name="editcondition"]').prop('disabled', !enabled);
+    $programinstructionPanel.find('button[name="deleteaction"]').prop('disabled', enabled);
+    $programinstructionPanel.find('button[name="editaction"]').prop('disabled', !enabled);
 
-    /*$("#result")*/
-    tag.load("programinstruction.html", function () {
+}
+function loadProgramInstruction(programinstruction, triggers, zones, sensors, services) {
+
+    $programinstruction = programinstruction;
+
+    /*$.getJSON(systemServletPath + "?requestcommand=triggers", function (triggers) {
+     $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
+     $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
+     $.getJSON(systemServletPath + "?requestcommand=services", function (services) {*/
+
+    $("#result").load("programinstruction.html", function () {
             // back button
             backbutton.unbind("click");
             backbutton.click(function () {
@@ -401,35 +318,35 @@ function loadProgramInstruction(tag, programinstruction, triggers, zones, sensor
             notificationsuccess.hide();
 
 
-            var _programinstructionPanel = $(this).find('div[id="panel"]');
-            //$conditionRow = _programinstructionPanel.find('tr[name="conditionrow"]');
-            //$actionRow = _programinstructionPanel.find('tr[name="actionrow"]');
-            var _conditionRow = _programinstructionPanel.find('tr[name="conditionrow"]');
-            var _actionRow = _programinstructionPanel.find('tr[name="actionrow"]');
+            $programinstructionPanel = $(this).find('div[id="panel"]');
+            $conditionRow = $programinstructionPanel.find('tr[name="conditionrow"]');
+            $actionRow = $programinstructionPanel.find('tr[name="actionrow"]');
 
-            _programinstructionPanel.find('p[name="headingright"]').text(programinstruction.timerangeid + "." + programinstruction.id);
-            _programinstructionPanel.find('input[name="programinstructionenabled"]').prop('checked', programinstruction.enabled);
-            //_programinstructionPanel.find('input[name="index"]').val(programinstruction.index); // quesot serve
-            _programinstructionPanel.find('input[name="name"]').val(programinstruction.name);
-            _programinstructionPanel.find('textarea[name="description"]').val(programinstruction.description);
-            _programinstructionPanel.find('input[name="priority"]').val(programinstruction.priority);
+            $programinstructionPanel.find('p[name="headingright"]').text(programinstruction.timerangeid + "." + programinstruction.id);
+            $programinstructionPanel.find('input[name="programinstructionenabled"]').prop('checked', programinstruction.enabled);
+            //$programinstructionPanel.find('input[name="index"]').val(programinstruction.index);
+            $programinstructionPanel.find('input[name="name"]').val(programinstruction.name);
+            $programinstructionPanel.find('textarea[name="description"]').val(programinstruction.description);
+            $programinstructionPanel.find('input[name="priority"]').val(programinstruction.priority);
 
             // save button
-            var savebutton = _programinstructionPanel.find('button[name="save"]');
+            var savebutton = $programinstructionPanel.find('button[name="save"]');
+            savebutton.hide();
+            programinstructionDisableEdit(true);
             savebutton.click(function () {
 
-                programinstruction.name = _programinstructionPanel.find('input[name="name"]').val();
-                programinstruction.description = _programinstructionPanel.find('textarea[name="description"]').val();
-                programinstruction.enabled = _programinstructionPanel.find('input[name="timerangeabled"]').prop('checked');
-                programinstruction.priority = _programinstructionPanel.find('input[name="priority"]').val();
-                updateConditionAndActionData(programinstruction, _programinstructionPanel);
+                programinstruction.name = $programinstructionPanel.find('input[name="name"]').val();
+                programinstruction.description = $programinstructionPanel.find('textarea[name="description"]').val();
+                programinstruction.enabled = $programinstructionPanel.find('input[name="timerangeabled"]').prop('checked');
+                programinstruction.priority = $programinstructionPanel.find('input[name="priority"]').val();
+                updateConditionAndActionData();
 
-                postData("programinstruction", programinstruction, function (result, response) {
+                postData("timerange", timerange, function (result, response) {
                     if (result) {
                         notification.show();
-                        notificationsuccess.find('label[name="description"]').text("programinstruction salvato");
+                        notificationsuccess.find('label[name="description"]').text("timerange salvato");
                         var json = jQuery.parseJSON(response);
-                        loadProgramInstruction($tag, json, triggers, zones, sensors, services);
+                        loadTimeRange(json);
                     } else {
                         notification.show();
                         notification.find('label[name="description"]').text(response);
@@ -437,26 +354,42 @@ function loadProgramInstruction(tag, programinstruction, triggers, zones, sensor
                 });
             });
 
-            var cancelbutton = _programinstructionPanel.find('button[name="cancel"]');
+            var cancelbutton = $programinstructionPanel.find('button[name="cancel"]');
             cancelbutton.hide();
             cancelbutton.click(function () {
-                getProgramInstruction(_programinstruction.id, function (programinstruction) {
-                    loadProgramInstruction($tag, programinstruction, triggers, zones, sensors, services);
+                getProgramInstruction($programinstruction.id, function (programinstruction) {
+                    loadProgramInstruction(programinstruction, triggers, zones, sensors, services);
                 })
             });
 
-            // programinstructions
+            var editbutton = $programinstructionPanel.find('button[name="edit"]');
+            editbutton.click(function () {
+                savebutton.show();
+                cancelbutton.show();
+                editbutton.hide();
+                addconditionbutton.show();
+                addactionbutton.show();
+                programinstructionDisableEdit(false);
+            });
+
+            var addconditionbutton = $programinstructionPanel.find('button[name="addcondition"]');
+            //addconditionbutton.hide();
+
+            var addactionbutton = $programinstructionPanel.find('button[name="addaction"]');
+            //addactionbutton.hide();
+
+            // timeranges
             if (programinstruction.actions != undefined || programinstruction.conditions != null)
-                loadProgramActionsAndConditions(_conditionRow, _actionRow, programinstruction, _programinstructionPanel, programinstruction.conditions, programinstruction.actions, triggers, zones, sensors, services);
-            var addconditionbutton = _programinstructionPanel.find('button[name="addcondition"]');
+                loadProgramActionsAndConditions($programinstruction.conditions, $programinstruction.actions, triggers, zones, sensors, services);
+
             addconditionbutton.click(function () {
-                updateConditionAndActionData(programinstruction,_programinstructionPanel); // questo serve per aggiornare eventuali modifiche manuali
+                updateConditionAndActionData(); // questo serve per aggiornare eventuali modifiche manuali
                 var condition = {
                     "programinstructionid": programinstruction.id,
                     "id": 0,
                     "type": "zonesensorvalue",
-                    "zoneid": 0,
-                    "zonesensorid": 0,
+                    "zoneid": null,
+                    "zonesensorid": null,
                     "sensorstatus": "",
                     "triggerstatus": "",
                     "value": 0,
@@ -467,16 +400,17 @@ function loadProgramInstruction(tag, programinstruction, triggers, zones, sensor
                     programinstruction["conditions"] = emptyArray;
                 }
                 programinstruction.conditions.push(condition);
-                loadProgramActionsAndConditions(_conditionRow, _actionRow, programinstruction, _programinstructionPanel, programinstruction.conditions, programinstruction.actions, triggers, zones, sensors, services);
+
+                loadProgramActionsAndConditions($programinstruction.conditions, $programinstruction.actions, triggers, zones, sensors, services);
+                programinstructionDisableEdit(false);
             });
 
-            var addactionbutton = _programinstructionPanel.find('button[name="addaction"]');
             addactionbutton.click(function () {
-                updateConditionAndActionData(programinstruction, _programinstruction,_programinstructionPanel); // questo serve per aggiornare eventuali modifiche manuali
+                updateConditionAndActionData(); // questo serve per aggiornare eventuali modifiche manuali
                 var action = {
                     "programinstructionid": programinstruction.id,
                     "id": 0,
-                    "type": "actuator",
+                    "type": "zonesensorvalue",
                     "zonesensorvalue": 0,
                     "zoneid": 0,
                 };
@@ -485,43 +419,48 @@ function loadProgramInstruction(tag, programinstruction, triggers, zones, sensor
                     programinstruction["actions"] = emptyArray;
                 }
                 programinstruction.actions.push(action);
-                loadProgramActionsAndConditions(_conditionRow, _actionRow, programinstruction, _programinstructionPanel, programinstruction.conditions, programinstruction.actions, triggers, zones, sensors, services);
+
+                loadProgramActionsAndConditions($programinstruction.conditions, $programinstruction.actions, triggers, zones, sensors, services);
+                programinstructionDisableEdit(false);
             });
         }
     );
-
+    /*});
+     });
+     });
+     });*/
 }
 
-function updateConditionAndActionData(_programinstruction, _programinstructionPanel) {
-    if (_programinstruction.conditions != undefined) {
+function updateConditionAndActionData() {
+    if ($programinstruction.conditions != undefined) {
         var i = 0;
-        _programinstructionPanel.find('tr[name="conditionrow"]').each(function (idx, elem) {
-            var elem = _programinstruction.conditions[i];
+        $programinstructionPanel.find('tr[name="conditionrow"]').each(function (idx, elem) {
+            var elem = $programinstruction.actions[i];
             elem.type = $(this).find('td select[name="type"]').val();
-            elem.zoneid = parseInt($(this).find('td select[name="zone"]').val());
-            elem.zonesensorid = parseInt($(this).find('td select[name="zonesensor"]').val());
-            elem.triggerid = parseInt($(this).find('td select[name="trigger"]').val());
+            elem.zone = $(this).find('td select[name="zone"]').val();
+            elem.zonesensor = $(this).find('td select[name="zonesensor"]').val();
+            elem.trigger = $(this).find('td select[name="trigger"]').val();
             elem.sensorstatus = $(this).find('td select[name="sensorstatus"]').val();
             elem.triggerstatus = $(this).find('td select[name="triggerstatus"]').val();
-            elem.value = parseFloat($(this).find('td input[name="value"]').val());
+            elem.value = $(this).find('td input[name="value"]').val();
             elem.valueoperator = $(this).find('td select[name="valueoperator"]').val();
             i++;
         });
     }
 
-    if (_programinstruction.actions != undefined) {
+    if ($programinstruction.actions != undefined) {
         var i = 0;
-        _programinstructionPanel.find('tr[name="actionrow"]').each(function (idx, elem) {
-            var elem = _programinstruction.actions[i];
+        $programinstructionPanel.find('tr[name="actionrow"]').each(function (idx, elem) {
+            var elem = $programinstruction.actions[i];
             elem.type = $(this).find('td select[name="type"]').val();
             elem.actioncommand = $(this).find('td select[name="actioncommand"]').val();
             elem.targetvalue = $(this).find('td input[name="targetvalue"]').val();
-            elem.seconds = parseInt($(this).find('td input[name="seconds"]').val());
-            elem.actuatorid = parseInt($(this).find('td select[name="actuator"]').val());
-            elem.serviceid = parseInt($(this).find('td select[name="service"]').val());
-            elem.zoneid = parseInt($(this).find('td select[name="zone"]').val());
-            elem.zonesensorid = $(this).find('td select[name="zonesensor"]').val();
-            elem.triggerid = parseInt($(this).find('td select[name="trigger"]').val());
+            elem.seconds = $(this).find('td input[name="seconds"]').val();
+            elem.actuator = $(this).find('td select[name="actuator"]').val();
+            elem.service = $(this).find('td select[name="service"]').val();
+            elem.zone = $(this).find('td select[name="zone"]').val();
+            elem.zonesensor = $(this).find('td select[name="zonesensor"]').val();
+            elem.trigger = $(this).find('td select[name="trigger"]').val();
             elem.param = $(this).find('td input[name="param"]').val();
             i++;
         });

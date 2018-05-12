@@ -65,6 +65,7 @@ function onSignIn(googleUser) {
 function deactivatemenuitems() {
     $('a[id="item_home"]').attr("class", "");
     $('a[id="item_dashboard"]').attr("class", "");
+    $('a[id="item_systems"]').attr("class", "");
     $('a[id="item_scenarios"]').attr("class", "");
     $('a[id="item_zones"]').attr("class", "");
     $('a[id="item_shields"]').attr("class", "");
@@ -108,6 +109,13 @@ function load() {
         deactivatemenuitems();
         $('a[id="item_scenarios"]').attr("class", "active-menu");
         loadScenarios();
+        return false;
+    });
+
+    $('a[id="item_systems"]').click(function () {
+        deactivatemenuitems();
+        $('a[id="item_systems"]').attr("class", "active-menu");
+        loadWebduinoSystems();
         return false;
     });
 
@@ -359,9 +367,6 @@ function loadScenarios() {
 
             });
 
-
-
-
             $.getJSON(systemServletPath + "?requestcommand=nextprograms&id="+0, function (nexttimeranges) {
                 var tbody = $nexttimerangesPanel.find('tbody[name="nexttimerangelist"]');
                 tbody[0].innerHTML = "";
@@ -594,214 +599,6 @@ function setScenarioElement(element, scenario) {
 }
 
 // SCENARIO
-function enableScenarioEdit(savebutton, cancelbutton, editbutton) {
-    savebutton.show();
-    cancelbutton.show();
-    editbutton.hide();
-    $scenarioPanel.find('input[name="name"]').prop('disabled', false);
-    $scenarioPanel.find('input[name="enabled"]').prop('disabled', false);
-    $scenarioPanel.find('textarea[name="description"]').prop('disabled', false);
-    $scenarioPanel.find('input[name="priority"]').prop('disabled', false);
-    $scenarioPanel.find('input[name="startdate"]').prop('disabled', false);
-    $scenarioPanel.find('input[name="enddate"]').prop('disabled', false);
-
-    $scenarioPanel.find('p[class="help-block"]').show();
-}
-
-function _loadScenario(scenario, editmode) {
-
-    if (editmode == undefined) {
-        editmode = false;
-    }
-
-    $("#result").load("scenario.html", function () {
-
-        // back button
-        backbutton.unbind("click");
-        backbutton.click(function () {
-            loadScenarios();
-        });
-
-        pagetitle.text('Scenario');
-        notification.hide();
-
-        $scenarioPanel = $(this).find('div[id="scenariopanel"]');
-        $scenarioPanel.find('p[name="headingright"]').text(scenario.id);
-
-        $calendarPanel = $(this).find('div[id="calendarpanel"]');
-        $calendarRow = $calendarPanel.find('tr[name="calendarrow"]');
-        var calendartbody = $calendarPanel.find('tbody[name="timeintervallist"]');
-
-        $triggerPanel = $(this).find('div[id="triggerpanel"]');
-        $triggerRow = $triggerPanel.find('tr[name="triggerrow"]');
-        var triggertbody = $triggerPanel.find('tbody[name="triggerlist"]');
-
-        $programPanel = $(this).find('div[id="programpanel"]');
-        $programRow = $programPanel.find('tr[name="programrow"]');
-        var programstbody = $(this).find('div[id="programpanel"]').find('tbody[name="programlist"]');
-
-        // dati generali
-        $scenarioPanel.find('input[name="name"]').val(scenario.name);
-        $scenarioPanel.find('textarea[name="description"]').val(scenario.description);
-        $scenarioPanel.find('input[name="enabled"]').prop('checked', scenario.enabled);
-        $scenarioPanel.find('input[name="priority"]').val(scenario.priority);
-
-
-        $scenarioPanel.find('input[name="startdate"]').val(scenario.startdate);
-        if (scenario.startdate != undefined)
-            $scenarioPanel.find('input[name="startdate"]').datepicker({
-                dateFormat: "dd/mm/yy"
-            });
-        if (scenario.enddate != undefined)
-            $scenarioPanel.find('input[name="enddate"]').val(scenario.enddate);
-        $scenarioPanel.find('input[name="enddate"]').datepicker({
-            dateFormat: "dd/mm/yy"
-        });
-        $scenarioPanel.find('p[name="status"]').text(scenario.status);
-
-        // save button
-        var savebutton = $scenarioPanel.find('button[name="save"]');
-        savebutton.hide();
-        $scenarioPanel.find('input').prop('disabled', true);
-        $scenarioPanel.find('textarea').prop('disabled', true);
-        $scenarioPanel.find('select').prop('disabled', true);
-        $scenarioPanel.find('p[class="help-block"]').hide();
-        savebutton.click(function () {
-            scenario.name = $scenarioPanel.find('input[name="name"]').val();
-            scenario.description = $scenarioPanel.find('textarea[name="description"]').val();
-            scenario.enabled = $scenarioPanel.find('input[name="enabled"]').prop('checked');
-            scenario.startdate = $scenarioPanel.find('input[name="startdate"]').val();
-            scenario.enddate = $scenarioPanel.find('input[name="enddate"]').val();
-            scenario.priority = $scenarioPanel.find('input[name="priority"]').val();
-
-            postData("scenario", scenario, function (result, response) {
-                if (result) {
-                    notification.find('label[name="description"]').text("program salvata");
-                    var json = jQuery.parseJSON(response);
-                    loadScenario(json);
-                } else {
-                    notification.show();
-                    notification.find('label[name="description"]').text(response);
-                }
-            });
-        });
-
-        var cancelbutton = $scenarioPanel.find('button[name="cancel"]');
-        cancelbutton.hide();
-        cancelbutton.click(function () {
-            loadScenario(scenario);
-        });
-
-        var editbutton = $scenarioPanel.find('button[name="edit"]');
-        editbutton.click(function () {
-            enableScenarioEdit(savebutton, cancelbutton, editbutton);
-        });
-
-        if (editmode) {
-            enableScenarioEdit(savebutton, cancelbutton, editbutton);
-            cancelbutton.hide();
-        }
-
-        // calendar
-        calendartbody[0].innerHTML = "";
-        if (scenario.calendar != undefined && scenario.calendar.timeintervals != undefined) {
-
-            $.each(scenario.calendar.timeintervals, function (idx, timeinterval) {
-                var newtr = $calendarRow.clone();
-                setTimeintervalElement(newtr, timeinterval);
-                calendartbody.append(newtr);
-            });
-            $calendarPanel.find('button[name="add"]').click(function () {
-                var timeinterval = {
-                    "scenarioid": scenario.id,
-                    "id": 0,
-                    "name": "nuovo timeinterval",
-                    "enabled": false,
-                    "priority": 0,
-                };
-                postData("timeinterval", timeinterval, function (result, response) {
-                    if (result) {
-                        var json = jQuery.parseJSON(response);
-                        getScenario(json.scenarioid, function (scenario) {
-                            loadScenario(scenario);
-                        })
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
-            });
-        }
-
-        // scenario trigger
-        triggertbody[0].innerHTML = "";
-        $.getJSON(systemServletPath + "?requestcommand=triggertypes", function (triggertypes) {
-
-            if (scenario.triggers != undefined) {
-                $.each(scenario.triggers, function (idx, elem) {
-                    var newtr = $triggerRow.clone();
-                    setTriggerElement(newtr, elem, triggertypes);
-                    triggertbody.append(newtr);
-                });
-                $triggerPanel.find('button[name="add"]').click(function () {
-                    var trigger = {
-                        "scenarioid": scenario.id,
-                        "id": 0,
-                        "name": "nuovo trigger",
-                        "enabled": false,
-                        "priority": 0,
-                    };
-                    postData("trigger", trigger, function (result, response) {
-                        if (result) {
-                            var json = jQuery.parseJSON(response);
-                            getScenario(json.scenarioid, function (scenario) {
-                                loadScenario(scenario);
-                            })
-                        } else {
-                            notification.show();
-                            notification.find('label[name="description"]').text(response);
-                        }
-                    });
-                });
-            }
-        });
-
-        // programs
-        programstbody[0].innerHTML = "";
-        $.each(scenario.programs, function (idx, elem) {
-            var newtr = $programRow.clone();
-            setScenarioProgramElement(newtr, elem/*, scenario*/);
-            programstbody.append(newtr);
-        });
-        $programPanel.find('button[name="add"]').click(function () {
-            var program = {
-                "scenarioid": scenario.id,
-                "id": 0,
-                "name": "nuovo programma",
-                "enabled": false,
-                "priority": 0,
-            };
-            postData("program", program, function (result, response) {
-                if (result) {
-                    //notification.find('label[name="description"]').text("program salvata");
-                    var json = jQuery.parseJSON(response);
-                    getScenario(scenario.id, function (scenario) {
-                        loadScenario(scenario);
-                    });
-                } else {
-                    notification.show();
-                    notification.find('label[name="description"]').text(response);
-                }
-            });
-        });
-    });
-}
-
-function getTimeRange(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=timerange&id=" + id, function (timerange) {
-        callback(timerange);
-    });
-}
 
 function getProgram(id, callback) {
     $.getJSON(systemServletPath + "?requestcommand=program&id=" + id, function (program) {
@@ -839,11 +636,16 @@ function getService(id, callback) {
     });
 }
 
+function getTriggers(callback) {
+    $.getJSON(systemServletPath + "?requestcommand=triggers", function (triggers) {
+        callback(triggers);
+    });
+}
+
 
 function loadScenarioTimeinterval(timeinterval) {
 
     $("#result").load("scenariotimeinterval.html", function () {
-
         // back button
         backbutton.unbind("click");
         backbutton.click(function () {
@@ -851,7 +653,7 @@ function loadScenarioTimeinterval(timeinterval) {
                 loadScenario(scenario);
             })
         });
-        pagetitle.text('Time interva');
+        pagetitle.text('Time interval');
         notification.hide();
 
         var panel = $(this).find('div[id="timeintervalpanel"]');
@@ -880,11 +682,6 @@ function loadScenarioTimeinterval(timeinterval) {
 
         // save button
         var savebutton = panel.find('button[name="save"]');
-        savebutton.hide();
-        panel.find('input').prop('disabled', true);
-        panel.find('textarea').prop('disabled', true);
-        panel.find('select').prop('disabled', true);
-        panel.find('p[class="help-block"]').hide();
         savebutton.click(function () {
             timeinterval.name = panel.find('input[name="name"]').val();
             timeinterval.description = panel.find('textarea[name="description"]').val();
@@ -906,7 +703,9 @@ function loadScenarioTimeinterval(timeinterval) {
                 if (result) {
                     notification.find('label[name="description"]').text("timeiunterval salvato");
                     var json = jQuery.parseJSON(response);
-                    loadScenarioTimeinterval(json);
+                    getScenario(timeinterval.scenarioid, function (scenario) {
+                        loadScenario(scenario);
+                    })
                 } else {
                     notification.show();
                     notification.find('label[name="description"]').text(response);
@@ -915,45 +714,38 @@ function loadScenarioTimeinterval(timeinterval) {
         });
 
         var cancelbutton = panel.find('button[name="cancel"]');
-        cancelbutton.hide();
         cancelbutton.click(function () {
-            loadScenarioTimeinterval(timeinterval);
+            getScenario(timeinterval.scenarioid, function (scenario) {
+                loadScenario(scenario);
+            })
         });
 
-        var editbutton = panel.find('button[name="edit"]');
-        editbutton.click(function () {
-            savebutton.show();
-            cancelbutton.show();
-            editbutton.hide();
-            panel.find('input[name="name"]').prop('disabled', false);
-            panel.find('textarea[name="description"]').prop('disabled', false);
-            panel.find('select[name="type"]').prop('disabled', false);
-            panel.find('input[name="value"]').prop('disabled', false);
-            panel.find('input[name="status"]').prop('disabled', false);
-            panel.find('input[name="startdatetime"]').prop('disabled', false);
-            panel.find('input[name="enddatetime"]').prop('disabled', false);
-            panel.find('input[name="enabled"]').prop('disabled', false);
-            panel.find('input[name="priority"]').prop('disabled', false);
-            panel.find('input[name="sunday"]').prop('disabled', false);
-            panel.find('input[name="monday"]').prop('disabled', false);
-            panel.find('input[name="tuesday"]').prop('disabled', false);
-            panel.find('input[name="wednesday"]').prop('disabled', false);
-            panel.find('input[name="thursday"]').prop('disabled', false);
-            panel.find('input[name="friday"]').prop('disabled', false);
-            panel.find('input[name="saturday"]').prop('disabled', false);
-            panel.find('p[class="help-block"]').show();
+        var deletebutton = panel.find('button[name="delete"]');
+        deletebutton.click(function () {
+            postData("timeinterval", timeinterval, function (result, response) {
+                if (result) {
+                    notification.find('label[name="description"]').text("timeiunterval salvato");
+                    var json = jQuery.parseJSON(response);
+                    getScenario(timeinterval.scenarioid, function (scenario) {
+                        loadScenario(scenario);
+                    })
+                } else {
+                    notification.show();
+                    notification.find('label[name="description"]').text(response);
+                }
+            },"delete");
         });
     });
 }
 
-function loadScenarioTrigger(trigger, triggertypes) {
+function loadScenarioTrigger(scenariotrigger) {
 
     $("#result").load("scenariotrigger.html", function () {
 
         // back button
         backbutton.unbind("click");
         backbutton.click(function () {
-            getScenario(trigger.scenarioid, function (scenario) {
+            getScenario(scenariotrigger.scenarioid, function (scenario) {
                 loadScenario(scenario);
             })
         });
@@ -961,37 +753,41 @@ function loadScenarioTrigger(trigger, triggertypes) {
         notification.hide();
 
         var panel = $(this).find('div[id="triggerpanel"]');
-        panel.find('p[name="headingright"]').text(trigger.scenarioid + "." + trigger.id);
-        panel.find('input[name="name"]').val(trigger.name);
-        panel.find('textarea[name="description"]').val(trigger.description);
-        panel.find('select[name="type"]').val(trigger.type);
-        $.each(triggertypes, function (val, triggertype) {
-            panel.find('select[name="type"]').append(new Option(triggertype.name, triggertype.id));
+        panel.find('p[name="headingright"]').text(scenariotrigger.scenarioid + "." + scenariotrigger.id);
+
+        getTriggers(function (trigger) {
+            $.each(trigger, function (val, trigger) {
+                panel.find('select[name="triggerid"]').append(new Option(trigger.name, trigger.id));
+            });
+            panel.find('select[name="triggerid"]').change(function () {
+                //triggerid = this.value;
+                getTrigger(this.value,function (trigger) {
+                    $('option', panel.find('select[name="scenariotriggerstatus"]')).remove();
+                    $.each(trigger.statuslist, function (val, status) {
+                        panel.find('select[name="scenariotriggerstatus"]').append(new Option(status, status));
+                    });
+                    panel.find('select[name="scenariotriggerstatus"]').val(scenariotrigger.status);
+                });
+            });
+            panel.find('select[name="triggerid"]').val(scenariotrigger.triggerid).change();
+            panel.find('select[name="scenariotriggerstatus"]').val(scenariotrigger.status);
         });
-        panel.find('input[name="priority"]').val(trigger.priority);
-        panel.find('input[name="value"]').val(trigger.value);
-        panel.find('input[name="enabled"]').val(trigger.enabled);
+        panel.find('input[name="triggerstatus"]').val(scenariotrigger.status).prop('disabled', true);
+        panel.find('input[name="enabled"]').prop('checked',scenariotrigger.enabled);
 
         // save button
         var savebutton = panel.find('button[name="save"]');
-        savebutton.hide();
-        panel.find('input').prop('disabled', true);
-        panel.find('textarea').prop('disabled', true);
-        panel.find('select').prop('disabled', true);
-        panel.find('p[class="help-block"]').hide();
         savebutton.click(function () {
-            trigger.name = panel.find('input[name="name"]').val();
-            trigger.description = panel.find('textarea[name="description"]').val();
-            trigger.type = panel.find('select[name="type"]').val();
-            trigger.value = panel.find('input[name="value"]').val();
-            trigger.status = panel.find('input[name="status"]').val();
-            trigger.enabled = panel.find('input[name="enabled"]').prop('checked');
-            trigger.priority = panel.find('input[name="priority"]').val();
-            postData("trigger", trigger, function (result, response) {
+            scenariotrigger.status = panel.find('select[name="scenariotriggerstatus"]').val();
+            scenariotrigger.triggerid = panel.find('select[name="triggerid"]').val();
+            scenariotrigger.enabled = panel.find('input[name="enabled"]').prop('checked');
+            postData("scenariotrigger", scenariotrigger, function (result, response) {
                 if (result) {
-                    notification.find('label[name="description"]').text("istruction salvata");
+                    notification.find('label[name="description"]').text("trigger salvata");
                     var json = jQuery.parseJSON(response);
-                    loadScenario(json);
+                    getScenario(json.scenarioid,function (scenario) {
+                        loadScenario(scenario);
+                    });
                 } else {
                     notification.show();
                     notification.find('label[name="description"]').text(response);
@@ -1000,54 +796,29 @@ function loadScenarioTrigger(trigger, triggertypes) {
         });
 
         var cancelbutton = panel.find('button[name="cancel"]');
-        cancelbutton.hide();
         cancelbutton.click(function () {
-            loadScenarioTrigger(trigger, triggertypes);
+            getScenario(scenariotrigger.scenarioid,function (scenario) {
+                loadScenario(scenario);
+            });
         });
 
-        var editbutton = panel.find('button[name="edit"]');
-        editbutton.click(function () {
-            savebutton.show();
-            cancelbutton.show();
-            editbutton.hide();
-            panel.find('input[name="name"]').prop('disabled', false);
-            panel.find('textarea[name="description"]').prop('disabled', false);
-            panel.find('select[name="type"]').prop('disabled', false);
-            panel.find('input[name="value"]').prop('disabled', false);
-            panel.find('input[name="status"]').prop('disabled', false);
-            panel.find('input[name="enabled"]').prop('disabled', false);
-            panel.find('input[name="priority"]').prop('disabled', false);
-            panel.find('p[class="help-block"]').show();
+        var deletebutton = panel.find('button[name="delete"]');
+        deletebutton.click(function () {
+
+            postData("scenariotrigger", trigger, function (result, response) {
+                if (result) {
+                    getScenario(scenariotrigger.scenarioid, function (scenario) {
+                        loadScenario(scenario);
+                    })
+                } else {
+                    notification.show();
+                    notification.find('label[name="description"]').text(response);
+                }
+            },"delete");
         });
     });
 }
 
-function setTimeintervalElement(element, timeinterval) {
-
-    element.find('td[name="id"]').text(timeinterval.id);
-    element.find('td[name="name"]').text(timeinterval.name);
-    element.find('td[name="days"]').text(getDays(timeinterval));
-    element.find('td[name="starttime"]').text(timeinterval.startdatetime);
-    element.find('td[name="endtime"]').text(timeinterval.enddatetime);
-    element.find('td[name="priority"]').text(timeinterval.priority);
-    element.find('td[name="status"]').text(timeinterval.status);
-
-    element.find('button[name="edittimeinterval"]').click(function () {
-        loadScenarioTimeinterval(timeinterval)
-    });
-    element.find('button[name="deletetimeinterval"]').click(function () {
-        postData("timeinterval", timeinterval, function (result, response) {
-            if (result) {
-                notification.find('label[name="description"]').text("timeinterval eliminato");
-                var json = jQuery.parseJSON(response);
-                loadScenario(json);
-            } else {
-                notification.show();
-                notification.find('label[name="description"]').text(error);
-            }
-        }, "delete");
-    });
-}
 
 function getDays(elem) {
     var day = "";
@@ -1119,40 +890,6 @@ function setScenarioProgramElement(element, program/*, scenario*/) {
     });
 }
 
-function setTriggerElement(element, trigger, triggertype) {
-
-    element.find('td[name="id"]').text(trigger.id);
-    element.find('td[name="scenarioid"]').text(trigger.scenarioid);
-    element.find('td[name="name"]').text(trigger.name);
-    element.find('td[name="description"]').text(trigger.description);
-    element.find('td[name="type"]').text(trigger.type);
-    element.find('td[name="status"]').text(trigger.status);
-    element.find('td[name="value"]').text(trigger.value);
-    element.find('td[name="priority"]').text(trigger.priority);
-    element.find('td[name="enabled"]').text(trigger.enabled);
-    element.find('td[name="status"]').text(trigger.status);
-
-    /*element.click(function () {
-     loadScenarioTrigger(trigger, triggertype);
-     });*/
-
-    element.find('button[name="details"]').click(function () {
-        loadScenarioTrigger(trigger, triggertype);
-    });
-
-    element.find('button[name="delete"]').click(function () {
-        postData("trigger", trigger, function (result, response) {
-            if (result) {
-                notification.find('label[name="description"]').text("trigger eliminato");
-                var json = jQuery.parseJSON(response);
-                loadScenario(json);
-            } else {
-                notification.show();
-                notification.find('label[name="description"]').text(error);
-            }
-        }, "delete");
-    });
-}
 
 var func = function (obj) {
     console.log(JSON.stringify(obj));

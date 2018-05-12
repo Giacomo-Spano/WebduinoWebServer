@@ -8,9 +8,6 @@ var $programRow;
 var $scenario;
 var $trigger;
 
-var $addcalendarbutton;
-var $addtriggerbutton;
-var $addprogrambutton;
 
 function getScenario(id, callback) {
     $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (scenario) {
@@ -27,27 +24,20 @@ function getTrigger(id, callback) {
 function addScenarioTrigger(idx, elem) {
     var triggeritem = $triggerRow.clone();
 
-    triggeritem.find('td[name="id"]').text(elem.id);
-    triggeritem.find('td input[name="triggerenabled"]').prop('checked',elem.enabled);
-    triggeritem.find('td select[name="triggerid"]').val(elem.triggerid);
-    $.each($triggers, function (val, trigger) {
-        triggeritem.find('td select[name="triggerid"]').append(new Option(trigger.name, trigger.id));
+    triggeritem.find('td[name="id"]').text(elem.id).click(function () {
+        loadScenarioTrigger(elem);
     });
-    triggeritem.find('td input[name="triggerpriority"]').val(elem.priority);
-
-
-    if (elem.status)
-        triggeritem.find('td[name="status"]').text("Attivo");
-    else
-        triggeritem.find('td[name="status"]').text("Non Attivo");
-
-    triggeritem.find('button[name="deletetrigger"]').attr("idx", idx);
-    triggeritem.find('button[name="deletetrigger"]').click(function () {
-        var index = $(this).attr("idx");
-        $scenario.triggers.splice(index, 1);
-        loadScenarioTriggers($scenario.triggers);
-        triggersDisableEdit(false);
+    triggeritem.find('td[name="triggerid"]').text(elem.triggerid).click(function () {
+        loadScenarioTrigger(elem);
     });
+    triggeritem.find('td[name="triggername"]').text(elem.name).click(function () {
+        loadScenarioTrigger(elem);
+    });
+    triggeritem.find('td input[name="triggerenabled"]').prop('checked', elem.enabled).prop('disabled', true);
+    triggeritem.find('td[name="value"]').text(elem.status);
+    getTrigger(elem.triggerid,function (trg) {
+        triggeritem.find('td[name="status"]').text(trg.status);
+    })
 
     $scenarioPanel.find('tbody[name="triggerlist"]').append(triggeritem);
 }
@@ -75,7 +65,7 @@ function addProgram(idx, elem) {
     program.find('td[name="status"]').text(elem.status);
     program.find('td[name="nextjob"]').text(elem.nextjobdate);
     if (elem.activetimerange != undefined)
-        program.find('td[name="activetimerange"]').text(elem.activetimerange.actionstatus );
+        program.find('td[name="activetimerange"]').text(elem.activetimerange.actionstatus);
 
     program.find('button[name="editprogram"]').attr("idx", idx);
     program.find('button[name="editprogram"]').click(function () {
@@ -87,7 +77,7 @@ function addProgram(idx, elem) {
         var index = $(this).attr("idx");
         $scenario.programs.splice(index, 1);
         loadPrograms($scenario.programs);
-        scenarioDisableEdit(false);
+        //scenarioDisableEdit(false);
     });
 
     $scenarioPanel.find('tbody[name="programlist"]').append(program);
@@ -96,44 +86,33 @@ function addProgram(idx, elem) {
 function addCalendar(idx, elem) {
     var calendar = $calendarRow.clone();
 
-    calendar.find('td[name="calendarid"]').text(elem.id);
-
-    calendar.find('td input[name="calendarname"]').val(elem.name);
-    calendar.find('td input[name="calendardescription"]').val(elem.description);
-    calendar.find('td input[name="calendarenabled"]').prop('checked', elem.enabled);
-    //
-    calendar.find('td input[name="calendarstartdate"]').datetimepicker({
-        //dateFormat: "d/m/Y H:i"
-        dateFormat: 'dd/mm/yyyy hh:mm'
+    calendar.find('td[name="calendarid"]').text(elem.id).click(function () {
+        loadScenarioTimeinterval(elem);
     });
-    calendar.find('td input[name="calendarstartdate"]').val(elem.startdatetime);
-    //calendar.find('td input[name="calendarstartdate"]').datetimepicker("setDate",new Date()/* elem.startdatetime*/);
 
-    //calendar.find('td input[name="calendarenddate"]').val(elem.enddatetime);
-    calendar.find('td input[name="calendarenddate"]').datetimepicker({
-        dateFormat: 'dd/m/yyyy hh:mm'
+    calendar.find('td[name="calendarname"]').text(elem.name).click(function () {
+        loadScenarioTimeinterval(elem);
     });
-    //calendar.find('td input[name="calendarenddate"]').datetimepicker("setDate", elem.enddatetime);
-    calendar.find('td input[name="calendarenddate"]').val(elem.enddatetime);
-
-    calendar.find('td input[name="calendarsunday"]').prop('checked', elem.sunday);
-    calendar.find('td input[name="calendarmonday"]').prop('checked', elem.monday);
-    calendar.find('td input[name="calendartuesday"]').prop('checked', elem.tuesday);
-    calendar.find('td input[name="calendarwednesday"]').prop('checked', elem.wednesday);
-    calendar.find('td input[name="calendarthursday"]').prop('checked', elem.thursday);
-    calendar.find('td input[name="calendarfriday"]').prop('checked', elem.friday);
-    calendar.find('td input[name="calendarsaturday"]').prop('checked', elem.saturday);
-
+    calendar.find('td input[name="calendarenabled"]').prop('checked', elem.enabled).prop('disabled', true);
+    calendar.find('td[name="calendarstartdate"]').text(elem.startdatetime);
+    calendar.find('td[name="calendarenddate"]').text(elem.enddatetime);
+    calendar.find('td input[name="calendarsunday"]').prop('checked', elem.sunday).prop('disabled', true);
+    calendar.find('td input[name="calendarmonday"]').prop('checked', elem.monday).prop('disabled', true);
+    calendar.find('td input[name="calendartuesday"]').prop('checked', elem.tuesday).prop('disabled', true);
+    calendar.find('td input[name="calendarwednesday"]').prop('checked', elem.wednesday).prop('disabled', true);
+    calendar.find('td input[name="calendarthursday"]').prop('checked', elem.thursday).prop('disabled', true);
+    calendar.find('td input[name="calendarfriday"]').prop('checked', elem.friday).prop('disabled', true);
+    calendar.find('td input[name="calendarsaturday"]').prop('checked', elem.saturday).prop('disabled', true);
 
     calendar.find('td[name="calendarstatus"]').text(elem.status);
 
-    calendar.find('button[name="deletecalendar"]').attr("idx", idx);
+    /*calendar.find('button[name="deletecalendar"]').attr("idx", idx);
     calendar.find('button[name="deletecalendar"]').click(function () {
         var index = $(this).attr("idx");
         $scenario.calendar.timeintervals.splice(index, 1);
         loadCalendars($scenario.calendar.timeintervals);
         triggersDisableEdit(false);
-    });
+    });*/
 
     $scenarioPanel.find('tbody[name="calendarlist"]').append(calendar);
 }
@@ -191,34 +170,34 @@ function scenarioDisableEdit(enabled) {
 
 }
 function addTriggerSection(scenario) {
-    if (scenario.triggers != undefined)
-        loadScenarioTriggers($scenario.triggers);
 
-    var addtriggerbutton = $scenarioPanel.find('button[name="addtrigger"]');
-    addtriggerbutton.hide();
-    addtriggerbutton.click(function () {
-        updateScenarioData(); // questo serve per aggiornare eventuali modifiche manuali
-        var trigger = {
-            "timerangeid": scenario.id,
-            "id": 0,
-            "name": "nuovo action",
-            "type": "delayalarm",
-            "enabled": false,
-            "priority": 0,
-            "thresholdvalue": 0,
-            "targetvalue": 0,
-            "zoneid": 0,
+    getTriggers(function (triggers) {
 
-        };
-        if (scenario.triggers == undefined) {
-            var emptyArray = [];
-            scenario["triggers"] = emptyArray;
-        }
-        scenario.triggers.push(trigger);
-        loadScenarioTriggers($scenario.triggers);
-        scenarioDisableEdit(false);
+        if (scenario.triggers != undefined)
+            loadScenarioTriggers($scenario.triggers);
+
+        var addtriggerbutton = $scenarioPanel.find('button[name="addtrigger"]');
+        addtriggerbutton.click(function () {
+            updateScenarioData(); // questo serve per aggiornare eventuali modifiche manuali
+            var trigger = {
+                "scenarioid": scenario.id,
+                "triggerid" : triggers[0].id,
+                "status" : triggers[0].statuslist[0],
+                "id": 0,
+                "name": "nuovo action",
+                "enabled": "",
+            };
+            postData("scenariotrigger", trigger, function (result, response) {
+                if (result) {
+                    var json = jQuery.parseJSON(response);
+                    loadScenarioTrigger(json);
+                } else {
+                    notification.show();
+                    notification.find('label[name="description"]').text(response);
+                }
+            });
+        });
     });
-    return addtriggerbutton;
 }
 
 function addCalendarSection(scenario) {
@@ -226,28 +205,28 @@ function addCalendarSection(scenario) {
         loadCalendars($scenario.calendar.timeintervals);
 
     var addcalendarbutton = $scenarioPanel.find('button[name="addcalendar"]');
-    addcalendarbutton.hide();
     addcalendarbutton.click(function () {
-        updateScenarioData(); // questo serve per aggiornare eventuali modifiche manuali
-        var trigger = {
-            "timerangeid": scenario.id,
+        //updateScenarioData(); // questo serve per aggiornare eventuali modifiche manuali
+        var timeinterval = {
+            "scenarioid": scenario.id,
             "id": 0,
             "name": "nuovo action",
-            "type": "delayalarm",
             "enabled": false,
-            "priority": 0,
-            "thresholdvalue": 0,
-            "targetvalue": 0,
-            "zoneid": 0,
 
         };
         if (scenario.calendar.timeintervals == undefined) {
             var emptyArray = [];
             scenario["triggers"] = emptyArray;
         }
-        scenario.calendar.timeintervals.push(trigger);
-        loadCalendars($scenario.calendar.timeintervals);
-        scenarioDisableEdit(false);
+        postData("timeinterval", timeinterval, function (result, response) {
+            if (result) {
+                var json = jQuery.parseJSON(response);
+                loadScenarioTimeinterval(json);
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
     });
     return addcalendarbutton;
 }
@@ -257,23 +236,32 @@ function addProgramsSection(scenario) {
         loadPrograms($scenario.programs);
 
     var addprogrambutton = $scenarioPanel.find('button[name="addprogram"]');
-    addprogrambutton.hide();
+    //addprogrambutton.hide();
     addprogrambutton.click(function () {
         updateScenarioData(); // questo serve per aggiornare eventuali modifiche manuali
         var program = {
-            "scenarioidid": scenario.id,
+            "scenarioid": scenario.id,
             "id": 0,
             "name": "nuovo program",
-            "name": "nuovo description",
+            "description": "nuovo description",
             "enabled": false,
         };
         if (scenario.programs == undefined) {
             var emptyArray = [];
             scenario["programs"] = emptyArray;
         }
-        scenario.programs.push(program);
-        loadPrograms($scenario.programs);
-        scenarioDisableEdit(false);
+        /*scenario.programs.push(program);
+         loadPrograms($scenario.programs);*/
+        postData("program", program, function (result, response) {
+            if (result) {
+                var json = jQuery.parseJSON(response);
+                loadProgram(json);
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
+
     });
     return addprogrambutton;
 }
@@ -306,21 +294,21 @@ function loadScenario(scenario) {
                 $scenarioPanel.find('input[name="name"]').val(scenario.name);
                 $scenarioPanel.find('textarea[name="description"]').val(scenario.description);
                 /*if (scenario.startdate != undefined)
-                    $scenarioPanel.find('input[name="startdate"]').val(scenario.startdate);
-                $scenarioPanel.find('input[name="startdate"]').datetimepicker({
-                    dateFormat: "d/m/Y H:i"
-                });
-                if (scenario.enddate != undefined)
-                    $scenarioPanel.find('input[name="enddate"]').val(scenario.enddate);
-                $scenarioPanel.find('input[name="enddate"]').datetimepicker({
-                    dateFormat: "d/m/Y H:i"
-                });*/
+                 $scenarioPanel.find('input[name="startdate"]').val(scenario.startdate);
+                 $scenarioPanel.find('input[name="startdate"]').datetimepicker({
+                 dateFormat: "d/m/Y H:i"
+                 });
+                 if (scenario.enddate != undefined)
+                 $scenarioPanel.find('input[name="enddate"]').val(scenario.enddate);
+                 $scenarioPanel.find('input[name="enddate"]').datetimepicker({
+                 dateFormat: "d/m/Y H:i"
+                 });*/
 
                 $scenarioPanel.find('input[name="priority"]').val(scenario.priority);
 
                 // save button
                 var savebutton = $scenarioPanel.find('button[name="save"]');
-                savebutton.hide();
+                //savebutton.hide();
                 savebutton.click(function () {
 
                     $scenario.name = $scenarioPanel.find('input[name="name"]').val();
@@ -344,32 +332,22 @@ function loadScenario(scenario) {
                 });
 
                 var cancelbutton = $scenarioPanel.find('button[name="cancel"]');
-                cancelbutton.hide();
+                //cancelbutton.hide();
                 cancelbutton.click(function () {
                     getScenario($scenario.id, function (scenario) {
                         loadScenario(scenario);
                     })
                 });
 
-                var editbutton = $scenarioPanel.find('button[name="edit"]');
-                editbutton.click(function () {
-                    savebutton.show();
-                    cancelbutton.show();
-                    editbutton.hide();
-                    $addcalendarbutton.show()
-                    $addtriggerbutton.show();
-                    $addprogrambutton.show();
-                    scenarioDisableEdit(false);
-                });
+
 
                 // calendar
-                $addcalendarbutton = addCalendarSection(scenario);
+                addCalendarSection(scenario);
                 // triggers
-                $addtriggerbutton = addTriggerSection(scenario);
+                addTriggerSection(scenario);
                 // programs
-                $addprogrambutton = addProgramsSection(scenario);
+                addProgramsSection(scenario);
 
-                scenarioDisableEdit(true);
 
             });
 

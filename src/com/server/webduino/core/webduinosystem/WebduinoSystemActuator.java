@@ -1,5 +1,6 @@
 package com.server.webduino.core.webduinosystem;
 
+import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
 import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONException;
@@ -28,6 +29,9 @@ public class WebduinoSystemActuator {
         json.put("id", id);
         json.put("name", name);
         json.put("actuatorid", actuator.getId());
+        /*if (actuator != null) {
+            json.put("actuator",actuator.toJson().toString());
+        }*/
         return json;
     }
 }

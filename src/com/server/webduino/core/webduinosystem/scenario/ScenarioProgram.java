@@ -5,7 +5,6 @@ import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -282,16 +281,14 @@ public class ScenarioProgram extends DBObject {
             if (maxDate != null && nextDate.after(maxDate))
                 nextDate = maxDate;
 
-            if (timeRange != null && timeRange.scenarioProgramInstructionList != null) {
+            if (timeRange != null && timeRange.actions != null) {
                 // aggiunge un time range se esiste e se c'è almeno una action
-                for (ScenarioProgramInstruction programInstruction : timeRange.scenarioProgramInstructionList) {
-                    for (Action action : programInstruction.actions) {
-
+                for (Action action : timeRange.actions) {
                         NextTimeRangeAction range = new NextTimeRangeAction();
                         range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
                         range.start = time;
                         range.timeRange = timeRange;
-                        range.programInstruction = programInstruction;
+                        range.action = action;
 
                         instant = Instant.ofEpochMilli(nextDate.getTime());
                         time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
@@ -308,9 +305,7 @@ public class ScenarioProgram extends DBObject {
                         range = new NextTimeRangeAction();
                         range.date = Instant.ofEpochMilli(startDate.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
                         range.start = time;
-                    }
                 }
-
             }
             diffDays = (nextDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
         }

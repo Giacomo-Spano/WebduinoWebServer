@@ -23,7 +23,7 @@ public class Action {
     public final String ACTION_TRIGGER = "trigger";
 
     public int id = 0;
-    public int programinstructionid = 0;
+    public int timerangeid = 0;
     public String type = "";
     public String actioncommand = "";
     public double targetvalue = 0;
@@ -34,6 +34,8 @@ public class Action {
     public int zonesensorid = 0;
     public int triggerid = 0;
     public String param = "";
+
+    private boolean active = false;
 
     protected List<ActionListener> listeners = new ArrayList<>();
 
@@ -111,6 +113,7 @@ public class Action {
     }
 
     public void start() {
+        active = true;
 
         for (ActionListener listener : listeners) {
             listener.onStart(this);
@@ -140,6 +143,7 @@ public class Action {
     }
 
     public void stop() {
+        active = false;
 
         for (ActionListener listener : listeners) {
             listener.onStop(this);
@@ -157,10 +161,16 @@ public class Action {
         }
     }
 
+    public String getStatus() {
+        if (active)
+            return "active";
+        return "not active";
+    }
+
 
     public void fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
         id = resultSet.getInt("id");
-        programinstructionid = resultSet.getInt("programinstructionid");
+        timerangeid = resultSet.getInt("timerangeid");
         type = resultSet.getString("type");
         actioncommand = resultSet.getString("actioncommand");
         targetvalue = resultSet.getDouble("targetvalue");
@@ -176,7 +186,7 @@ public class Action {
 
     public void fromJson(JSONObject json) throws Exception {
         if (json.has("id")) id = json.getInt("id");
-        if (json.has("programinstructionid")) programinstructionid = json.getInt("programinstructionid");
+        if (json.has("timerangeid")) timerangeid = json.getInt("timerangeid");
         if (json.has("type")) type = json.getString("type");
         if (json.has("actioncommand")) actioncommand = json.getString("actioncommand");
         if (json.has("targetvalue")) targetvalue = json.getDouble("targetvalue");
@@ -193,7 +203,7 @@ public class Action {
         JSONObject json = new JSONObject();
         try {
             json.put("id", id);
-            json.put("programinstructionid", programinstructionid);
+            json.put("timerangeid", timerangeid);
             json.put("type", type);
             json.put("actioncommand", actioncommand);
             json.put("targetvalue", targetvalue);
@@ -289,10 +299,10 @@ public class Action {
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_actions (id, programinstructionid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, param)" +
+        sql = "INSERT INTO scenarios_actions (id, timerangeid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, param)" +
                 " VALUES ("
                 + id + ","
-                + programinstructionid + ","
+                + timerangeid + ","
                 + "\"" + type + "\","
                 + "\"" + actioncommand + "\","
                 + targetvalue + ","
@@ -306,9 +316,9 @@ public class Action {
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "id=" + id + ","
-                + "programinstructionid=" + programinstructionid + ","
+                + "timerangeid=" + timerangeid + ","
                 + "type=\"" + type + "\","
-                + "type=\"" + actioncommand + "\","
+                + "actioncommand=\"" + actioncommand + "\","
                 + "targetvalue=" + targetvalue + ","
                 + "seconds=" + seconds + ","
                 + "actuatorid=" + actuatoridstr + ","

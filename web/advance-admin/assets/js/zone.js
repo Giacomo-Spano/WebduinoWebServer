@@ -131,7 +131,7 @@ function loadZone(zone) {
                 cancelbutton.hide();
                 cancelbutton.click(function () {
                     getZone($zone.id, function (zone) {
-                        loadTimeRange(zone);
+                        //loadTimeRange(zone);
                     })
                 });
 

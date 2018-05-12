@@ -4,7 +4,6 @@ import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -462,7 +461,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             active = false;
             // controlla se c'è almeno un ttrigger attivo
             for (ScenarioTrigger trigger : triggers) {
-                if (trigger.getStatus()) {
+                if (trigger.getStatus().equals(trigger.status)) {
                     active = true;
                     break;
                 }
@@ -574,7 +573,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         if (triggers != null && triggers.size() > 0) {
             boolean triggerActive = false;
             for (ScenarioTrigger trigger : triggers) {
-                if (trigger.getStatus()) {
+                if (trigger.getStatus().equals(trigger.status)) {
                     triggerActive = true;
                 }
             }

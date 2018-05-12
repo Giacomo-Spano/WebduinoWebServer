@@ -131,7 +131,7 @@ function loadTriggers() {
                 cancelbutton.hide();
                 cancelbutton.click(function () {
                     getTimerange($scenario.id, function (timerange) {
-                        loadTimeRange(timerange);
+                        //loadTimeRange(timerange);
                     })
                 });
 

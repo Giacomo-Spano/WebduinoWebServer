@@ -1,7 +1,6 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,7 +19,7 @@ public class NextTimeRangeAction implements Comparable<NextTimeRangeAction>{
     public LocalTime start;
     public LocalTime end;
     public Action action;
-    public ScenarioProgramInstruction programInstruction;
+    //public ScenarioProgramInstruction programInstruction;
     public ScenarioProgramTimeRange timeRange;
     public ScenarioProgram program;
     public int timeintervalid;
@@ -52,8 +51,6 @@ public class NextTimeRangeAction implements Comparable<NextTimeRangeAction>{
             if (timeRange != null) {
                 json.put("actionid", action.id);
                 json.put("action", action.toJson());
-                json.put("programinstructionid", programInstruction.id);
-                json.put("programinstructionname", programInstruction.name);
                 json.put("timerangeid", timeRange.id);
                 json.put("timerangename", timeRange.name);
                 json.put("programid", program.id);
@@ -70,11 +67,6 @@ public class NextTimeRangeAction implements Comparable<NextTimeRangeAction>{
                 }
                 json.put("conflicts", str);
             }
-
-            /*SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-            if (date != null)
-                json.put("nextjobdate", df.format(date));*/
-
         } catch (JSONException e) {
             e.printStackTrace();
         }

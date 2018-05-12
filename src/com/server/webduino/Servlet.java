@@ -1,8 +1,4 @@
 package com.server.webduino;
-import com.quartz.QuartzListener;
-import com.server.webduino.core.Core;
-import com.server.webduino.core.Program;
-import com.server.webduino.core.TimeRange;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

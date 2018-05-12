@@ -121,7 +121,6 @@ public class ScenarioProgramInstruction implements Zone.WebduinoZoneListener {
             condition.start();
             condition.addListener(conditionListener);
         }
-
         checkConditions();
     }
 

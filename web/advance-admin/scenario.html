@@ -55,22 +55,19 @@
                                     <tr name="header">
                                         <th>id</th>
                                         <th>Nome</th>
-                                        <th>Descrizione</th>
                                         <th>Data inizio</th>
                                         <th>Data fine</th>
                                         <th>Giorni</th>
                                         <th>Abilitato</th>
                                         <th>Stato</th>
-                                        <th>Comandi</th>
                                     </tr>
                                     </thead>
                                     <tbody name="calendarlist">
                                     <tr name="calendarrow">
                                         <td name="calendarid"><a href="." name="link"></a></td>
-                                        <td><input class="form-control" name="calendarname" type="text"></td>
-                                        <td><input class="form-control" name="calendardescription" type="text"></td>
-                                        <td><input class="form-control" name="calendarstartdate"></td>
-                                        <td><input class="form-control" name="calendarenddate"></td>
+                                        <td name="calendarname"></td>
+                                        <td name="calendarstartdate"></td>
+                                        <td name="calendarenddate"></td>
                                         <td name="calendardays">
                                             <label>
                                                 <input type="checkbox" name="calendarmonday">L
@@ -96,11 +93,6 @@
                                         </td>
                                         <td><input type="checkbox" name="calendarenabled"></td>
                                         <td name="calendarstatus">#</td>
-                                        <td name="calendarcommand">
-                                            <button type="button" name="deletecalendar" class="btn btn-sm btn-primary">
-                                                rimuovi
-                                            </button>
-                                        </td>
                                     </tr>
                                     </tbody>
                                 </table>
@@ -117,27 +109,19 @@
                                     <tr name="header">
                                         <th>id</th>
                                         <th>Abilitato</th>
+                                        <th>Triggerid</th>
                                         <th>Trigger</th>
-                                        <th>Priority</th>
                                         <th>Stato</th>
-                                        <th>comandi</th>
                                     </tr>
                                     </thead>
                                     <tbody name="triggerlist">
                                     <tr name="triggerrow">
                                         <td name="id"></td>
                                         <td><input type="checkbox" name="triggerenabled" value="">Abilitato</td>
-                                        <td><select class="form-control" name="triggerid">
-                                        </select></td>
-                                        <td><input class="form-control" type="number" name="triggerpriority" value="0"
-                                                   min="0" max="30" step="1"></td>
-                                        <td name="status">#</td>
-                                        <td name="command">
-                                            <button type="button" name="deletetrigger"
-                                                    class="btn btn-sm btn-primary">
-                                                rimuovi
-                                            </button>
-                                        </td>
+                                        <td name="triggerid"></td>
+                                        <td name="triggername"></td>
+                                        <td name="value"></td>
+                                        <td name="status"></td>
                                     </tr>
                                     </tbody>
                                 </table>

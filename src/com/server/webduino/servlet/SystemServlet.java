@@ -8,7 +8,6 @@ import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
 import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.webduinosystem.zones.Zone;
@@ -203,43 +202,19 @@ public class SystemServlet extends HttpServlet {
 
                 try {
                     int id = json.getInt("id");
-                    if (json.getString("status").equals("enabled")) {
-                        core.enableTrigger(id, true);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print("trigger enabled");
-                        return;
-                    } else if (json.getString("status").equals("disabled")) {
-                        core.enableTrigger(id, false);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print("trigger disabled");
-                        return;
+                    if (json.has("status")) {
+                        String status = json.getString("status");
+                        Trigger trigger = core.getTriggerFromId(id);
+                        if (trigger.setStatus(status)) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print("trigger " + status);
+                            return;
+                        }
                     }
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     out.print("bad command");
                     return;
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-            } else if (data != null && data.equals("programinstruction")) {
-
-                try {
-                    if (param != null && param.equals("delete")) {
-                        ScenarioProgramTimeRange timeRange = core.removeScenarioProgramTimeRangeInstruction(json);
-                        if (timeRange != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(timeRange.toJson());
-                            return;
-                        }
-                    } else {
-                        ScenarioProgramInstruction instruction = core.saveScenarioProgramTimeRangeInstruction(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(instruction.toJson());
-                        return;
-                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -494,7 +469,7 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
-        } else if (requestCommand != null && requestCommand.equals("triggertypes")) {
+        } /*else if (requestCommand != null && requestCommand.equals("triggertypes")) {
 
             JSONArray jarray = ScenarioTrigger.getTriggerTypesJSONArray();
             if (jarray != null) {
@@ -503,7 +478,7 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
-        } else if (requestCommand != null && requestCommand.equals("triggers")) {
+        } */else if (requestCommand != null && requestCommand.equals("triggers")) {
 
             JSONArray jarray = Core.getTriggersJSONArray();
             if (jarray != null) {
@@ -616,22 +591,6 @@ public class SystemServlet extends HttpServlet {
                 out.print(timerange.toJson());
                 return;
             }
-        } else if (requestCommand != null && requestCommand.equals("instruction") && id != null) {
-            int programinstructionid = Integer.parseInt(id);
-            ScenarioProgramInstruction programInstruction = Scenarios.getScenarioProgramInstructionFromId(programinstructionid);
-            if (programInstruction != null) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                out.print(programInstruction.toJson());
-                return;
-            }
-        } else if (requestCommand != null && requestCommand.equals("instructions") && id != null) {
-            String scenarioid = request.getParameter("scenarioid");
-            JSONArray jsonArray = new JSONArray();
-            if (scenarioid != null) {
-                int sid = Integer.parseInt(scenarioid);
-            }
-            if (jsonArray != null)
-                out.print(jsonArray.toString());
         } else if (requestCommand != null && requestCommand.equals("nextprograms") && id != null) {
             List<NextTimeRangeAction> list = core.getNextTimeRangeActions(/*scenarioprogramid*/);
             if (list != null) {

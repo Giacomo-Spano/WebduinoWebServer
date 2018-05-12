@@ -11,8 +11,6 @@ import com.server.webduino.core.webduinosystem.keys.KeyFactory;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
 import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.webduinosystem.services.ServiceFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
@@ -191,6 +189,7 @@ public class Core {
         }
         return null;
     }
+
 
     public static JSONArray getServicesJSONArray() {
         JSONArray jsonArray = new JSONArray();
@@ -398,12 +397,12 @@ public class Core {
                 ZoneFactory factory = new ZoneFactory();
                 int id = triggersResultSet.getInt("id");
                 String name = triggersResultSet.getString("name");
-                boolean status = triggersResultSet.getBoolean("status");
+                //boolean status = triggersResultSet.getBoolean("status");
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
                 Date date = null;
                 if (triggersResultSet.getTimestamp("lastupdate") != null)
                     date = df.parse(String.valueOf(triggersResultSet.getTimestamp("lastupdate")));
-                Trigger trigger = new Trigger(id, name, status, date);
+                Trigger trigger = new Trigger(id, name, date);
                 triggerClass.add(trigger);
             }
             // Clean-up environment
@@ -601,13 +600,13 @@ public class Core {
         return trigger;
     }
 
-    public void enableTrigger(int id, boolean enable) throws Exception {
+    /*public void enableTrigger(int id, boolean enable) throws Exception {
         Trigger trigger = getTriggerFromId(id);
         if (trigger == null)
             throw new Exception("trigger id " + id + " not found");
         trigger.enable(enable);
         scenarios.initScenarios();
-    }
+    }*/
 
     public Trigger removeTrigger(JSONObject json) throws Exception {
 
@@ -684,26 +683,6 @@ public class Core {
         scenarios.initScenarios();
         ScenarioProgram program = Scenarios.getScenarioProgramFromId(programid);
         return program;
-    }
-
-    public ScenarioProgramInstruction saveScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
-        //ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
-        //ScenarioProgramInstruction action = factory.fromJson(json);
-        //action.save();
-        ScenarioProgramInstruction programInstruction = new ScenarioProgramInstruction(json);
-        programInstruction.save();
-        scenarios.initScenarios();
-        return programInstruction;
-    }
-
-    public ScenarioProgramTimeRange removeScenarioProgramTimeRangeInstruction(JSONObject json) throws Exception {
-        ScenarioProgramInstructionFactory factory = new ScenarioProgramInstructionFactory();
-        ScenarioProgramInstruction instruction = factory.fromJson(json);
-        int timerangeid = instruction.timerangeid;
-        instruction.remove();
-        scenarios.initScenarios();
-        ScenarioProgramTimeRange timerange = Scenarios.getScenarioProgramTimeRangeFromId(timerangeid);
-        return timerange;
     }
 
     public Zone saveZone(JSONObject json) throws Exception {

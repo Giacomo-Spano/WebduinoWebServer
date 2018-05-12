@@ -2,7 +2,6 @@ package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
 import org.json.JSONArray;
 
 import java.sql.*;
@@ -60,9 +59,9 @@ public class Scenarios {
     }
 
     private Conflict hasConflict(Scenario scenario, ScenarioProgram program, ScenarioProgramTimeRange timeRange,
-                                        ScenarioProgramInstruction programInstruction, Action scenarioAction, Action action) {
+                                 Action scenarioAction, Action action) {
 
-        if (scenario == null || program == null || timeRange == null || programInstruction == null || programInstruction == null || scenarioAction == null)
+        if (scenario == null || program == null || timeRange == null || scenarioAction == null)
             return null;
 
         // se è la stessa action non c'è conflitto
@@ -75,7 +74,7 @@ public class Scenarios {
 
         // Se il timerange finisce prima dell'inizio dell'altro oppure incomincia
         // dopo la fine dell'altro non c'è conflitto
-        if (conflict.timerange.endTime.compareTo(timeRange.startTime) <=0 ||
+        if (conflict.timerange.endTime.compareTo(timeRange.startTime) <= 0 ||
                 conflict.timerange.startTime.compareTo(timeRange.endTime) >= 0)
             return null;
 
@@ -85,12 +84,9 @@ public class Scenarios {
                 // stesso programma
                 if (conflict.timerange.id == timeRange.id) {
                     // stesso timerange
-                    if (conflict.programInstruction.id == programInstruction.id) {
-                        // stesso programInstruction
-                        if (conflict.action.id < programInstruction.id) {
+                        if (conflict.action.id < action.id) {
                             return conflict;
                         }
-                    }
                 } else {
                     // programma diverso dello stesso scenario
                     if (conflict.timerange.index < timeRange.index ||
@@ -127,17 +123,15 @@ public class Scenarios {
                     for (ScenarioProgram program : scenario.programs) {
                         if (program.timeRanges != null)
                             for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
-                                if (timeRange.scenarioProgramInstructionList != null)
-                                    for (ScenarioProgramInstruction scenarioProgramInstruction : timeRange.scenarioProgramInstructionList) {
-                                        for (Action scenarioAction : scenarioProgramInstruction.actions) {
-                                            Conflict conflict = hasConflict(scenario, program, timeRange, scenarioProgramInstruction, scenarioAction, action);
+                                if (timeRange.actions != null)
+                                        for (Action scenarioAction : timeRange.actions) {
+                                            Conflict conflict = hasConflict(scenario, program, timeRange, scenarioAction, action);
                                             if (conflict != null) {
                                                 if (scenarioAction.hasConflict(action)) {
                                                     scenarioAction.addConflict(conflict);
                                                 }
                                             }
                                         }
-                                    }
                             }
                     }
             }
@@ -153,9 +147,9 @@ public class Scenarios {
             for (NextTimeRangeAction timeRangeAction2 : nextTimeRangeActions) {
                 if (!timeRangeAction1.date.equals(timeRangeAction2.date))
                     continue;
-                Conflict conflict = hasConflict(timeRangeAction1.scenario, timeRangeAction1.program, timeRangeAction1.timeRange, timeRangeAction1.programInstruction,
+                Conflict conflict = hasConflict(timeRangeAction1.scenario, timeRangeAction1.program, timeRangeAction1.timeRange,
                         timeRangeAction1.action, timeRangeAction2.action);
-                if (conflict != null){
+                if (conflict != null) {
                     if (timeRangeAction1.action.hasConflict(timeRangeAction2.action)) {
                         timeRangeAction1.addConflict(conflict);
                     }
@@ -171,13 +165,11 @@ public class Scenarios {
             for (ScenarioProgram program : scenario.programs) {
                 if (program.timeRanges == null) return null;
                 for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
-                    if (timeRange.scenarioProgramInstructionList == null) return null;
-                    for (ScenarioProgramInstruction programInstruction : timeRange.scenarioProgramInstructionList) {
-                        for (Action action : programInstruction.actions) {
-                            if (action.id == actionId) {
-                                Conflict conflict = new Conflict(action, programInstruction, timeRange, program, scenario);
-                                return conflict;
-                            }
+                    if (timeRange.actions == null) return null;
+                    for (Action action : timeRange.actions) {
+                        if (action.id == actionId) {
+                            Conflict conflict = new Conflict(action, timeRange, program, scenario);
+                            return conflict;
                         }
                     }
                 }
@@ -197,13 +189,11 @@ public class Scenarios {
                     for (ScenarioProgram program : scenario.programs) {
                         if (program.timeRanges != null)
                             for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
-                                if (timeRange.scenarioProgramInstructionList != null)
-                                    for (ScenarioProgramInstruction scenarioProgramInstruction : timeRange.scenarioProgramInstructionList) {
-                                        for (Action scenarioAction : scenarioProgramInstruction.actions) {
-                                            if (action.id == scenarioAction.id)
-                                                continue;
-                                            scenarioAction.removeConflict(action);
-                                        }
+                                if (timeRange.actions != null)
+                                    for (Action scenarioAction : timeRange.actions) {
+                                        if (action.id == scenarioAction.id)
+                                            continue;
+                                        scenarioAction.removeConflict(action);
                                     }
                             }
                     }
@@ -272,27 +262,6 @@ public class Scenarios {
         return null;
     }
 
-    public static ScenarioProgramInstruction getScenarioProgramInstructionFromId(int id) {
-        if (scenarioList != null) {
-            for (Scenario scenario : scenarioList) {
-                if (scenario.programs != null) {
-                    for (ScenarioProgram program : scenario.programs) {
-                        if (program.timeRanges != null) {
-                            for (ScenarioProgramTimeRange timeRange : program.timeRanges) {
-                                for (ScenarioProgramInstruction programInstruction : timeRange.scenarioProgramInstructionList) {
-                                    if (programInstruction.id == id) {
-                                        return programInstruction;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
     public void checkNextTimeRangeActions(Date date) {
 
         // valuta tutte le next action a partiere dalla data 'date'
@@ -316,7 +285,7 @@ public class Scenarios {
     }
 
     public NextTimeRangeAction getNextActuatorProgramTimeRangeAction(int actuatorid) {
-        for (NextTimeRangeAction timeRangeAction:nextTimeRangeActions) {
+        for (NextTimeRangeAction timeRangeAction : nextTimeRangeActions) {
             //DA RIFARE
             /*if (timeRangeAction.action.actuatorid == actuatorid)
                 return timeRangeAction;*/
@@ -326,7 +295,7 @@ public class Scenarios {
 
     public List<NextTimeRangeAction> getNextActuatorProgramTimeRangeActionList(int actuatorid) {
         List<NextTimeRangeAction> list = new ArrayList<>();
-        for (NextTimeRangeAction timeRangeAction:nextTimeRangeActions) {
+        for (NextTimeRangeAction timeRangeAction : nextTimeRangeActions) {
             //DA RIFARE
             /*if (timeRangeAction.action.actuatorid == actuatorid)
                 list.add(timeRangeAction);*/

@@ -3,9 +3,6 @@
  */
 package com.quartz;
 
-import com.server.webduino.core.Core;
-import com.server.webduino.core.Program;
-import com.server.webduino.core.webduinosystem.scenario.Scenario;
 import com.server.webduino.core.webduinosystem.scenario.ScenarioProgram;
 import com.server.webduino.core.webduinosystem.scenario.ScenarioProgramTimeRange;
 import org.quartz.Job;

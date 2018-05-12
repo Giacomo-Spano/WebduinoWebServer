@@ -1,8 +1,7 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstruction;
-
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import java.text.SimpleDateFormat;
 
 public class ActionDataLog extends DataLog {
@@ -12,7 +11,7 @@ public class ActionDataLog extends DataLog {
     @Override
     public String getSQLInsert(String event, Object object) {
 
-        ScenarioProgramInstruction action = (ScenarioProgramInstruction) object;
+        Action action = (Action) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         String sql = "";

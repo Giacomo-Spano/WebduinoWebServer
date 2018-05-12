@@ -23,12 +23,9 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
     public int id;
     public int scenarioid;
     public int triggerid;
-    public String type;
-    public String name;
-    public String description;
-    public boolean enabled;
-    //public boolean zonesensorstatus;
-    public int priority;
+    public String name = "";
+    public String status = "";
+    public boolean enabled = false;
 
     public boolean active = false;
 
@@ -39,11 +36,11 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         }
     }
 
-    public boolean getStatus() {
+    public String getStatus() {
         Trigger trigger = Core.getTriggerFromId(triggerid);
         if (trigger != null)
             return trigger.status;
-        return false;
+        return "";
     }
 
     public interface ScenarioTriggerListener {
@@ -79,18 +76,11 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         json.put("id", id);
         json.put("triggerid", triggerid);
         json.put("scenarioid", scenarioid);
-        //json.put("name", name);
         Trigger trigger = Core.getTriggerFromId(triggerid);
         if (trigger != null)
             json.put("name", trigger.name);
-
-        json.put("description", description);
-        json.put("type", type);
         json.put("enabled", enabled);
-        //json.put("zonesensorstatus", zonesensorstatus);
-        json.put("zonesensorstatus", trigger.status);
-        json.put("priority", priority);
-
+        json.put("status", status);
         return json;
     }
 
@@ -100,11 +90,8 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         if (json.has("scenarioid")) scenarioid = json.getInt("scenarioid");
         if (json.has("triggerid")) triggerid = json.getInt("triggerid");
         if (json.has("name")) name = json.getString("name");
-        if (json.has("description")) description = json.getString("description");
-        if (json.has("type")) type = json.getString("type");
+        if (json.has("status")) status = json.getString("status");
         if (json.has("enabled")) enabled = json.getBoolean("enabled");
-        //if (json.has("zonesensorstatus")) zonesensorstatus = json.getBoolean("zonesensorstatus");
-        if (json.has("priority")) priority = json.getInt("priority");
     }
 
     public void save() throws Exception {
@@ -148,27 +135,21 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
 
     public void write(Connection conn) throws SQLException {
 
-        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, triggerid, name, description, type, enabled/*, status*/, priority)" +
+        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, triggerid, name, status, enabled)" +
                 " VALUES ("
                 + id + ","
                 + scenarioid + ","
                 + triggerid + ","
                 + "\"" + name + "\","
-                + "\"" + description + "\","
-                + "\"" + type + "\","
-                + enabled + ","
-                //+ zonesensorstatus + ","
-                + priority
+                + "\"" + status + "\","
+                + enabled
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "scenarioid=" + scenarioid + ","
                 + "triggerid=" + triggerid + ","
                 + "name=\"" + name + "\","
-                + "description=\"" + description + "\","
-                + "type=\"" + type + "\","
-                + "enabled=" + enabled + ","
-                //+ "zonesensorstatus=" + zonesensorstatus + ","
-                + "priority=" + priority + ";";
+                + "status=\"" + status + "\","
+                + "enabled=" + enabled + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = stmt.getGeneratedKeys();
@@ -182,7 +163,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         stmt.executeUpdate(sql);
     }
 
-    public static JSONArray getTriggerTypesJSONArray() {
+    /*public static JSONArray getTriggerTypesJSONArray() {
         JSONArray jsonArray = new JSONArray();
         JSONObject json;
         try {
@@ -201,21 +182,17 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
             e.printStackTrace();
         }
         return jsonArray;
-    }
+    }*/
 
     private void fromResultSet(ResultSet timeintervalsResultSet) throws SQLException {
         id = timeintervalsResultSet.getInt("id");
         scenarioid = timeintervalsResultSet.getInt("scenarioid");
-
         triggerid = timeintervalsResultSet.getInt("triggerid");
         Trigger trigger = Core.triggerFromId(triggerid);
         if (trigger != null)
             trigger.addListener(this);
         name = timeintervalsResultSet.getString("name");
-        description = timeintervalsResultSet.getString("description");
-        type = timeintervalsResultSet.getString("type");
-        //zonesensorstatus = timeintervalsResultSet.getBoolean("zonesensorstatus");
+        status = timeintervalsResultSet.getString("status");
         enabled = timeintervalsResultSet.getBoolean("enabled");
-        priority = timeintervalsResultSet.getInt("priority");
     }
 }

@@ -27,7 +27,7 @@ public class Trigger extends DBObject {
     protected List<String> statusList = new ArrayList<String>();
     public int id = 0;
     public String name = "";
-    public boolean status = false;
+    public String status;
     public java.util.Date date;
 
     //final public String STATUS_ENABLED ="enabled";
@@ -52,17 +52,19 @@ public class Trigger extends DBObject {
     }
 
     protected void createStatusList() {
-        statusList.add("on");
+
         statusList.add("off");
+        statusList.add("on");
+        status = statusList.get(0);
     }
 
 
 
-    public Trigger(int id, String name, boolean status, java.util.Date date) {
+    public Trigger(int id, String name/*, String status, */,java.util.Date date) {
         createStatusList();
         this.id = id;
         this.name = name;
-        this.status = status;
+        //this.status = status;
         this.date = date;
         ActionCommand cmd = new ActionCommand("enable","Abilita");
         cmd.addStatus("Stato");
@@ -86,7 +88,7 @@ public class Trigger extends DBObject {
         JSONObject json = new JSONObject();
         json.put("id", id);
         json.put("name", name);
-        json.put("zonesensorstatus", status);
+        json.put("status", status);
         SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         if (date != null)
             json.put("nextjobdate", df.format(date));
@@ -119,8 +121,8 @@ public class Trigger extends DBObject {
             id = json.getInt("id");
         if (json.has("name"))
             name = json.getString("name");
-        if (json.has("zonesensorstatus"))
-            status = json.getBoolean("zonesensorstatus");
+        if (json.has("status"))
+            status = json.getString("status");
     }
 
     @Override
@@ -161,11 +163,11 @@ public class Trigger extends DBObject {
                 " VALUES ("
                 + id + ","
                 + "\"" + name + "\","
-                + status + ","
+                + "\"" + status + "\","
                 + "'" + df.format(date) + "' "
                 + ") ON DUPLICATE KEY UPDATE "
                 + "name=\"" + name + "\","
-                + "status=" + status + ","
+                + "status=\"" + status + "\","
                 + "lastupdate='" + df.format(date) + "' "
                 + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -176,16 +178,14 @@ public class Trigger extends DBObject {
         }
     }
 
-    public void enable(boolean enabled) throws Exception {
+    public boolean setStatus(String status) throws Exception {
 
-        if (enabled != status) {
-            status = enabled;
-            saveStatus();
-            for (TriggerListener listener : listeners) {
-                listener.onChangeStatus(status);
+        for (String triggerstatus: statusList) {
+            if (triggerstatus.equals(status)) {
+                this.status = status;
+                return true;
             }
         }
+        return false;
     }
-
-
 }

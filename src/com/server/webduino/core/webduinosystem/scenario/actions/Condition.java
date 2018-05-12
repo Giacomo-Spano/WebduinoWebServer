@@ -22,7 +22,7 @@ import java.util.List;
 public class Condition extends SensorListenerClass {
 
     public int id = 0;
-    public int programinstructionid = 0;
+    public int timerangeid = 0;
     public int zoneid;
     public int zonesensorid;
     public int triggerid = 0;
@@ -71,6 +71,13 @@ public class Condition extends SensorListenerClass {
             sensor.removeListener(this);
         active = false;
     }
+
+    public String getStatus() {
+        if (active)
+            return "active";
+        return "not active";
+    }
+
 
     private void handleTriggerStatus() {
         trigger = Core.getTriggerFromId(triggerid);
@@ -186,7 +193,7 @@ public class Condition extends SensorListenerClass {
 
     public void fromJson(JSONObject json) throws Exception {
         if (json.has("id")) id = json.getInt("id");
-        if (json.has("programinstructionid")) programinstructionid = json.getInt("programinstructionid");
+        if (json.has("timerangeid")) timerangeid = json.getInt("timerangeid");
         if (json.has("zoneid")) zoneid = json.getInt("zoneid");
         if (json.has("zonesensorid")) zonesensorid = json.getInt("zonesensorid");
         if (json.has("triggerid")) triggerid = json.getInt("triggerid");
@@ -199,7 +206,7 @@ public class Condition extends SensorListenerClass {
 
     public void fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
         id = resultSet.getInt("id");
-        programinstructionid = resultSet.getInt("programinstructionid");
+        timerangeid = resultSet.getInt("timerangeid");
         zoneid = resultSet.getInt("zoneid");
         zonesensorid = resultSet.getInt("zonesensorid");
         triggerid = resultSet.getInt("triggerid");
@@ -215,7 +222,7 @@ public class Condition extends SensorListenerClass {
         try {
             json.put("id", id);
             json.put("zoneid", zoneid);
-            json.put("programinstructionid", programinstructionid);
+            json.put("timerangeid", timerangeid);
             json.put("zonesensorid", zonesensorid);
             json.put("triggerid", triggerid);
             json.put("sensorstatus", sensorstatus);
@@ -308,10 +315,10 @@ public class Condition extends SensorListenerClass {
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_conditions (id, programinstructionid, zoneid, zonesensorid, triggerid, sensorstatus,triggerstatus,type,value,valueoperator)" +
+        sql = "INSERT INTO scenarios_conditions (id, timerangeid, zoneid, zonesensorid, triggerid, sensorstatus,triggerstatus,type,value,valueoperator)" +
                 " VALUES ("
                 + id + ","
-                + programinstructionid + ","
+                + timerangeid + ","
                 + zoneidstr + ","
                 + zonesensoridstr + ","
                 + triggerstr + ","
@@ -323,7 +330,7 @@ public class Condition extends SensorListenerClass {
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "id=" + id + ","
-                + "programinstructionid=" + programinstructionid + ","
+                + "timerangeid=" + timerangeid + ","
                 + "zoneid=" + zoneidstr + ","
                 + "zonesensorid=" + zonesensoridstr + ","
                 + "triggerid=" + triggerstr + ","

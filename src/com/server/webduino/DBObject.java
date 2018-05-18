@@ -10,18 +10,18 @@ public abstract class DBObject {
     public void save() throws Exception {
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             conn.setAutoCommit(false);
-            Statement stmt = conn.createStatement();
-            //delete(stmt);
+            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            delete(stmt);
             write(conn);
             stmt.close();
             conn.commit();
     }
 
-
     public void remove() throws SQLException, Exception {
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             conn.setAutoCommit(false);
-            Statement stmt = conn.createStatement();
+            //Statement stmt = conn.createStatement();
+            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             delete(stmt);
             stmt.close();
             conn.commit();

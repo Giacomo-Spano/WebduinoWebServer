@@ -1,6 +1,8 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.webduinosystem.WebduinoSystem;
+import com.server.webduino.core.webduinosystem.WebduinoSystemActuator;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import org.json.JSONArray;
 
@@ -15,10 +17,27 @@ import java.util.logging.Logger;
 public class Scenarios {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
-    private static List<Scenario> scenarioList = new ArrayList<>();
+    public static List<Scenario> scenarioList = new ArrayList<>();
     public ArrayList<NextTimeRangeAction> nextTimeRangeActions;
 
-    private void readScenarios() {
+    /*private void readScenarios() {
+        scenarioList = Core.getWebduinoSystemScenarios();
+
+        for (Scenario scenario:scenarioList) {
+            scenario.setActionListener(new Action.ActionListener() {
+                @Override
+                public void onStart(Action action) {
+                    checkConflict(action);
+                }
+
+                @Override
+                public void onStop(Action action) {
+                    removeConflict(action);
+                }
+            });
+        }
+    }*/
+    private void _readScenarios() {
         LOGGER.info("readScenarios");
         try {
             //Class.forName("com.mysql.jdbc.Driver");
@@ -113,7 +132,7 @@ public class Scenarios {
         return null;
     }
 
-    private void checkConflict(Action action) {
+    public void checkConflict(Action action) {
         // questa funzione è chiamata tutte le volte che una action si avvia
 
         // Scorre tutte le action di tutti gli scenari e se ne trova una con priorità inferiore alla action passata come param aggiunge un conflic alla action di quello scenario
@@ -178,7 +197,7 @@ public class Scenarios {
         return null;
     }
 
-    private static void removeConflict(Action action) {
+    public static void removeConflict(Action action) {
         // questa funzione è chiamata tutte le volte che una action si ferma
 
         if (action == null) return;
@@ -200,7 +219,7 @@ public class Scenarios {
             }
     }
 
-    public void initScenarios() {
+    /*public void initScenarios() {
 
         for (Scenario scenario : scenarioList) {
             scenario.stop();
@@ -213,7 +232,7 @@ public class Scenarios {
         }
 
         checkNextTimeRangeActions(Core.getDate());
-    }
+    }*/
 
     public static JSONArray getScenariosJSONArray() {
         JSONArray jsonArray = new JSONArray();
@@ -231,6 +250,8 @@ public class Scenarios {
         }
         return null;
     }
+
+
 
     public static ScenarioProgram getScenarioProgramFromId(int id) {
         for (Scenario scenario : scenarioList) {

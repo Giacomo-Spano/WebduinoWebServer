@@ -28,7 +28,7 @@ public class Service {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     public int id;
-    private String name;
+    public String name;
     private String type;
     private String status = "idle";
 

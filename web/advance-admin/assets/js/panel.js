@@ -65,7 +65,7 @@ function updateManualProgram(actuator) {
 
 }
 
-function getSensors() {
+function getSensorList() {
 
     $.getJSON(sensorServletPath, function (sensors) {
 
@@ -359,7 +359,7 @@ function load() {
 
     sensorItemElem = $('div[name="sensoritem"]');
 
-    getSensors();
+    getSensorList();
     getActuator();
 
     //updateTime();
@@ -389,7 +389,7 @@ function load() {
 
 
     setInterval(getActuator, 1000);
-    //setInterval(getSensors, 5000);
+    //setInterval(getSensorList, 5000);
 
 }
 

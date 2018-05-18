@@ -2,10 +2,10 @@ package com.server.webduino.core.webduinosystem;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
+import com.server.webduino.core.webduinosystem.scenario.Scenario;
 import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.keys.SecurityKey;
-import com.server.webduino.core.webduinosystem.zones.WebduinoSystemService;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,14 +26,19 @@ public class WebduinoSystem {
     private int id;
     private String name;
     private String type;
-    private List<WebduinoSystemZone> zones = new ArrayList<>();
-    private List<WebduinoSystemActuator> actuators = new ArrayList<>();
-    private List<WebduinoSystemService> services = new ArrayList<>();
+    public List<WebduinoSystemZone> zones = new ArrayList<>();
+    public List<WebduinoSystemActuator> actuators = new ArrayList<>();
+    public List<WebduinoSystemService> services = new ArrayList<>();
+    public List<Scenario> scenarios = new ArrayList<>();
 
     public WebduinoSystem(int id, String name, String type) {
         this.id = id;
         this.name = name;
         this.type = type;
+    }
+
+    public List<Scenario> getScenarios() {
+        return scenarios;
     }
 
     public int getId() {
@@ -65,10 +70,8 @@ public class WebduinoSystem {
         zones = new ArrayList<>();
         while (rs.next()) {
             int id = rs.getInt("id");
-            String name = rs.getString("name");
             int zoneid = rs.getInt("zoneid");
-            Zone zone = Core.getZoneFromId(zoneid);
-            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id,name,zone,type);
+            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id,zoneid,webduinosystemid);
             zones.add(webduinosystemzone);
         }
         rs.close();
@@ -85,10 +88,8 @@ public class WebduinoSystem {
         actuators = new ArrayList<>();
         while (rs.next()) {
             int id = rs.getInt("id");
-            String name = rs.getString("name");
             int actuatorid = rs.getInt("sensorid");
-            SensorBase actuator = Core.getSensorFromId(actuatorid);
-            WebduinoSystemActuator webduinosystemactuator = new WebduinoSystemActuator(id, name, actuator);
+            WebduinoSystemActuator webduinosystemactuator = new WebduinoSystemActuator(id, actuatorid, webduinosystemid);
             actuators.add(webduinosystemactuator);
         }
         rs.close();
@@ -99,20 +100,58 @@ public class WebduinoSystem {
         LOGGER.info(" readWebduinoSystemServices");
 
         Statement stmt = conn.createStatement();
-        String sql = "SELECT * FROM webduino_system_services WHERE wedbuinosystemid=" + webduinosystemid;
+        String sql = "SELECT * FROM webduino_system_services WHERE webduinosystemid=" + webduinosystemid;
         ResultSet rs = stmt.executeQuery(sql);
         // Extract data from result set
         services = new ArrayList<>();
         while (rs.next()) {
             int id = rs.getInt("id");
-            String name = rs.getString("name");
             int serviceid = rs.getInt("serviceid");
-            Service service = Core.getServiceFromId(serviceid);
-            WebduinoSystemService webduinosystemservice = new WebduinoSystemService(id, name, service);
+            WebduinoSystemService webduinosystemservice = new WebduinoSystemService(id, serviceid, webduinosystemid);
             services.add(webduinosystemservice);
         }
         rs.close();
         stmt.close();
+    }
+
+    /*public void readWebduinoSystemsScenarios(Connection conn, int webduinosystemid) throws SQLException {
+        LOGGER.info(" readWebduinoSystemServices");
+
+        Statement stmt = conn.createStatement();
+        String sql = "SELECT * FROM scenarios WHERE webduinosystemid=" + webduinosystemid;
+        ResultSet rs = stmt.executeQuery(sql);
+        // Extract data from result set
+        scenarios = new ArrayList<>();
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            int scenarioid = rs.getInt("scenarioid");
+            WebduinoSystemScenario webduinosystemsscenario = new WebduinoSystemScenario(id, scenarioid);
+            scenarios.add(webduinosystemsscenario);
+        }
+        rs.close();
+        stmt.close();
+    }*/
+
+    public void readWebduinoSystemsScenarios(Connection conn, int webduinosystemid) throws SQLException {
+        LOGGER.info("readWebduinoSystemsScenarios");
+        try {
+            Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            String sql = "SELECT * FROM scenarios WHERE webduinosystemid=" + webduinosystemid + " ORDER BY priority ASC;";
+            ;
+            ResultSet scenariosResultSet = stmt.executeQuery(sql);
+            scenarios = new ArrayList<>();
+            while (scenariosResultSet.next()) {
+                Scenario scenario = new Scenario();
+                scenario.fromResulSet(conn, scenariosResultSet);
+                scenarios.add(scenario);
+            }
+            scenariosResultSet.close();
+            stmt.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public JSONObject toJson() throws JSONException {
@@ -142,6 +181,13 @@ public class WebduinoSystem {
             servicearray.put(j);
         }
         json.put("services", servicearray);
+
+        JSONArray scenarioarray = new JSONArray();
+        for (Scenario scenario : scenarios) {
+            JSONObject j = scenario.toJson();
+            scenarioarray.put(j);
+        }
+        json.put("scenarios", scenarioarray);
 
         return json;
     }

@@ -86,31 +86,60 @@ public class Core {
 
     }
 
+    public void initScenarios() {
+
+        if (scenarios.scenarioList != null) {
+            for (Scenario scenario : scenarios.scenarioList) {
+                scenario.stop();
+            }
+        }
+
+        readWebduinoSystems();
+        scenarios.scenarioList.clear();
+        scenarios.scenarioList = getWebduinoSystemScenarios();
+        for (Scenario scenario:scenarios.scenarioList) {
+            scenario.setActionListener(new Action.ActionListener() {
+                @Override
+                public void onStart(Action action) {
+                    scenarios.checkConflict(action);
+                }
+
+                @Override
+                public void onStop(Action action) {
+                    scenarios.removeConflict(action);
+                }
+            });
+        }
+
+
+        scenarios.checkNextTimeRangeActions(Core.getDate());
+    }
+
     public Condition removeCondition(JSONObject json) throws Exception {
         Condition condition = new Condition(json);
         condition.remove();
-        scenarios.initScenarios();
+        initScenarios();
         return condition;
     }
 
     public Action removeAction(JSONObject json) throws Exception {
         Action action = new Action(json);
         action.remove();
-        scenarios.initScenarios();
+        initScenarios();
         return action;
     }
 
     public Action saveAction(JSONObject json) throws Exception {
         Action action = new Action(json);
         action.save();
-        scenarios.initScenarios();
+        initScenarios();
         return action;
     }
 
     public Condition saveCondition(JSONObject json) throws Exception {
         Condition condition = new Condition(json);
         condition.save();
-        scenarios.initScenarios();
+        initScenarios();
         return condition;
     }
 
@@ -180,6 +209,56 @@ public class Core {
         }
         return null;
     }
+
+    public WebduinoSystem getWebduinoSystemFromId(int systemid) {
+        for (WebduinoSystem system : webduinoSystems) {
+            if (systemid == system.getId()) {
+                return system;
+            }
+        }
+        return null;
+    }
+
+    public WebduinoSystemActuator getWebduinoSystemActuatorFromId(int id) {
+        for (WebduinoSystem system : webduinoSystems) {
+            for (WebduinoSystemActuator webduinoSystemActuator: system.actuators) {
+                if (webduinoSystemActuator.actuatorid == id)
+                    return webduinoSystemActuator;
+            }
+        }
+        return null;
+    }
+
+    public WebduinoSystemZone getWebduinoSystemZoneFromId(int id) {
+        for (WebduinoSystem system : webduinoSystems) {
+            for (WebduinoSystemZone webduinoSystemZone: system.zones) {
+                if (webduinoSystemZone.zoneid == id)
+                    return webduinoSystemZone;
+            }
+        }
+        return null;
+    }
+
+    public WebduinoSystemService getWebduinoSystemServiceFromId(int id) {
+        for (WebduinoSystem system : webduinoSystems) {
+            for (WebduinoSystemService webduinoSystemService: system.services) {
+                if (webduinoSystemService.serviceid == id)
+                    return webduinoSystemService;
+            }
+        }
+        return null;
+    }
+
+    public List<Scenario> getWebduinoSystemScenarios() {
+        List<Scenario> list = new ArrayList<>();
+        for (WebduinoSystem system : webduinoSystems) {
+            for (Scenario scenario: system.getScenarios()) {
+                list.add(scenario);
+            }
+        }
+        return list;
+    }
+
 
     public static Service getServiceFromId(int serviceid) {
         for (Service service : services) {
@@ -287,7 +366,7 @@ public class Core {
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
         addZoneSensorListeners(); //
 
-        scenarios.initScenarios();
+        initScenarios();
         //mShields.addListener(this);
 
         // inizializzazione client android remoti
@@ -460,7 +539,7 @@ public class Core {
         }
     }
 
-    private void readWebduinoSystems() {
+    public void readWebduinoSystems() {
         LOGGER.info(" readWebduinoSystems");
 
         try {
@@ -482,6 +561,7 @@ public class Core {
                     system.readWebduinoSystemsZones(conn, id);
                     system.readWebduinoSystemsActuators(conn, id);
                     system.readWebduinoSystemsServices(conn, id);
+                    system.readWebduinoSystemsScenarios(conn, id);
                     webduinoSystems.add(system);
                 }
             }
@@ -560,7 +640,7 @@ public class Core {
     public Scenario saveScenario(JSONObject json) throws Exception {
         Scenario scenario = new Scenario(json);
         scenario.save();
-        scenarios.initScenarios();
+        initScenarios();
         return scenario;
     }
 
@@ -568,7 +648,7 @@ public class Core {
 
         Scenario scenario = new Scenario(json);
         scenario.remove();
-        scenarios.initScenarios();
+        initScenarios();
         JSONArray jarray = Scenarios.getScenariosJSONArray();
         return jarray;
     }
@@ -576,7 +656,7 @@ public class Core {
     public ScenarioProgram saveScenarioProgram(JSONObject json) throws Exception {
         ScenarioProgram program = new ScenarioProgram(json);
         program.save();
-        scenarios.initScenarios();
+        initScenarios();
         return program;
     }
 
@@ -586,7 +666,7 @@ public class Core {
         if  (program != null) {
             int scenarioid = program.scenarioId;
             program.remove();
-            scenarios.initScenarios();
+            initScenarios();
             Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
             return scenario;
         }
@@ -596,7 +676,7 @@ public class Core {
     public Trigger saveTrigger(JSONObject json) throws Exception {
         Trigger trigger = new Trigger(json);
         trigger.save();
-        scenarios.initScenarios();
+        initScenarios();
         return trigger;
     }
 
@@ -613,7 +693,7 @@ public class Core {
         Trigger trigger = new Trigger(json);
         trigger.remove();
         Core.readTriggers();
-        scenarios.initScenarios();
+        initScenarios();
         return trigger;
     }
 
@@ -621,7 +701,7 @@ public class Core {
         Triggers triggers = new Triggers(json);
         triggers.save();
         Core.readTriggers();
-        scenarios.initScenarios();
+        initScenarios();
         return triggers;
     }
 
@@ -631,14 +711,14 @@ public class Core {
         //int triggerid = trigger.id;
         triggers.remove();
         Core.readTriggers();
-        scenarios.initScenarios();
+        initScenarios();
         return triggers;
     }
 
     public ScenarioTrigger saveScenarioTrigger(JSONObject json) throws Exception {
         ScenarioTrigger trigger = new ScenarioTrigger(json);
         trigger.save();
-        scenarios.initScenarios();
+        initScenarios();
         return trigger;
     }
 
@@ -647,15 +727,67 @@ public class Core {
         ScenarioTrigger trigger = new ScenarioTrigger(json);
         int scenarioid = trigger.scenarioid;
         trigger.remove();
-        scenarios.initScenarios();
+        initScenarios();
         Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
         return scenario;
     }
 
+    public WebduinoSystemService saveWebduinoSystemService(JSONObject json) throws Exception {
+        WebduinoSystemService webduinoSystemService = new WebduinoSystemService(json);
+        webduinoSystemService.save();
+        initScenarios();
+        return webduinoSystemService;
+    }
+
+    public WebduinoSystem removeWebduinoSystemService(JSONObject json) throws Exception {
+
+        WebduinoSystemService webduinoSystemService = new WebduinoSystemService(json);
+        int serviceid = webduinoSystemService.serviceid;
+        webduinoSystemService.remove();
+        initScenarios();
+        WebduinoSystem webduinoSystem = getWebduinoSystemFromId(webduinoSystemService.webduinosystemid);
+        return webduinoSystem;
+    }
+
+    public WebduinoSystemZone saveWebduinoSystemZone(JSONObject json) throws Exception {
+        WebduinoSystemZone webduinoSystemZone = new WebduinoSystemZone(json);
+        webduinoSystemZone.save();
+        initScenarios();
+        return webduinoSystemZone;
+    }
+
+    public WebduinoSystem removeWebduinoSystemZone(JSONObject json) throws Exception {
+
+        WebduinoSystemZone webduinoSystemZone = new WebduinoSystemZone(json);
+        int zoneid = webduinoSystemZone.zoneid;
+        webduinoSystemZone.remove();
+        initScenarios();
+        WebduinoSystem webduinoSystem = getWebduinoSystemFromId(webduinoSystemZone.webduinosystemid);
+        return webduinoSystem;
+    }
+
+    public WebduinoSystemActuator saveWebduinoSystemActuator(JSONObject json) throws Exception {
+        WebduinoSystemActuator webduinoSystemActuator = new WebduinoSystemActuator(json);
+        webduinoSystemActuator.save();
+        initScenarios();
+        return webduinoSystemActuator;
+    }
+
+    public WebduinoSystem removeWebduinoSystemActuator(JSONObject json) throws Exception {
+
+        WebduinoSystemActuator webduinoSystemActuator = new WebduinoSystemActuator(json);
+        int actuatorid = webduinoSystemActuator.actuatorid;
+        webduinoSystemActuator.remove();
+        initScenarios();
+        WebduinoSystem webduinoSystem = getWebduinoSystemFromId(webduinoSystemActuator.webduinosystemid);
+        return webduinoSystem;
+    }
+
+
     public ScenarioTimeInterval saveScenarioTimeinterval(JSONObject json) throws Exception {
         ScenarioTimeInterval timeInterval = new ScenarioTimeInterval(json);
         timeInterval.save();
-        scenarios.initScenarios();
+        initScenarios();
         return timeInterval;
     }
 
@@ -664,7 +796,7 @@ public class Core {
         ScenarioTimeInterval timeInterval = new ScenarioTimeInterval(json);
         int scenarioid = timeInterval.scenarioid;
         timeInterval.remove();
-        scenarios.initScenarios();
+        initScenarios();
         Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
         return scenario;
     }
@@ -672,7 +804,7 @@ public class Core {
     public ScenarioProgramTimeRange saveScenarioProgramTimeRange(JSONObject json) throws Exception {
         ScenarioProgramTimeRange timerange = new ScenarioProgramTimeRange(json);
         timerange.save();
-        scenarios.initScenarios();
+        initScenarios();
         return timerange;
     }
 
@@ -680,7 +812,7 @@ public class Core {
         ScenarioProgramTimeRange timerange = new ScenarioProgramTimeRange(json);
         int programid = timerange.programid;
         timerange.remove();
-        scenarios.initScenarios();
+        initScenarios();
         ScenarioProgram program = Scenarios.getScenarioProgramFromId(programid);
         return program;
     }
@@ -689,7 +821,7 @@ public class Core {
         Zone zone = new Zone(json);
         zone.save();
         readZones();
-        scenarios.initScenarios();
+        initScenarios();
         return zone;
     }
 
@@ -697,7 +829,7 @@ public class Core {
         Zone zone = new Zone(json);
         zone.remove();
         readZones();
-        scenarios.initScenarios();
+        initScenarios();
         return zone;
     }
 

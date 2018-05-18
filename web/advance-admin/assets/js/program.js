@@ -65,7 +65,7 @@ function loadProgram(program) {
             backbutton.unbind("click");
             backbutton.click(function () {
                 getScenario(program.scenarioid, function (scenario) {
-                    loadScenario(scenario);
+                    loadWebduinoSystemScenario(scenario);
                 })
 
             });
@@ -110,14 +110,14 @@ function loadProgram(program) {
                 program.friday = $programPanel.find('input[name="friday"]').prop('checked');
                 program.saturday = $programPanel.find('input[name="saturday"]').prop('checked');
 
-                updateTimerangeData();
-
                 postData("program", program, function (result, response) {
                     if (result) {
                         notification.show();
                         notificationsuccess.find('label[name="description"]').text("programma salvato");
                         var json = jQuery.parseJSON(response);
-                        loadProgram(json);
+                        getScenario(json.scenarioid, function (scenario) {
+                            loadWebduinoSystemScenario(scenario);
+                        });
                     } else {
                         notification.show();
                         notification.find('label[name="description"]').text(response);
@@ -125,19 +125,32 @@ function loadProgram(program) {
                 });
             });
 
-            var cancelbutton = $programPanel.find('button[name="cancel"]');
-            cancelbutton.click(function () {
-                getProgram(program.id, function (program) {
-                    loadProgram(program);
-                })
+            var cancelbutton = $programPanel.find('button[name="cancel"]').click(function () {
+                getScenario(program.scenarioid, function (scenario) {
+                    loadWebduinoSystemScenario(scenario);
+                });
             });
 
-            var deletebutton = $programPanel.find('button[name="delete"]');
-            deletebutton.click(function () {
+            var deletebutton = $programPanel.find('button[name="delete"]').click(function () {
+                if (program.id != 0) {
+                    postData("program", program, function (result, response) {
+                        if (result) {
+                            getScenario(program.scenarioid, function (scenario) {
+                                loadWebduinoSystemScenario(scenario);
+                            });
+                        } else {
+                            notification.show();
+                            notification.find('label[name="description"]').text(response);
+                        }
+                    },"delete");
+                } else {
+                    getScenario(program.scenarioid, function (scenario) {
+                        loadWebduinoSystemScenario(scenario);
+                    });
+                }
             });
 
-            var addbutton = $programPanel.find('button[name="addtimerange"]');
-            addbutton.click(function () {
+            var addbutton = $programPanel.find('button[name="addtimerange"]').click(function () {
 
                 var timerange = {
                     "programid": $program.id,
@@ -153,7 +166,6 @@ function loadProgram(program) {
                     var emptyArray = [];
                     program["timeranges"] = emptyArray;
                 }
-
                 postData("timerange", timerange, function (result, response) {
                     if (result) {
                         var json = jQuery.parseJSON(response);
@@ -165,7 +177,6 @@ function loadProgram(program) {
                 });
             });
 
-
             // timeranges
             var tbody = $programPanel.find('tbody[name="list"]');
             tbody[0].innerHTML = "";
@@ -175,18 +186,3 @@ function loadProgram(program) {
     );
 }
 
-function updateTimerangeData() {
-    if ($program.timeranges != undefined) {
-        var i = 0;
-        $programPanel.find('tr[name="row"]').each(function (idx, elem) {
-            var elem = $program.timeranges[i];
-            elem.enabled = $(this).find('td input[name="enabled"]').prop('checked');
-            elem.starttime = $(this).find('td input[name="starttime"]').val();
-            elem.endtime = $(this).find('td input[name="endtime"]').val();
-            elem.name = $(this).find('td input[name="name"]').val();
-            elem.description = $(this).find('td input[name="description"]').val();
-            elem.index = i;
-            i++;
-        });
-    }
-}

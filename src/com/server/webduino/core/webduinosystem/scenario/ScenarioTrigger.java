@@ -81,6 +81,8 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
             json.put("name", trigger.name);
         json.put("enabled", enabled);
         json.put("status", status);
+        if (trigger != null)
+            json.put("currentstatus", trigger.status);
         return json;
     }
 

@@ -33,7 +33,8 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     public boolean active = false;
     public String name = "";
     public String description = "";
-    public ScenarioCalendar calendar = new ScenarioCalendar();
+    //public ScenarioCalendar calendar = new ScenarioCalendar();
+    public List<ScenarioTimeInterval> timeIntervals = new ArrayList<>();
     public List<ScenarioTrigger> triggers = new ArrayList<>();
     public List<ScenarioProgram> programs = new ArrayList<>();
     public int priority = 0;
@@ -44,8 +45,6 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     private JobDetail nextTimeIntervalJob = null;
     private Scheduler scheduler = null;
     private Date nextJobDate = null;
-    //private Date startDate = null;
-    //private Date endDate = null;
 
     private ScenarioTimeInterval.ScenarioTimeIntervalListener timeIntervalListener = new ScenarioTimeInterval.ScenarioTimeIntervalListener() {
         @Override
@@ -75,7 +74,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             return;
         }
 
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+        for (ScenarioTimeInterval timeInterval : timeIntervals) {
             timeInterval.addListener(this);
         }
 
@@ -107,7 +106,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
     }
 
     private void removeListeners() {
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+        for (ScenarioTimeInterval timeInterval : timeIntervals) {
             timeInterval.deleteListener(this);
         }
     }
@@ -125,10 +124,10 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         ScenarioTimeInterval activeTimeInterval = null;
         Date nextTriggerDate = null;
-        activeTimeInterval = calendar.getActiveTimeIntervalFromDateTime(currentDate);
+        activeTimeInterval = getActiveTimeIntervalFromDateTime(currentDate);
         if (activeTimeInterval != null) {
             nextTriggerDate = activeTimeInterval.nextEndDate(currentDate);
-            for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+            for (ScenarioTimeInterval timeInterval : timeIntervals) {
                 Date date = timeInterval.nextStartDate(currentDate);
                 if (nextTriggerDate == null)
                     nextTriggerDate = date;
@@ -136,7 +135,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
                     nextTriggerDate = date;
             }
         } else {
-            for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+            for (ScenarioTimeInterval timeInterval : timeIntervals) {
                 Date date = timeInterval.nextStartDate(currentDate);
                 if (nextTriggerDate == null)
                     nextTriggerDate = date;
@@ -237,7 +236,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         if (rs.next()) {
             id = rs.getInt(1);
         }
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+        for (ScenarioTimeInterval timeInterval : timeIntervals) {
             if (timeInterval.scenarioid == 0) timeInterval.scenarioid = id;
             timeInterval.write(conn);
         }
@@ -291,7 +290,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             timeInterval.setThursday(triggersResultSet.getBoolean("thursday"));
             timeInterval.setFriday(triggersResultSet.getBoolean("friday"));
             timeInterval.setSaturday(triggersResultSet.getBoolean("saturday"));
-            this.calendar.addTimeIntervals(timeInterval);
+            addTimeIntervals(timeInterval);
         }
         triggersResultSet.close();
 
@@ -316,7 +315,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
     public ScenarioTimeInterval getTimeRangeFromId(int id) {
 
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+        for (ScenarioTimeInterval timeInterval : timeIntervals) {
             if (timeInterval.id == id) {
                 return timeInterval;
             }
@@ -344,9 +343,15 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             json.put("description", description);
             json.put("dateenabled", dateEnabled);
             json.put("enabled", enabled);
-            json.put("calendar", calendar.toJson());
             json.put("priority", priority);
             JSONArray jarray = new JSONArray();
+            if (timeIntervals != null) {
+                for (ScenarioTimeInterval timeInterval : timeIntervals) {
+                    jarray.put(timeInterval.toJson());
+                }
+                json.put("timeintervals", jarray);
+            }
+            jarray = new JSONArray();
             if (triggers != null) {
                 for (ScenarioTrigger trigger : triggers) {
                     jarray.put(trigger.toJson());
@@ -360,7 +365,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
                 }
                 json.put("programs", jarray);
             }
-            json.put("priority", priority);
+
             // dynamic values
             if (active)
                 json.put("zonesensorstatus", "Attivo");
@@ -369,10 +374,6 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             if (nextJobDate != null)
                 json.put("nextjobdate", df.format(nextJobDate));
-            /*if (startDate != null)
-                json.put("startdate", df.format(startDate));
-            if (endDate != null)
-                json.put("enddate", df.format(endDate));*/
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -395,8 +396,13 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         if (json.has("dateenabled"))
             dateEnabled = json.getBoolean("dateenabled");
 
-        if (json.has("calendar"))
-            calendar = new ScenarioCalendar(json.getJSONObject("calendar"));
+        if (json.has("timeintervals")) {
+            JSONArray jArray = json.getJSONArray("timeintervals");
+            for (int k = 0; k < jArray.length(); k++) {
+                ScenarioTimeInterval timeInterval = new ScenarioTimeInterval(jArray.getJSONObject(k));
+                timeIntervals.add(timeInterval);
+            }
+        }
         if (json.has("triggers")) {
             JSONArray jArray = json.getJSONArray("triggers");
             for (int k = 0; k < jArray.length(); k++) {
@@ -435,7 +441,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         //active = false;
 
         // controlla se c'è almeno un timeinterval attivo
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+        for (ScenarioTimeInterval timeInterval : timeIntervals) {
             if (timeInterval.isActive(date)) {
                 //active = true;
                 return true;
@@ -450,7 +456,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
         boolean oldActiveStatus = active;
 
-        if (calendar.timeIntervals.size() == 0) {
+        if (timeIntervals.size() == 0) {
             active = true;
         } else {
             // controlla se c'è almeno un timeinterval attivo
@@ -479,6 +485,30 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
+    public ScenarioTimeInterval getActiveTimeIntervalFromDateTime(Date currentDate) {
+
+        if (!dateEnabled) {
+            return null;
+        }
+
+        ScenarioTimeInterval activeTimeInterval = null;
+        for (ScenarioTimeInterval timeInterval : timeIntervals) {
+            if (timeInterval.isActive(currentDate)) {
+                if (activeTimeInterval == null) {
+                    activeTimeInterval = timeInterval;
+                    continue;
+                } else if (activeTimeInterval.priority > timeInterval.priority) {
+                    activeTimeInterval = timeInterval;
+                }
+            }
+        }
+        return activeTimeInterval;
+    }
+
+    public void addTimeIntervals(ScenarioTimeInterval timeInterval) {
+        timeIntervals.add(timeInterval);
+    }
+/*
     public class ScenarioCalendar {
         //public boolean dateEnabled;
         public List<ScenarioTimeInterval> timeIntervals = new ArrayList<>();
@@ -510,25 +540,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             }
         }
 
-        public ScenarioTimeInterval getActiveTimeIntervalFromDateTime(Date currentDate) {
 
-            if (!dateEnabled) {
-                return null;
-            }
-
-            ScenarioTimeInterval activeTimeInterval = null;
-            for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
-                if (timeInterval.isActive(currentDate)) {
-                    if (activeTimeInterval == null) {
-                        activeTimeInterval = timeInterval;
-                        continue;
-                    } else if (activeTimeInterval.priority > timeInterval.priority) {
-                        activeTimeInterval = timeInterval;
-                    }
-                }
-            }
-            return activeTimeInterval;
-        }
 
         public void addTimeIntervals(ScenarioTimeInterval timeInterval) {
             timeIntervals.add(timeInterval);
@@ -553,7 +565,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
             return json;
         }
     }
-
+*/
     private class Interval {
         Date start;
         Date end;
@@ -566,7 +578,12 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     }
 
-    ;
+    public String getStatus() {
+        if (active)
+            return "attivo";
+        else
+            return "non attivo";
+    }
 
     public List<NextTimeRangeAction> getNextTimeRangeActions(Date date) {
 
@@ -584,7 +601,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         List<NextTimeRangeAction> scenarioNextTimeRangeActions = new ArrayList<>();
 
         List<Interval> intervals = new ArrayList<>();
-        for (ScenarioTimeInterval timeInterval : calendar.timeIntervals) {
+        for (ScenarioTimeInterval timeInterval : timeIntervals) {
 
             if (timeInterval.endDateTime.before(date))
                 continue;

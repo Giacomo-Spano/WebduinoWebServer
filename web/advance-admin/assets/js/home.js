@@ -25,7 +25,7 @@ function load() {
     loadTemperature();
     //loadActiveProgram();
 
-    //setTimeout(getSensors, 20000);
+    //setTimeout(getSensorList, 20000);
 
     //setTimeout(loadActuators, 20000);
     //setTimeout(loadActiveProgram, 20000);

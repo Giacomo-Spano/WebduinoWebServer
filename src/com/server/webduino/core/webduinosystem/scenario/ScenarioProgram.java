@@ -585,6 +585,7 @@ public class ScenarioProgram extends DBObject {
         thursday = programsResultset.getBoolean("thursday");
         friday = programsResultset.getBoolean("friday");
         saturday = programsResultset.getBoolean("saturday");
+        priority = programsResultset.getInt("priority");
         this.timeRanges = readProgramTimeRanges(conn, id);
     }
 

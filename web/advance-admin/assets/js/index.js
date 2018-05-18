@@ -4,6 +4,7 @@
 var systemServletPath = "../system";
 var shieldServletPath = "../shield";
 
+var $timeinterval;
 var $zonesPanel;
 var $zoneRow;
 var $zonePanel;
@@ -583,7 +584,7 @@ function setScenarioElement(element, scenario) {
     element.find('td[name="status"]').text(scenario.status);
 
     element.click(function () {
-        loadScenario(scenario);
+        loadWebduinoSystemScenario(scenario);
     });
     element.find('button[name="delete"]').click(function () {
         postData("scenario", scenario, function (result, response) {
@@ -606,9 +607,33 @@ function getProgram(id, callback) {
     });
 }
 
-function getScenario(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (scenario) {
+function getWebduinoSystemScenario(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemscenario&id=" + id, function (scenario) {
         callback(scenario);
+    });
+}
+
+function getWebduinoSystem(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystem&id=" + id, function (system) {
+        callback(system);
+    });
+}
+
+function getWebduinoSystemActuator(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemactuator&id=" + id, function (system) {
+        callback(system);
+    });
+}
+
+function getWebduinoSystemService(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemservicer&id=" + id, function (system) {
+        callback(system);
+    });
+}
+
+function getWebduinoSystemZone(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemzone&id=" + id, function (system) {
+        callback(system);
     });
 }
 
@@ -621,6 +646,18 @@ function getSensor(id, callback) {
 function getSensorFromZoneSensor(zoneid, zonesensorid, callback) {
     $.getJSON(systemServletPath + "?requestcommand=zonesensor&zoneid=" + zoneid + "&zonesensorid=" +zonesensorid , function (sensor) {
         callback(sensor);
+    });
+}
+
+function getSensors(callback) {
+    $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
+        callback(sensors);
+    });
+}
+
+function getZones(callback) {
+    $.getJSON(systemServletPath + "?requestcommand=zones", function (zones) {
+        callback(zones);
     });
 }
 
@@ -642,15 +679,21 @@ function getTriggers(callback) {
     });
 }
 
+function getServices(callback) {
+    $.getJSON(systemServletPath + "?requestcommand=services", function (services) {
+        callback(services);
+    });
+}
 
 function loadScenarioTimeinterval(timeinterval) {
 
+    $timeinterval = timeinterval;
     $("#result").load("scenariotimeinterval.html", function () {
         // back button
         backbutton.unbind("click");
         backbutton.click(function () {
-            getScenario(timeinterval.scenarioid, function (scenario) {
-                loadScenario(scenario);
+            getWebduinoSystemScenario($timeinterval.scenarioid, function (scenario) {
+                loadWebduinoSystemScenario(scenario);
             })
         });
         pagetitle.text('Time interval');
@@ -703,8 +746,8 @@ function loadScenarioTimeinterval(timeinterval) {
                 if (result) {
                     notification.find('label[name="description"]').text("timeiunterval salvato");
                     var json = jQuery.parseJSON(response);
-                    getScenario(timeinterval.scenarioid, function (scenario) {
-                        loadScenario(scenario);
+                    getWebduinoSystemScenario($timeinterval.scenarioid, function (scenario) {
+                        loadWebduinoSystemScenario(scenario);
                     })
                 } else {
                     notification.show();
@@ -715,8 +758,8 @@ function loadScenarioTimeinterval(timeinterval) {
 
         var cancelbutton = panel.find('button[name="cancel"]');
         cancelbutton.click(function () {
-            getScenario(timeinterval.scenarioid, function (scenario) {
-                loadScenario(scenario);
+            getWebduinoSystemScenario($timeinterval.scenarioid, function (scenario) {
+                loadWebduinoSystemScenario(scenario);
             })
         });
 
@@ -726,8 +769,8 @@ function loadScenarioTimeinterval(timeinterval) {
                 if (result) {
                     notification.find('label[name="description"]').text("timeiunterval salvato");
                     var json = jQuery.parseJSON(response);
-                    getScenario(timeinterval.scenarioid, function (scenario) {
-                        loadScenario(scenario);
+                    getWebduinoSystemScenario($timeinterval.scenarioid, function (scenario) {
+                        loadWebduinoSystemScenario(scenario);
                     })
                 } else {
                     notification.show();
@@ -745,8 +788,8 @@ function loadScenarioTrigger(scenariotrigger) {
         // back button
         backbutton.unbind("click");
         backbutton.click(function () {
-            getScenario(scenariotrigger.scenarioid, function (scenario) {
-                loadScenario(scenario);
+            getWebduinoSystemScenario(scenariotrigger.scenarioid, function (scenario) {
+                loadWebduinoSystemScenario(scenario);
             })
         });
         pagetitle.text('Trigger');
@@ -760,7 +803,6 @@ function loadScenarioTrigger(scenariotrigger) {
                 panel.find('select[name="triggerid"]').append(new Option(trigger.name, trigger.id));
             });
             panel.find('select[name="triggerid"]').change(function () {
-                //triggerid = this.value;
                 getTrigger(this.value,function (trigger) {
                     $('option', panel.find('select[name="scenariotriggerstatus"]')).remove();
                     $.each(trigger.statuslist, function (val, status) {
@@ -785,8 +827,8 @@ function loadScenarioTrigger(scenariotrigger) {
                 if (result) {
                     notification.find('label[name="description"]').text("trigger salvata");
                     var json = jQuery.parseJSON(response);
-                    getScenario(json.scenarioid,function (scenario) {
-                        loadScenario(scenario);
+                    getWebduinoSystemScenario(json.scenarioid,function (scenario) {
+                        loadWebduinoSystemScenario(scenario);
                     });
                 } else {
                     notification.show();
@@ -797,18 +839,18 @@ function loadScenarioTrigger(scenariotrigger) {
 
         var cancelbutton = panel.find('button[name="cancel"]');
         cancelbutton.click(function () {
-            getScenario(scenariotrigger.scenarioid,function (scenario) {
-                loadScenario(scenario);
+            getWebduinoSystemScenario(scenariotrigger.scenarioid,function (scenario) {
+                loadWebduinoSystemScenario(scenario);
             });
         });
 
         var deletebutton = panel.find('button[name="delete"]');
         deletebutton.click(function () {
 
-            postData("scenariotrigger", trigger, function (result, response) {
+            postData("scenariotrigger", scenariotrigger, function (result, response) {
                 if (result) {
-                    getScenario(scenariotrigger.scenarioid, function (scenario) {
-                        loadScenario(scenario);
+                    getWebduinoSystemScenario(scenariotrigger.scenarioid, function (scenario) {
+                        loadWebduinoSystemScenario(scenario);
                     })
                 } else {
                     notification.show();
@@ -879,7 +921,7 @@ function setScenarioProgramElement(element, program/*, scenario*/) {
             if (result) {
                 notification.find('label[name="description"]').text("trigger eliminato");
                 var json = jQuery.parseJSON(response);
-                loadScenario(json);
+                loadWebduinoSystemScenario(json);
             } else {
                 notification.show();
                 notification.find('label[name="description"]').text(error);

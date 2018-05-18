@@ -5,6 +5,10 @@ import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.WebduinoSystem;
+import com.server.webduino.core.webduinosystem.WebduinoSystemActuator;
+import com.server.webduino.core.webduinosystem.WebduinoSystemService;
+import com.server.webduino.core.webduinosystem.WebduinoSystemZone;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
@@ -67,7 +71,7 @@ public class SystemServlet extends HttpServlet {
             Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
             JSONObject json = new JSONObject(jb.toString());
-            if (data != null && data.equals("scenario")) {
+            if (data != null && data.equals("webduinosystemscenario")) {
                 try {
                     if (param != null && param.equals("delete")) {
                         if (json.has("id")) {
@@ -75,15 +79,17 @@ public class SystemServlet extends HttpServlet {
                             if (jarray != null) {
                                 response.setStatus(HttpServletResponse.SC_OK);
                                 out.print(jarray.toString());
-                                return;
                             }
                         }
                     } else {
                         Scenario scenario = core.saveScenario(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
-                        return;
                     }
+                    // questo server per aggiornare la lista di scenari nei webduinosystem
+                    //core.readWebduinoSystems();
+                    core.initScenarios();
+                    return;
                 } catch (Exception e) {
                     e.printStackTrace();
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -103,6 +109,66 @@ public class SystemServlet extends HttpServlet {
                         ScenarioTrigger trigger = core.saveScenarioTrigger(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(trigger.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
+            } else if (data != null && data.equals("webduinosystemservice")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        WebduinoSystem webduinoSystem = core.removeWebduinoSystemService(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystem.toJson());
+                        return;
+                    } else {
+                        WebduinoSystemService webduinoSystemService = core.saveWebduinoSystemService(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystemService.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
+            } else if (data != null && data.equals("webduinosystemactuator")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        WebduinoSystem webduinoSystem = core.removeWebduinoSystemActuator(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystem.toJson());
+                        return;
+                    } else {
+                        WebduinoSystemActuator webduinoSystemActuator = core.saveWebduinoSystemActuator(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystemActuator.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
+            } else if (data != null && data.equals("webduinosystemzone")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        WebduinoSystem webduinoSystem = core.removeWebduinoSystemZone(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystem.toJson());
+                        return;
+                    } else {
+                        WebduinoSystemZone webduinoSystemZone = core.saveWebduinoSystemZone(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystemZone.toJson());
                         return;
                     }
                 } catch (Exception e) {
@@ -412,6 +478,19 @@ public class SystemServlet extends HttpServlet {
                 e.printStackTrace();
             }
 
+        } else if (requestCommand != null && requestCommand.equals("webduinosystem") && id != null) {
+            int webduinosystemid = Integer.parseInt(id);
+
+            WebduinoSystem system = core.getWebduinoSystemFromId(webduinosystemid);
+            if (system != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                try {
+                    out.print(system.toJson());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                return;
+            }
         } else if (requestCommand != null && requestCommand.equals("services")) {
 
             JSONArray jarray = Core.getServicesJSONArray();
@@ -558,7 +637,43 @@ public class SystemServlet extends HttpServlet {
                 out.print(shield.toJson());
                 return;
             }
-        } else if (requestCommand != null && requestCommand.equals("scenario") && id != null) {
+        } else if (requestCommand != null && requestCommand.equals("webduinosystemactuator") && id != null) {
+            int sensorid = Integer.parseInt(id);
+            WebduinoSystemActuator webduinoSystemActuator = core.getWebduinoSystemActuatorFromId(sensorid);
+            if (webduinoSystemActuator != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                try {
+                    out.print(webduinoSystemActuator.toJson());
+                    return;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (requestCommand != null && requestCommand.equals("webduinosystemzone") && id != null) {
+            int zoneid = Integer.parseInt(id);
+            WebduinoSystemZone webduinoSystemZone = core.getWebduinoSystemZoneFromId(zoneid);
+            if (webduinoSystemZone != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                try {
+                    out.print(webduinoSystemZone.toJson());
+                    return;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (requestCommand != null && requestCommand.equals("webduinosystemservice") && id != null) {
+            int serviceid = Integer.parseInt(id);
+            WebduinoSystemService webduinoSystemService = core.getWebduinoSystemServiceFromId(serviceid);
+            if (webduinoSystemService != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                try {
+                    out.print(webduinoSystemService.toJson());
+                    return;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (requestCommand != null && requestCommand.equals("webduinosystemscenario") && id != null) {
             int scenarioid = Integer.parseInt(id);
             Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
             if (scenario != null) {

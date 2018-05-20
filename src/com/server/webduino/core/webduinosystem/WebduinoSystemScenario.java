@@ -1,8 +1,12 @@
-package com.server.webduino.core.webduinosystem.scenario;
+package com.server.webduino.core.webduinosystem;
 
 import com.quartz.NextScenarioTimeIntervalQuartzJob;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.webduinosystem.scenario.NextTimeRangeAction;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioProgram;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioTimeInterval;
+import com.server.webduino.core.webduinosystem.scenario.ScenarioTrigger;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,7 +28,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 /**
  * Created by giaco on 18/05/2017.
  */
-public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ProgramInstructionListener*/ {
+public class WebduinoSystemScenario extends DBObject implements ScenarioTimeInterval.ScenarioTimeIntervalListener/*, ScenarioProgramTimeRange.ProgramInstructionListener*/ {
 
     private static final Logger LOGGER = Logger.getLogger(NextScenarioTimeIntervalQuartzJob.class.getName());
 
@@ -60,10 +64,10 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
         }
     };
 
-    public Scenario() {
+    public WebduinoSystemScenario() {
     }
 
-    public Scenario(JSONObject json) throws Exception {
+    public WebduinoSystemScenario(JSONObject json) throws Exception {
         fromJson(json);
     }
 
@@ -259,7 +263,7 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
     public void fromResulSet(Connection conn, ResultSet scenariosResultSet) throws Exception {
 
-        //Scenario scenario = new Scenario();
+        //WebduinoSystemScenario scenario = new WebduinoSystemScenario();
         this.id = scenariosResultSet.getInt("id");
         this.webduinosystemid = scenariosResultSet.getInt("webduinosystemid");
         this.name = scenariosResultSet.getString("name");
@@ -368,9 +372,9 @@ public class Scenario extends DBObject implements ScenarioTimeInterval.ScenarioT
 
             // dynamic values
             if (active)
-                json.put("zonesensorstatus", "Attivo");
+                json.put("status", "Attivo");
             else
-                json.put("zonesensorstatus", "Non attivo");
+                json.put("status", "Non attivo");
             SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             if (nextJobDate != null)
                 json.put("nextjobdate", df.format(nextJobDate));

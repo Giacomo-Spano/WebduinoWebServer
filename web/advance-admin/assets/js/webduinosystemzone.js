@@ -13,23 +13,23 @@ function loadWebduinoSystemZone(webduinosystemzone) {
                 loadWebduinoSystem(webduinosystem);
             })
         });
-        pagetitle.text('Servizio');
+        pagetitle.text('Zona');
         notification.hide();
 
-        var panel = $(this).find('div[id="servicepanel"]');
+        var panel = $(this).find('div[id="zonepanel"]');
         panel.find('p[name="headingright"]').text(webduinosystemzone.scenarioid + "." + webduinosystemzone.id);
 
         getZones(function (zones) {
             $.each(zones, function (val, zone) {
                 panel.find('select[name="zoneid"]').append(new Option(zone.name, zone.id));
-                panel.find('select[name="zoneid"]').val(webduinosystemservice.zoneid);
             });
+            panel.find('select[name="zoneid"]').val(webduinosystemzone.zoneid);
         });
 
         // save button
         var savebutton = panel.find('button[name="save"]');
         savebutton.click(function () {
-            webduinosystemzone.serviceid = panel.find('select[name="zoneid"]').val();
+            webduinosystemzone.zoneid = panel.find('select[name="zoneid"]').val();
             postData("webduinosystemzone", webduinosystemzone, function (result, response) {
                 if (result) {
                     var json = jQuery.parseJSON(response);
@@ -53,17 +53,18 @@ function loadWebduinoSystemZone(webduinosystemzone) {
         var deletebutton = panel.find('button[name="delete"]');
         deletebutton.click(function () {
 
-            postData("scenariotrigger", webduinosystemzone, function (result, response) {
+            postData("webduinosystemzone", webduinosystemzone, function (result, response) {
                 if (result) {
                     var json = jQuery.parseJSON(response);
-                    getWebduinoSystem(json.webduinosystemid, function (webduinosystem) {
-                        loadWebduinoSystem(webduinosystem);
-                    });
+                    loadWebduinoSystem(json);
                 } else {
                     notification.show();
                     notification.find('label[name="description"]').text(response);
                 }
-            },"delete");
+            }, "delete");
         });
+
+        if (webduinosystemzone.id == 0)
+            deletebutton.prop('disabled', true);
     });
 }

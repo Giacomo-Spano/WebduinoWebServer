@@ -270,11 +270,13 @@ public class ScenarioProgramTimeRange extends DBObject {
 
         if (conditions != null) {
             for (Condition condition : conditions) {
+                condition.timerangeid = id;
                 condition.write(conn);
             }
         }
         if (actions != null) {
             for (Action action : actions) {
+                action.timerangeid = id;
                 action.write(conn);
             }
         }

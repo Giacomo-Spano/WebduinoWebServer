@@ -17,6 +17,7 @@ function loadActuators(actuators) {
             actuator.find('td[name="id"]').text(elem.id);
             actuator.find('td[name="actuatorid"]').text(elem.actuatorid);
             actuator.find('td[name="name"]').text(elem.name);
+            actuator.find('td[name="status"]').text(elem.status);
             actuator.attr("actuatorid", elem.actuatorid);
             actuator.click(function () {
                 var actuatorid = $(this).attr("actuatorid");
@@ -38,9 +39,11 @@ function loadActuators(actuators) {
             loadWebduinoSystemActuator(actuator);
         });
     });
+    if ($system.id == 0)
+        addbutton.prop("disabled", true);
 }
 
-function loadZones(zones) {
+function loadWebduinoSystemZones(zones) {
     var tbody = $systemPanel.find('tbody[name="zonelist"]');
     tbody[0].innerHTML = "";
     if (zones != null) {
@@ -49,6 +52,7 @@ function loadZones(zones) {
             zone.find('td[name="id"]').text(elem.id);
             zone.find('td[name="zoneid"]').text(elem.zoneid);
             zone.find('td[name="name"]').text(elem.name);
+            zone.find('td[name="status"]').text(elem.status);
             zone.attr("zoneid", elem.zoneid);
             zone.click(function () {
                 var zoneid = $(this).attr("zoneid");
@@ -67,19 +71,21 @@ function loadZones(zones) {
                 "zoneid": zones[0].id,
                 "enabled": true,
             };
-            loadWebduinoSystemZone(json);
+            loadWebduinoSystemZone(zone);
         });
     });
+    if ($system.id == 0)
+        addbutton.prop("disabled", true);
 }
 
-function loadServices(webduinosystemservices) {
+function loadWebduinoSystemServices(webduinosystemservices) {
     var tbody = $systemPanel.find('tbody[name="servicelist"]');
     tbody[0].innerHTML = "";
     if (webduinosystemservices != null) {
         $.each(webduinosystemservices, function (idx, elem) {
             var service = $systemServiceRow.clone();
             service.find('td[name="id"]').text(elem.id);
-            ctuator.find('td[name="serviceid"]').text(elem.serviceid);
+            service.find('td[name="serviceid"]').text(elem.serviceid);
             service.find('td[name="name"]').text(elem.name);
             service.attr("serviceid", elem.serviceid);
             service.click(function () {
@@ -99,12 +105,14 @@ function loadServices(webduinosystemservices) {
                 "serviceid": services[0].id,
                 "enabled": true,
             };
-            loadWebduinoSystemService(json);
+            loadWebduinoSystemService(service);
         });
     });
+    if ($system.id == 0)
+        addbutton.prop("disabled", true);
 }
 
-function loadScenarios(scenarios) {
+function loadWebduinoSystemScenarios(scenarios) {
     var tbody = $systemPanel.find('tbody[name="scenariolist"]');
     tbody[0].innerHTML = "";
     if (scenarios != null) {
@@ -137,20 +145,40 @@ function loadScenarios(scenarios) {
         scenario["programs"] = emptyArray;
         scenario["timeintervals"] = emptyArray;
         scenario["triggers"] = emptyArray;
-        postData("webduinosystemscenario", scenario, function (result, response) {
-            if (result) {
-                notification.show();
-                notificationsuccess.find('label[name="description"]').text("timerange salvato");
-                var json = jQuery.parseJSON(response);
-                loadWebduinoSystemScenario(json);
-            } else {
-                notification.show();
-                notification.find('label[name="description"]').text(response);
-            }
-        });
+        loadWebduinoSystemScenario(scenario);
     });
+    if ($system.id == 0)
+        addbutton.prop("disabled", true);
 }
 
+function saveWebduinoSystem(system) {
+    system.name = $systemPanel.find('input[name="name"]').val();
+    system.enabled = $systemPanel.find('input[name="systemenabled"]').prop('checked');
+    system.type = $systemPanel.find('select[name="type"]').val();
+    var newitem = (system.id == 0);
+    postData("webduinosystem", system, function (result, response) {
+        if (result) {
+            var json = jQuery.parseJSON(response);
+            if (newitem)
+                loadWebduinoSystem(json);
+            else
+                loadWebduinoSystems();
+        } else {
+            notification.show();
+            notification.find('label[name="description"]').text(response);
+        }
+    });
+}
+function deleteWebduinoSystem(system) {
+    postData("webduinosystem", system, function (result, response) {
+        if (result) {
+            loadWebduinoSystems();
+        } else {
+            notification.show();
+            notification.find('label[name="description"]').text(response);
+        }
+    }, "delete");
+}
 function loadWebduinoSystem(system) {
 
     $system = system;
@@ -171,17 +199,40 @@ function loadWebduinoSystem(system) {
             $systemServiceRow = $systemPanel.find('tr[name="servicerow"]');
             $systemScenarioRow = $systemPanel.find('tr[name="scenariorow"]');
 
-            $systemPanel.find('p[name="headingright"]').val(system.id);
-            $systemPanel.find('div[name="name"]').text(system.name);
+            $systemPanel.find('input[name="name"]').val(system.name);
+            $systemPanel.find('input[name="systemenabled"]').prop('checked', system.enabled);
+            getWebduinoSystemTypes(function (systemtypes) {
+                $.each(systemtypes, function (idx, systemtype) {
+                    $systemPanel.find('select[name="type"]').append(new Option(systemtype.description, systemtype.type));
+                });
+                $systemPanel.find('select[name="type"]').val(system.type);
+
+            });
+
+
+            // save button
+            var savebutton = $systemPanel.find('button[name="save"]');
+            savebutton.click(function () {
+                saveWebduinoSystem(system);
+            });
+
+            var cancelbutton = $systemPanel.find('button[name="cancel"]');
+            cancelbutton.click(function () {
+                loadWebduinoSystems();
+            });
+
+            var deletebutton = $systemPanel.find('button[name="delete"]').click(function () {
+                deleteWebduinoSystem(system);
+            });
 
             // actuators
             loadActuators($system.actuators);
             // zoines
-            loadZones($system.zones);
+            loadWebduinoSystemZones($system.zones);
             // services
-            loadServices($system.services);
+            loadWebduinoSystemServices($system.services);
             // scenarios
-            loadScenarios($system.scenarios);
+            loadWebduinoSystemScenarios($system.scenarios);
         }
     );
 }

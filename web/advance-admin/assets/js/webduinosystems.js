@@ -19,19 +19,15 @@ function loadWebduinoSystems() {
 
             $panel.find('button[name="add"]').click(function () {
 
-                var system = {
-                    "id": 0,
-                    "name": "sistema nuovo",
-                };
-                postData("webduinosystem", system, function (result, response) {
-                    if (result) {
-                        var json = jQuery.parseJSON(response);
-                        loadZones();
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
+                getWebduinoSystemTypes(function (types) {
+                    var system = {
+                        "id": 0,
+                        "type": types[0].type,
+                        "name": "sistema nuovo",
+                        "enabled": true,
+                    };
+                    loadWebduinoSystem(system);
+                })
             });
         });
     });
@@ -41,6 +37,9 @@ function setSystemElement(idx, element, system) {
 
     element.find('td[name="id"]').text(system.id);
     element.find('td[name="name"]').text(system.name);
+    element.find('input[name="systemenabled"]').prop('checked',system.enabled);
+    element.find('td[name="type"]').text(system.type);
+    element.find('td[name="status"]').text(system.status);
     element.attr("idx", idx);
 
     element.click(function () {

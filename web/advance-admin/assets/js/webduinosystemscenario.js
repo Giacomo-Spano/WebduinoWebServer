@@ -10,7 +10,7 @@ var $trigger;
 
 
 function getWebduinoSystemScenario(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (scenario) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemscenario&id=" + id, function (scenario) {
         callback(scenario);
     });
 }
@@ -124,34 +124,35 @@ function addTriggerSection(scenario) {
     if (scenario.triggers != undefined)
         loadScenarioTriggers($scenario.triggers);
 
-    $scenarioPanel.find('button[name="addtrigger"]').click(function () {
-        var trigger = {
-            "scenarioid": scenario.id,
-            "triggerid": 0,
-            "status": "",
-            "id": 0,
-            "name": "nuovo trigger",
-            "priority": 0,
-            "enabled": "true",
-        };
-        postData("trigger", trigger, function (result, response) {
-            if (result) {
-                var json = jQuery.parseJSON(response);
-                loadScenarioTrigger(json);
-            } else {
-                notification.show();
-                notification.find('label[name="description"]').text(response);            }
-        });
+    var addbutton = $scenarioPanel.find('button[name="addtrigger"]').click(function () {
+
+        getTriggers(function (trglist) {
+            var trigger = {
+                "scenarioid": scenario.id,
+                "triggerid": trglist[0].id,
+                "status": trglist[0].statuslist[0],
+                "id": 0,
+                "name": "nuovo trigger",
+                "priority": 0,
+                "enabled": "true",
+            };
+            loadScenarioTrigger(trigger);
+        })
+
+
     });
+    if (scenario.id == 0)
+        addbutton.prop('disabled', true);
 }
 
 function addCalendarSection(scenario) {
     if (scenario.timeintervals != undefined)
         loadCalendars($scenario.timeintervals);
-    $scenarioPanel.find('button[name="addcalendar"]').click(function () {
+    var addbutton = $scenarioPanel.find('button[name="addcalendar"]').click(function () {
         var timeinterval = {
             "scenarioid": scenario.id,
             "id": 0,
+            "priority": 0,
             "name": "nuovo calendario",
             "enabled": true,
         };
@@ -159,21 +160,16 @@ function addCalendarSection(scenario) {
             var emptyArray = [];
             scenario["timeintervals"] = emptyArray;
         }
-        postData("timeinterval", timeinterval, function (result, response) {
-            if (result) {
-                var json = jQuery.parseJSON(response);
-                loadScenarioTimeinterval(json);
-            } else {
-                notification.show();
-                notification.find('label[name="description"]').text(response);            }
-        });
+        loadScenarioTimeinterval(timeinterval);
     });
+    if (scenario.id == 0)
+        addbutton.prop('disabled', true);
 }
 
 function addProgramsSection(scenario) {
     if (scenario.programs != undefined)
         loadPrograms($scenario.programs);
-    $scenarioPanel.find('button[name="addprogram"]').click(function () {
+    var addbutton = $scenarioPanel.find('button[name="addprogram"]').click(function () {
         var program = {
             "scenarioid": scenario.id,
             "id": 0,
@@ -182,21 +178,41 @@ function addProgramsSection(scenario) {
             "description": "nuovo description",
             "enabled": true,
         };
-        if (scenario.programs == undefined) {
-            var emptyArray = [];
-            scenario["programs"] = emptyArray;
-        }
-        postData("program", program, function (result, response) {
-            if (result) {
-                var json = jQuery.parseJSON(response);
-                loadProgram(json);
-            } else {
-                notification.show();
-                notification.find('label[name="description"]').text(response);            }
-        });
+        /*if (scenario.programs == undefined) {
+         var emptyArray = [];
+         scenario["programs"] = emptyArray;
+         }*/
+        loadProgram(program);
     });
+    if (scenario.id == 0)
+        addbutton.prop('disabled', true);
 }
 
+function saveWebduinoSystemScenario(scenario) {
+    $scenario.name = $scenarioPanel.find('input[name="name"]').val();
+    $scenario.description = $scenarioPanel.find('textarea[name="description"]').val();
+    $scenario.enabled = $scenarioPanel.find('input[name="scenarioenabled"]').prop('checked');
+    $scenario.starttime = $scenarioPanel.find('input[name="startdate"]').val();
+    $scenario.endtime = $scenarioPanel.find('input[name="enddate"]').val();
+    var newitem = (scenario.id == 0);
+    postData("webduinosystemscenario", scenario, function (result, response) {
+        if (result) {
+            var json = jQuery.parseJSON(response);
+            if (newitem) {
+                loadWebduinoSystemScenario(json);
+            } else {
+                loadWebduinoSystem();
+                var json = jQuery.parseJSON(response);
+                getWebduinoSystem(json.webduinosystemid, function (system) {
+                    loadWebduinoSystem(system);
+                });
+            }
+        } else {
+            notification.show();
+            notification.find('label[name="description"]').text(response);
+        }
+    });
+}
 function loadWebduinoSystemScenario(scenario) {
     $scenario = scenario;
     $("#result").load("webduinosystemscenario.html", function () {
@@ -215,7 +231,7 @@ function loadWebduinoSystemScenario(scenario) {
             $calendarRow = $scenarioPanel.find('tr[name="calendarrow"]');
             $programRow = $scenarioPanel.find('tr[name="programrow"]');
 
-            $triggers = triggers;
+            //$triggers = triggers;
             $scenarioPanel.find('p[name="headingright"]').text(scenario.programid + "." + scenario.id);
             $scenarioPanel.find('input[name="scenarioenabled"]').prop('checked', scenario.enabled);
             $scenarioPanel.find('input[name="index"]').val(scenario.index);
@@ -225,23 +241,7 @@ function loadWebduinoSystemScenario(scenario) {
             // save button
             var savebutton = $scenarioPanel.find('button[name="save"]');
             savebutton.click(function () {
-
-                $scenario.name = $scenarioPanel.find('input[name="name"]').val();
-                $scenario.description = $scenarioPanel.find('textarea[name="description"]').val();
-                $scenario.enabled = $scenarioPanel.find('input[name="scenarioenabled"]').prop('checked');
-                $scenario.starttime = $scenarioPanel.find('input[name="startdate"]').val();
-                $scenario.endtime = $scenarioPanel.find('input[name="enddate"]').val();
-                postData("webduinosystemscenario", scenario, function (result, response) {
-                    if (result) {
-                        var json = jQuery.parseJSON(response);
-                        getWebduinoSystem(json.webduinosystemid, function (system) {
-                            loadWebduinoSystem(system);
-                        })
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
+                saveWebduinoSystemScenario(scenario);
             });
 
             var cancelbutton = $scenarioPanel.find('button[name="cancel"]');
@@ -253,7 +253,7 @@ function loadWebduinoSystemScenario(scenario) {
 
             var deletebutton = $scenarioPanel.find('button[name="delete"]').click(function () {
                 if (scenario.id != 0) {
-                    postData("scenario", scenario, function (result, response) {
+                    postData("webduinosystemscenario", scenario, function (result, response) {
                         if (result) {
                             getWebduinoSystem($scenario.webduinosystemid, function (system) {
                                 loadWebduinoSystem(system);
@@ -269,6 +269,8 @@ function loadWebduinoSystemScenario(scenario) {
                     });
                 }
             });
+            if (scenario.id == 0)
+                deletebutton.prop('disabled', true);
 
             // calendar
             addCalendarSection(scenario);

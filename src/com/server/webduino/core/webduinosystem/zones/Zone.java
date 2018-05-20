@@ -22,11 +22,25 @@ import java.util.logging.Logger;
 public class Zone extends DBObject implements SensorBase.SensorListener, TemperatureSensor.TemperatureSensorListener {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
+    public String getStatus() {
+        String sensorstatus = "";
+        for (ZoneSensor zonesensor : zoneSensors) {
+            SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
+            if (sensor != null) {
+                sensorstatus += sensor.getName() + ":" + sensor.getStatus() + "; ";
+            }
+        }
+        return status + " sensori: " + sensorstatus;
+    }
+
     public interface WebduinoZoneListener {
         void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature);
+
         void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus);
     }
+
     protected List<WebduinoZoneListener> listeners = new CopyOnWriteArrayList<>();
+
     public void addListener(WebduinoZoneListener toAdd) {
         listeners.add(toAdd);
     }
@@ -34,10 +48,10 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     public void removeListener(WebduinoZoneListener toRemove) {
 
         Iterator<WebduinoZoneListener> it = listeners.iterator();
-        while(it.hasNext()){
+        while (it.hasNext()) {
             WebduinoZoneListener value = it.next();
             //System.out.println("List Value:"+value);
-            if(value == toRemove) listeners.remove(value);
+            if (value == toRemove) listeners.remove(value);
         }
 
     }
@@ -46,6 +60,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     private String name;
     private String type;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
+    private String status;
 
     private double temperature = 0.0;
     private boolean doorStatusOpen = false;
@@ -81,26 +96,26 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
 
     public void fromJson(JSONObject json) throws JSONException {
 
-            if (json.has("id"))
-                id = json. getInt("id");
-            if (json.has("name"))
-                name = json.getString("name");
-            if (json.has("type"))
-                type = json.getString("type");
-            if (json.has("zonesensors")) {
-                JSONArray sensors = json.getJSONArray("zonesensors");
-                for (int i = 0; i < sensors.length(); i++) {
-                    JSONObject jsonObject = sensors.getJSONObject(i);
-                    ZoneSensor zoneSensor = new ZoneSensor();
-                    if (jsonObject.has("id"))
-                        zoneSensor.id = jsonObject.getInt("id");
-                    if (jsonObject.has("name"))
-                        zoneSensor.name = jsonObject.getString("name");
-                    if (jsonObject.has("sensorid"))
-                        zoneSensor.setSensorId(jsonObject.getInt("sensorid"));
-                    zoneSensors.add(zoneSensor);
-                }
+        if (json.has("id"))
+            id = json.getInt("id");
+        if (json.has("name"))
+            name = json.getString("name");
+        if (json.has("type"))
+            type = json.getString("type");
+        if (json.has("zonesensors")) {
+            JSONArray sensors = json.getJSONArray("zonesensors");
+            for (int i = 0; i < sensors.length(); i++) {
+                JSONObject jsonObject = sensors.getJSONObject(i);
+                ZoneSensor zoneSensor = new ZoneSensor();
+                if (jsonObject.has("id"))
+                    zoneSensor.id = jsonObject.getInt("id");
+                if (jsonObject.has("name"))
+                    zoneSensor.name = jsonObject.getString("name");
+                if (jsonObject.has("sensorid"))
+                    zoneSensor.setSensorId(jsonObject.getInt("sensorid"));
+                zoneSensors.add(zoneSensor);
             }
+        }
     }
 
 
@@ -135,42 +150,48 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     @Override
     public void write(Connection conn) throws SQLException {
 
-            //Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-            Statement stmt = null;
+        //Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+        Statement stmt = null;
 
+        stmt = conn.createStatement();
+        String sql = "INSERT INTO zones (id, name, type)" +
+                " VALUES ("
+                + id + ","
+                + "\"" + name + "\","
+                + "\"" + type + "\" ) " +
+                "ON DUPLICATE KEY UPDATE "
+                + "name=\"" + name + "\","
+                + "type=\"" + type + "\";";
+
+        Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+        ResultSet rs = stmt.getGeneratedKeys();
+        if (rs.next()) {
+            id = rs.getInt(1);
+        }
+        stmt.close();
+
+
+        for (ZoneSensor sensor : zoneSensors) {
             stmt = conn.createStatement();
-            String sql = "INSERT INTO zones (id, name, type)" +
+            sql = "INSERT INTO zonesensors (id, sensorid, zoneid, name)" +
                     " VALUES ("
-                    + id + ","
-                    + "\"" + name + "\","
-                    + "\"" + type + "\" ) " +
+                    + sensor.id + ","
+                    + sensor.getSensorId() + ","
+                    + id + "," //zoneid
+                    + "\"" + sensor.name + "\" ) " +
                     "ON DUPLICATE KEY UPDATE "
-                    + "name=\"" + name + "\","
-                    + "type=\"" + type + "\";";
-            stmt.executeUpdate(sql);
-            stmt.close();
+                    + "sensorid=" + sensor.id + ","
+                    + "zoneid=" + id + ","
+                    + "sensorid=" + sensor.getSensorId() + ";";
 
-            for (ZoneSensor sensor : zoneSensors) {
-                stmt = conn.createStatement();
-                sql = "INSERT INTO zonesensors (id, sensorid, zoneid, name)" +
-                        " VALUES ("
-                        + sensor.id + ","
-                        + sensor.getSensorId() + ","
-                        + id + "," //zoneid
-                        + "\"" + sensor.name + "\" ) " +
-                        "ON DUPLICATE KEY UPDATE "
-                        + "sensorid=" + sensor.id + ","
-                        + "zoneid=" + id + ","
-                        + "sensorid=" + sensor.getSensorId() + ";";
-
-                Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()) {
-                    sensor.id = rs.getInt(1);
-                }
-
-                stmt.close();
+            affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+            rs = stmt.getGeneratedKeys();
+            if (rs.next()) {
+                sensor.id = rs.getInt(1);
             }
+
+            stmt.close();
+        }
     }
 
     public int getId() {
@@ -186,21 +207,22 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     }
 
     public void addSensorListeners() {
-        for(ZoneSensor zonesensor: zoneSensors) {
+        for (ZoneSensor zonesensor : zoneSensors) {
             SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
             if (sensor != null)
                 sensor.addListener(this);
         }
     }
+
     public void clearSensorListeners() {
-        for(ZoneSensor zonesensor: zoneSensors) {
+        for (ZoneSensor zonesensor : zoneSensors) {
             SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
             sensor.removeListener(this);
         }
     }
 
     public ZoneSensor zoneSensorFromId(int zonesensorid) {
-        for(ZoneSensor zonesensor: zoneSensors) {
+        for (ZoneSensor zonesensor : zoneSensors) {
             if (zonesensor.id == zonesensorid)
                 return zonesensor;
         }
@@ -211,8 +233,8 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     public void onUpdateTemperature(int sensorId, double temperature, double oldtemperature) {
 
         lastTemperatureUpdate = Core.getDate();
-        for(WebduinoZoneListener listener: listeners) {
-            listener.onUpdateTemperature(id,temperature,oldtemperature);
+        for (WebduinoZoneListener listener : listeners) {
+            listener.onUpdateTemperature(id, temperature, oldtemperature);
         }
         this.temperature = temperature;
     }
@@ -244,8 +266,8 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
     @Override
     public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
 
-        for(WebduinoZoneListener listener: listeners) {
-            listener.onDoorStatusChange(id,open,oldOpen);
+        for (WebduinoZoneListener listener : listeners) {
+            listener.onDoorStatusChange(id, open, oldOpen);
         }
         this.doorStatusOpen = open;
     }
@@ -310,7 +332,8 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
             }
 
             JSONArray jsonArray = new JSONArray();
-            for(ZoneSensor zonesensor: zoneSensors) {
+            String sensorstatus = "";
+            for (ZoneSensor zonesensor : zoneSensors) {
                 JSONObject jsonObject = new JSONObject();
                 SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
                 if (sensor != null) {
@@ -319,9 +342,11 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
                     jsonObject.put("sensorid", sensor.getId());
                     jsonObject.put("type", sensor.getType());
                     jsonArray.put(jsonObject);
+                    sensorstatus += sensor.getStatus() + "; ";
                 }
             }
             json.put("zonesensors", jsonArray);
+            json.put("status", status + " sensori: " + sensorstatus);
 
         } catch (JSONException e) {
             e.printStackTrace();

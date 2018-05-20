@@ -33,20 +33,19 @@ function addZoneSensor(idx, elem, sensortypes) {
     });
 
     zoneSensor.find('td  select[name="type"]').change(function () {
-        setSensorList(this.value,zoneSensor);
+        setSensorList(this.value, zoneSensor);
     });
     zoneSensor.find('td select[name="type"]').val(elem.type);
-    setSensorList(elem.type,zoneSensor);
+    setSensorList(elem.type, zoneSensor);
 
     zoneSensor.find('td[name="status"]').val(elem.status);
     zoneSensor.find('td[name="name"]').val(elem.name);
 
-    zoneSensor.find('button[name="deleteaction"]').attr("idx", idx);
-    zoneSensor.find('button[name="deleteaction"]').click(function () {
+    zoneSensor.find('button[name="deletesensor"]').attr("idx", idx);
+    zoneSensor.find('button[name="deletesensor"]').click(function () {
         var index = $(this).attr("idx");
-        $zone.actions.splice(index, 1);
+        $zone.zonesensors.splice(index, 1);
         loadZoneSensors($zone.zonesensors, sensortypes);
-        zoneDisableEdit(false);
     });
 
     $zonePanel.find('tbody[name="list"]').append(zoneSensor);
@@ -62,27 +61,8 @@ function loadZoneSensors(zonesensors, sensortypes) {
     }
 }
 
-function zoneDisableEdit(enabled) {
-    $zonePanel.find('input').prop('disabled', enabled);
-    $zonePanel.find('textarea').prop('disabled', enabled);
-    $zonePanel.find('select').prop('disabled', enabled);
-
-    if (!enabled)
-        $zonePanel.find('p[class="help-block"]').hide();
-    else
-        $zonePanel.find('p[class="help-block"]').show();
-
-    $zonePanel.find('button[name="addactio"]').prop('disabled', enabled);
-    $zonePanel.find('button[name="deleteaction"]').prop('disabled', enabled);
-    $zonePanel.find('button[name="editaction"]').prop('disabled', !enabled);
-
-}
-
 function loadZone(zone) {
-
     $zone = zone;
-
-
     $.getJSON(systemServletPath + "?requestcommand=sensortypes", function (sensortypes) {
 
         $("#result").load("zone.html", function () {
@@ -105,21 +85,24 @@ function loadZone(zone) {
 
                 // save button
                 var savebutton = $zonePanel.find('button[name="save"]');
-                savebutton.hide();
-                zoneDisableEdit(true);
                 savebutton.click(function () {
 
                     zone.name = $zonePanel.find('input[name="name"]').val();
                     zone.description = $zonePanel.find('textarea[name="description"]').val();
                     zone.enabled = $zonePanel.find('input[name="timerangeabled"]').prop('checked');
                     updateZoneSensorData();
-
+                    var newitem = (zone.id == 0);
                     postData("zone", zone, function (result, response) {
                         if (result) {
-                            notification.show();
-                            notificationsuccess.find('label[name="description"]').text("zona salvata");
+
                             var json = jQuery.parseJSON(response);
-                            loadZone(json);
+                            if (newitem) {
+                                notification.show();
+                                notificationsuccess.find('label[name="description"]').text("zona salvata");
+                                loadZone(json);
+                            } else {
+                                loadZones();
+                            }
                         } else {
                             notification.show();
                             notification.find('label[name="description"]').text(response);
@@ -128,38 +111,33 @@ function loadZone(zone) {
                 });
 
                 var cancelbutton = $zonePanel.find('button[name="cancel"]');
-                cancelbutton.hide();
                 cancelbutton.click(function () {
-                    getZone($zone.id, function (zone) {
-                        //loadTimeRange(zone);
-                    })
+                    loadZones();
                 });
 
-                var editbutton = $zonePanel.find('button[name="edit"]');
-                editbutton.click(function () {
-                    savebutton.show();
-                    cancelbutton.show();
-                    editbutton.hide();
-                    addbutton.show();
-                    zoneDisableEdit(false);
+                var deletebutton = $zonePanel.find('button[name="delete"]');
+                deletebutton.click(function () {
+                    postData("zone", zone, function (result, response) {
+                        if (result) {
+                            var json = jQuery.parseJSON(response);
+                            loadZones();
+                        } else {
+                            notification.show();
+                            notification.find('label[name="description"]').text(response);
+                        }
+                    }, "delete");
                 });
-
-                var addbutton = $zonePanel.find('button[name="add"]');
-                addbutton.hide();
 
                 // sensors
-                if (zone.zonesensors != undefined)
-                    loadZoneSensors($zone.zonesensors, sensortypes);
-                /*else
-                 $zonePanel.find('tbody[name="list"]').innerHTML = "";*/
-
-                addbutton.click(function () {
+                loadZoneSensors($zone.zonesensors, sensortypes);
+                var addsensorbutton = $zonePanel.find('button[name="add"]');
+                addsensorbutton.click(function () {
                     updateZoneSensorData(); // questo serve per aggiornare eventuali modifiche manuali
                     var zonesensor = {
                         "zoneid": zone.id,
                         "id": 0,
                         "name": "nuovo sensore",
-                        "type": "delayalarm",
+                        "type": sensortypes[0],
                         "enabled": false,
                         "zoneid": 0,
 
@@ -170,8 +148,9 @@ function loadZone(zone) {
                     }
                     zone.zonesensors.push(zonesensor);
                     loadZoneSensors($zone.zonesensors, sensortypes);
-                    zoneDisableEdit(false);
                 });
+                if (zone.id == 0)
+                    addsensorbutton.prop('disabled', true);
             }
         );
 

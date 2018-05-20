@@ -1,5 +1,6 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
+import com.server.webduino.core.webduinosystem.WebduinoSystemScenario;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +24,7 @@ public class NextTimeRangeAction implements Comparable<NextTimeRangeAction>{
     public ScenarioProgramTimeRange timeRange;
     public ScenarioProgram program;
     public int timeintervalid;
-    public Scenario scenario;
+    public WebduinoSystemScenario scenario;
 
     List<Conflict> conflictList = new ArrayList<>();
 

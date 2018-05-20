@@ -1,8 +1,7 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.WebduinoSystem;
-import com.server.webduino.core.webduinosystem.WebduinoSystemActuator;
+import com.server.webduino.core.webduinosystem.WebduinoSystemScenario;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import org.json.JSONArray;
 
@@ -17,13 +16,13 @@ import java.util.logging.Logger;
 public class Scenarios {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
-    public static List<Scenario> scenarioList = new ArrayList<>();
+    public static List<WebduinoSystemScenario> scenarioList = new ArrayList<>();
     public ArrayList<NextTimeRangeAction> nextTimeRangeActions;
 
     /*private void readScenarios() {
         scenarioList = Core.getWebduinoSystemScenarios();
 
-        for (Scenario scenario:scenarioList) {
+        for (WebduinoSystemScenario scenario:scenarioList) {
             scenario.setActionListener(new Action.ActionListener() {
                 @Override
                 public void onStart(Action action) {
@@ -51,7 +50,7 @@ public class Scenarios {
             ResultSet scenariosResultSet = stmt.executeQuery(sql);
             scenarioList = new ArrayList<>();
             while (scenariosResultSet.next()) {
-                Scenario scenario = new Scenario();
+                WebduinoSystemScenario scenario = new WebduinoSystemScenario();
                 scenario.fromResulSet(conn, scenariosResultSet);
                 scenario.setActionListener(new Action.ActionListener() {
 
@@ -77,7 +76,7 @@ public class Scenarios {
         }
     }
 
-    private Conflict hasConflict(Scenario scenario, ScenarioProgram program, ScenarioProgramTimeRange timeRange,
+    private Conflict hasConflict(WebduinoSystemScenario scenario, ScenarioProgram program, ScenarioProgramTimeRange timeRange,
                                  Action scenarioAction, Action action) {
 
         if (scenario == null || program == null || timeRange == null || scenarioAction == null)
@@ -137,7 +136,7 @@ public class Scenarios {
 
         // Scorre tutte le action di tutti gli scenari e se ne trova una con priorità inferiore alla action passata come param aggiunge un conflic alla action di quello scenario
         if (scenarioList != null) {
-            for (Scenario scenario : scenarioList) {
+            for (WebduinoSystemScenario scenario : scenarioList) {
                 if (scenario.programs != null)
                     for (ScenarioProgram program : scenario.programs) {
                         if (program.timeRanges != null)
@@ -179,7 +178,7 @@ public class Scenarios {
 
     private Conflict getActionConfictDataFromActionId(int actionId) {
 
-        for (Scenario scenario : scenarioList) {
+        for (WebduinoSystemScenario scenario : scenarioList) {
             if (scenario.programs == null) return null;
             for (ScenarioProgram program : scenario.programs) {
                 if (program.timeRanges == null) return null;
@@ -203,7 +202,7 @@ public class Scenarios {
         if (action == null) return;
 
         if (scenarioList != null)
-            for (Scenario scenario : scenarioList) {
+            for (WebduinoSystemScenario scenario : scenarioList) {
                 if (scenario.programs != null)
                     for (ScenarioProgram program : scenario.programs) {
                         if (program.timeRanges != null)
@@ -221,13 +220,13 @@ public class Scenarios {
 
     /*public void initScenarios() {
 
-        for (Scenario scenario : scenarioList) {
+        for (WebduinoSystemScenario scenario : scenarioList) {
             scenario.stop();
         }
 
         scenarioList.clear();
         readScenarios();
-        for (Scenario scenario : scenarioList) {
+        for (WebduinoSystemScenario scenario : scenarioList) {
             scenario.start();
         }
 
@@ -236,14 +235,14 @@ public class Scenarios {
 
     public static JSONArray getScenariosJSONArray() {
         JSONArray jsonArray = new JSONArray();
-        for (Scenario scenario : scenarioList) {
+        for (WebduinoSystemScenario scenario : scenarioList) {
             jsonArray.put(scenario.toJson());
         }
         return jsonArray;
     }
 
-    public static Scenario getScenarioFromId(int id) {
-        for (Scenario scenario : scenarioList) {
+    public static WebduinoSystemScenario getScenarioFromId(int id) {
+        for (WebduinoSystemScenario scenario : scenarioList) {
             if (scenario.id == id) {
                 return scenario;
             }
@@ -254,7 +253,7 @@ public class Scenarios {
 
 
     public static ScenarioProgram getScenarioProgramFromId(int id) {
-        for (Scenario scenario : scenarioList) {
+        for (WebduinoSystemScenario scenario : scenarioList) {
             for (ScenarioProgram program : scenario.programs) {
                 if (program.id == id) {
                     return program;
@@ -266,7 +265,7 @@ public class Scenarios {
 
     public static ScenarioProgramTimeRange getScenarioProgramTimeRangeFromId(int id) {
         if (scenarioList != null) {
-            for (Scenario scenario : scenarioList) {
+            for (WebduinoSystemScenario scenario : scenarioList) {
                 if (scenario.programs != null) {
                     for (ScenarioProgram program : scenario.programs) {
                         if (program.timeRanges != null) {
@@ -287,7 +286,7 @@ public class Scenarios {
 
         // valuta tutte le next action a partiere dalla data 'date'
         nextTimeRangeActions = new ArrayList<>();
-        for (Scenario scenario : scenarioList) {
+        for (WebduinoSystemScenario scenario : scenarioList) {
             if (!scenario.enabled)
                 continue;
             List<NextTimeRangeAction> list = scenario.getNextTimeRangeActions(date);

@@ -1,12 +1,8 @@
 package com.server.webduino.core.webduinosystem.scenario;
 
-import com.server.webduino.core.webduinosystem.scenario.ScenarioProgramTimeRange;
-import org.json.JSONException;
+import com.server.webduino.core.webduinosystem.WebduinoSystemScenario;
 import org.json.JSONObject;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,7 +10,7 @@ import java.util.List;
  */
 public class NextScenario {
 
-    Scenario scenario;
+    WebduinoSystemScenario scenario;
 
     List<NextProgram> nextPrograms;
 

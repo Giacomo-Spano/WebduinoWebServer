@@ -42,8 +42,10 @@ public class WebduinoSystemZone extends DBObject {
         json.put("id", id);
         json.put("webduinosystemid", webduinosystemid);
         Zone zone = Core.getZoneFromId(zoneid);
-        if (zone != null)
+        if (zone != null) {
             json.put("name", zone.getName());
+            json.put("status", zone.getStatus());
+        }
         json.put("zoneid", zone.id);
         return json;
     }
@@ -70,7 +72,7 @@ public class WebduinoSystemZone extends DBObject {
                 + zoneid + ","
                 + webduinosystemid + ") " +
                 "ON DUPLICATE KEY UPDATE "
-                + "serviceid=" + zoneid + ","
+                + "zoneid=" + zoneid + ","
                 + "webduinosystemid=" + webduinosystemid + ";";
         Statement stmt = conn.createStatement();
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);

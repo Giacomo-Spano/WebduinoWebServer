@@ -192,7 +192,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     protected void setActionId(int actionId) { //  questo valore non è letto dal sensore ma rimane solo sul server
 
         this.actionId = actionId;
-        //Scenario scenario = Scenario.scenarioFromProgramTimeRange()
+        //WebduinoSystemScenario scenario = WebduinoSystemScenario.scenarioFromProgramTimeRange()
     }
 
     public int getTimeRangeId() {

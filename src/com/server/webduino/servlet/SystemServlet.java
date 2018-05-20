@@ -5,10 +5,7 @@ import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.webduinosystem.WebduinoSystem;
-import com.server.webduino.core.webduinosystem.WebduinoSystemActuator;
-import com.server.webduino.core.webduinosystem.WebduinoSystemService;
-import com.server.webduino.core.webduinosystem.WebduinoSystemZone;
+import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
@@ -82,7 +79,7 @@ public class SystemServlet extends HttpServlet {
                             }
                         }
                     } else {
-                        Scenario scenario = core.saveScenario(json);
+                        WebduinoSystemScenario scenario = core.saveScenario(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
                     }
@@ -101,7 +98,7 @@ public class SystemServlet extends HttpServlet {
             } else if (data != null && data.equals("scenariotrigger")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        Scenario scenario = core.removeScenarioTrigger(json);
+                        WebduinoSystemScenario scenario = core.removeScenarioTrigger(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
                         return;
@@ -178,6 +175,26 @@ public class SystemServlet extends HttpServlet {
                     return;
                 }
 
+            } else if (data != null && data.equals("webduinosystem")) {
+                try {
+                    if (param != null && param.equals("delete")) {
+                        WebduinoSystem webduinoSystem = core.removeWebduinoSystem(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystem.toJson());
+                        return;
+                    } else {
+                        WebduinoSystem webduinoSystem = core.saveWebduinoSystem(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(webduinoSystem.toJson());
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
             } else if (data != null && data.equals("triggers")) {
                 try {
                     if (param != null && param.equals("delete")) {
@@ -201,7 +218,7 @@ public class SystemServlet extends HttpServlet {
             } else if (data != null && data.equals("timeinterval")) {
                 try {
                     if (param != null && param.equals("delete")) {
-                        Scenario scenario = core.removeScenarioTimeinterval(json);
+                        WebduinoSystemScenario scenario = core.removeScenarioTimeinterval(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
                         return;
@@ -223,7 +240,7 @@ public class SystemServlet extends HttpServlet {
                     if (param != null && param.equals("delete")) {
                         if (json.has("id")) {
                             int programid = json.getInt("id");
-                            Scenario scenario = core.removeScenarioProgram(programid);
+                            WebduinoSystemScenario scenario = core.removeScenarioProgram(programid);
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print(scenario.toJson());
                             return;
@@ -530,6 +547,15 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
+        } else if (requestCommand != null && requestCommand.equals("webduinosystemtypes")) {
+
+            JSONArray jarray = WebduinoSystemFactory.getWebduinoSystemTypesJSONArray();
+            if (jarray != null) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jarray.toString());
+                return;
+            }
+
         } else if (requestCommand != null && requestCommand.equals("swversions")) {
 
             JSONArray jarray = SWVersion.getSWVersionJSONArray();
@@ -675,7 +701,7 @@ public class SystemServlet extends HttpServlet {
             }
         } else if (requestCommand != null && requestCommand.equals("webduinosystemscenario") && id != null) {
             int scenarioid = Integer.parseInt(id);
-            Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
+            WebduinoSystemScenario scenario = Scenarios.getScenarioFromId(scenarioid);
             if (scenario != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 out.print(scenario.toJson());

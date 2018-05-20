@@ -206,7 +206,7 @@ function zoneForm(zone, sensors) {
 }*/
 
 // ZONE
-function loadZone(id) {
+function _______loadZone(id) {
 
     $("#result").load("zone.html", function () {
         $zonePanel = $(this).find('div[id="zonepanel"]');
@@ -626,7 +626,7 @@ function getWebduinoSystemActuator(id, callback) {
 }
 
 function getWebduinoSystemService(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=webduinosystemservicer&id=" + id, function (system) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemservice&id=" + id, function (system) {
         callback(system);
     });
 }
@@ -679,9 +679,21 @@ function getTriggers(callback) {
     });
 }
 
+function getScenario(id, callback) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemscenario&id=" + id, function (scenario) {
+        callback(scenario);
+    });
+}
+
 function getServices(callback) {
     $.getJSON(systemServletPath + "?requestcommand=services", function (services) {
         callback(services);
+    });
+}
+
+function getWebduinoSystemTypes(callback) {
+    $.getJSON(systemServletPath + "?requestcommand=webduinosystemtypes", function (types) {
+        callback(types);
     });
 }
 
@@ -778,6 +790,8 @@ function loadScenarioTimeinterval(timeinterval) {
                 }
             },"delete");
         });
+        if (timeinterval.id == 0)
+            deletebutton.prop('disabled', true);
     });
 }
 
@@ -858,6 +872,8 @@ function loadScenarioTrigger(scenariotrigger) {
                 }
             },"delete");
         });
+        if (scenariotrigger.id == 0)
+            deletebutton.prop('disabled', true);
     });
 }
 

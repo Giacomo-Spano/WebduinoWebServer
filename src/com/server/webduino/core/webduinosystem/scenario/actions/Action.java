@@ -1,7 +1,10 @@
 package com.server.webduino.core.webduinosystem.scenario.actions;
 
+import com.quartz.QuartzListener;
 import com.server.webduino.core.Core;
+import com.server.webduino.core.Trigger;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.WebduinoSystem;
 import com.server.webduino.core.webduinosystem.scenario.Conflict;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
@@ -21,6 +24,7 @@ public class Action {
     public final String ACTION_ACTUATOR = "actuator";
     public final String ACTION_SERVICE = "service";
     public final String ACTION_TRIGGER = "trigger";
+    public final String ACTION_WEBDUINOSYSTEM = "webduinosystem";
 
     public int id = 0;
     public int timerangeid = 0;
@@ -33,6 +37,7 @@ public class Action {
     public int zoneid = 0;
     public int zonesensorid = 0;
     public int triggerid = 0;
+    public int webduinosystemid = 0;
     public String param = "";
 
     private boolean active = false;
@@ -77,6 +82,10 @@ public class Action {
             if (action.triggerid == this.triggerid) {
                 return true;
             }
+        } else if (type.equals(ACTION_WEBDUINOSYSTEM)) {
+            if (action.webduinosystemid == this.webduinosystemid) {
+                return true;
+            }
         }
 
         return false;
@@ -115,6 +124,8 @@ public class Action {
     public void start() {
         active = true;
 
+        //Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+
         for (ActionListener listener : listeners) {
             listener.onStart(this);
         }
@@ -132,13 +143,30 @@ public class Action {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
-
             }
         } else if (type.equals(ACTION_SERVICE)) {
 
         } else if (type.equals(ACTION_TRIGGER)) {
+            Trigger trigger = Core.getTriggerFromId(triggerid);
+            if (trigger != null) {
+                JSONObject json = new JSONObject();
+                /*json.put("targetvalue", targetvalue);
+                json.put("seconds", seconds);
+                json.put("zoneid", zoneid);
+                json.put("zonesensorid", zonesensorid);*/
+                trigger.sendCommand(actioncommand,json);
+            }
 
+        } else if (type.equals(ACTION_WEBDUINOSYSTEM)) {
+            WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(triggerid);
+            if (webduinoSystem != null) {
+                JSONObject json = new JSONObject();
+                /*json.put("targetvalue", targetvalue);
+                json.put("seconds", seconds);
+                json.put("zoneid", zoneid);
+                json.put("zonesensorid", zonesensorid);*/
+                webduinoSystem.sendCommand(actioncommand,json);
+            }
         }
     }
 
@@ -157,6 +185,8 @@ public class Action {
         } else if (type.equals(ACTION_SERVICE)) {
 
         } else if (type.equals(ACTION_TRIGGER)) {
+
+        } else if (type.equals(ACTION_WEBDUINOSYSTEM)) {
 
         }
     }
@@ -181,7 +211,7 @@ public class Action {
         zonesensorid = resultSet.getInt("zonesensorid");
         param = resultSet.getString("param");
         triggerid = resultSet.getInt("triggerid");
-
+        webduinosystemid = resultSet.getInt("webduinosystemid");
     }
 
     public void fromJson(JSONObject json) throws Exception {
@@ -197,6 +227,7 @@ public class Action {
         if (json.has("zonesensorid")) zonesensorid = json.getInt("zonesensorid");
         if (json.has("param")) param = json.getString("param");
         if (json.has("triggerid")) triggerid = json.getInt("triggerid");
+        if (json.has("webduinosystemid")) webduinosystemid = json.getInt("webduinosystemid");
     }
 
     public JSONObject toJson() {
@@ -214,6 +245,7 @@ public class Action {
             json.put("zonesensorid", zonesensorid);
             json.put("param", param);
             json.put("triggerid", triggerid);
+            json.put("webduinosystemid", webduinosystemid);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -290,6 +322,9 @@ public class Action {
         String triggeridstr ="null";
         if (triggerid>0)
             triggeridstr = "" + triggerid;
+        String webduinosystemidstr ="null";
+        if (webduinosystemid>0)
+            webduinosystemidstr = "" + webduinosystemid;
         String zoneidstr ="null";
         if (zoneid>0)
             zoneidstr = "" + zoneid;
@@ -299,7 +334,7 @@ public class Action {
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_actions (id, timerangeid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, param)" +
+        sql = "INSERT INTO scenarios_actions (id, timerangeid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, webduinosystemid, param)" +
                 " VALUES ("
                 + id + ","
                 + timerangeid + ","
@@ -312,6 +347,7 @@ public class Action {
                 + zoneidstr + ","
                 + zonesensoridstr + ","
                 + triggeridstr + ","
+                + webduinosystemidstr + ","
                 + "\"" + param + "\""
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
@@ -326,6 +362,7 @@ public class Action {
                 + "zoneid=" + zoneidstr + ","
                 + "zonesensorid=" + zonesensoridstr + ","
                 + "triggerid=" + triggeridstr + ","
+                + "webduinosystemid=" + webduinosystemidstr + ","
                 + "param=\"" + param + "\""
                 + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);

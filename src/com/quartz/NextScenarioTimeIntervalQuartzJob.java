@@ -4,7 +4,7 @@
 package com.quartz;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.webduinosystem.scenario.Scenario;
+import com.server.webduino.core.webduinosystem.WebduinoSystemScenario;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -21,7 +21,7 @@ public class NextScenarioTimeIntervalQuartzJob implements Job {
 
         try {
 
-            Scenario scenario = (Scenario) context.getMergedJobDataMap().get("scenario");
+            WebduinoSystemScenario scenario = (WebduinoSystemScenario) context.getMergedJobDataMap().get("scenario");
 
 
             LOGGER.info("NextScenarioTimeIntervalQuartzJob START id="+scenario.id);

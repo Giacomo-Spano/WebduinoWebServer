@@ -5,11 +5,7 @@ var $programPanel;
 var $timerangeRow;
 var $program;
 
-function getScenario(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=scenario&id=" + id, function (scenario) {
-        callback(scenario);
-    });
-}
+
 
 function addTimeRange(idx, elem) {
     var timerange = $timerangeRow.clone();
@@ -31,12 +27,6 @@ function addTimeRange(idx, elem) {
         }
     timerange.find('td[name="action"]').text(status);
 
-    /*timerange.find('button[name="edittimerange"]').attr("idx", idx);
-    timerange.find('button[name="edittimerange"]').click(function () {
-        var index = $(this).attr("idx");
-        loadProgramTimeRange($("#result"), $program.timeranges[index])
-    });*/
-
     $programPanel.find('tbody[name="list"]').append(timerange);
 
     timerange.click(function () {
@@ -56,15 +46,46 @@ function loadProgramTimeranges(timeranges) {
     }
 }
 
+function saveProgram(program) {
+    program.name = $programPanel.find('input[name="name"]').val();
+    program.description = $programPanel.find('textarea[name="description"]').val();
+    program.enabled = $programPanel.find('input[name="programenabled"]').prop('checked');
+    program.priority = $programPanel.find('input[name="priority"]').val();
+    program.sunday = $programPanel.find('input[name="sunday"]').prop('checked');
+    program.monday = $programPanel.find('input[name="monday"]').prop('checked');
+    program.tuesday = $programPanel.find('input[name="tuesday"]').prop('checked');
+    program.wednesday = $programPanel.find('input[name="wednesday"]').prop('checked');
+    program.thursday = $programPanel.find('input[name="thursday"]').prop('checked');
+    program.friday = $programPanel.find('input[name="friday"]').prop('checked');
+    program.saturday = $programPanel.find('input[name="saturday"]').prop('checked');
+    var newitem = (program.id == 0);
+    postData("program", program, function (result, response) {
+        if (result) {
+            var json = jQuery.parseJSON(response);
+            if (newitem) {
+                notification.show();
+                notificationsuccess.find('label[name="description"]').text("programma salvato");
+                loadProgram(json);
+            } else {
+                getScenario(json.scenarioid, function (scenario) {
+                    loadWebduinoSystemScenario(scenario);
+                });
+            }
+        } else {
+            notification.show();
+            notification.find('label[name="description"]').text(response);
+        }
+    });
+}
 function loadProgram(program) {
 
     $program = program;
 
     $("#result").load("program.html", function () {
-            // back button
-            backbutton.unbind("click");
-            backbutton.click(function () {
-                getScenario(program.scenarioid, function (scenario) {
+        // back button
+        backbutton.unbind("click");
+        backbutton.click(function () {
+            getScenario(program.scenarioid, function (scenario) {
                     loadWebduinoSystemScenario(scenario);
                 })
 
@@ -97,32 +118,7 @@ function loadProgram(program) {
             // save button
             var savebutton = $programPanel.find('button[name="save"]');
             savebutton.click(function () {
-
-                program.name = $programPanel.find('input[name="name"]').val();
-                program.description = $programPanel.find('textarea[name="description"]').val();
-                program.enabled = $programPanel.find('input[name="programenabled"]').prop('checked');
-                program.priority = $programPanel.find('input[name="priority"]').val();
-                program.sunday = $programPanel.find('input[name="sunday"]').prop('checked');
-                program.monday = $programPanel.find('input[name="monday"]').prop('checked');
-                program.tuesday = $programPanel.find('input[name="tuesday"]').prop('checked');
-                program.wednesday = $programPanel.find('input[name="wednesday"]').prop('checked');
-                program.thursday = $programPanel.find('input[name="thursday"]').prop('checked');
-                program.friday = $programPanel.find('input[name="friday"]').prop('checked');
-                program.saturday = $programPanel.find('input[name="saturday"]').prop('checked');
-
-                postData("program", program, function (result, response) {
-                    if (result) {
-                        notification.show();
-                        notificationsuccess.find('label[name="description"]').text("programma salvato");
-                        var json = jQuery.parseJSON(response);
-                        getScenario(json.scenarioid, function (scenario) {
-                            loadWebduinoSystemScenario(scenario);
-                        });
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
+                saveProgram(program);
             });
 
             var cancelbutton = $programPanel.find('button[name="cancel"]').click(function () {
@@ -132,7 +128,6 @@ function loadProgram(program) {
             });
 
             var deletebutton = $programPanel.find('button[name="delete"]').click(function () {
-                if (program.id != 0) {
                     postData("program", program, function (result, response) {
                         if (result) {
                             getScenario(program.scenarioid, function (scenario) {
@@ -143,14 +138,11 @@ function loadProgram(program) {
                             notification.find('label[name="description"]').text(response);
                         }
                     },"delete");
-                } else {
-                    getScenario(program.scenarioid, function (scenario) {
-                        loadWebduinoSystemScenario(scenario);
-                    });
-                }
             });
+            if (program.id == 0)
+                deletebutton.prop('disabled', true);
 
-            var addbutton = $programPanel.find('button[name="addtimerange"]').click(function () {
+            var addtimerangebutton = $programPanel.find('button[name="addtimerange"]').click(function () {
 
                 var timerange = {
                     "programid": $program.id,
@@ -158,7 +150,7 @@ function loadProgram(program) {
                     "starttime": "00:00",
                     "endtime": "23:59",
                     "name": "nuovo timerange",
-                    "enabled": false,
+                    "enabled": true,
                     "priority": 0,
                     "index": 0,
                 };
@@ -166,16 +158,10 @@ function loadProgram(program) {
                     var emptyArray = [];
                     program["timeranges"] = emptyArray;
                 }
-                postData("timerange", timerange, function (result, response) {
-                    if (result) {
-                        var json = jQuery.parseJSON(response);
-                        loadProgramTimeRange($("#result"), json);
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
+                loadProgramTimeRange($("#result"), timerange);
             });
+            if (program.id == 0)
+                addtimerangebutton.prop('disabled', true);
 
             // timeranges
             var tbody = $programPanel.find('tbody[name="list"]');

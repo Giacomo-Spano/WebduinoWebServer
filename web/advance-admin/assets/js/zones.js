@@ -17,24 +17,12 @@ function loadZones() {
                 tbody.append(newtr);
             });
 
-
             $panel.find('button[name="add"]').click(function () {
-
                 var zone = {
                     "id": 0,
                     "name": "zona nuova",
                 };
-                postData("zone", zone, function (result, response) {
-                    if (result) {
-                        var json = jQuery.parseJSON(response);
-                        loadZones();
-                    } else {
-                        notification.show();
-                        notification.find('label[name="description"]').text(response);
-                    }
-                });
-
-
+                loadZone(zone);
             });
         });
     });
@@ -44,11 +32,6 @@ function setZoneElement(idx, element, zone) {
 
     element.find('td[name="id"]').text(zone.id);
     element.find('td[name="name"]').text(zone.name);
-    if (zone.lasttemperatureupdate != undefined) {
-        element.find('td[name="temperature"]').text(zone.lasttemperatureupdate + " " + zone.temperature + "°C" );
-    }
-
-
     element.find('button[name="delete"]').attr("idx", idx);
     element.find('button[name="delete"]').click(function () {
 
@@ -66,12 +49,9 @@ function setZoneElement(idx, element, zone) {
         }, "delete");
 
     });
-
-    element.find('button[name="details"]').attr("idx", idx);
-    element.find('button[name="details"]').click(function () {
+    element.attr("idx", idx);
+    element.click(function () {
         var index = $(this).attr("idx");
         loadZone($zones[index]);
-
-
     });
 }

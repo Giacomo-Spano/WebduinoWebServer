@@ -30,9 +30,6 @@ public class Trigger extends DBObject {
     public String status;
     public java.util.Date date;
 
-    //final public String STATUS_ENABLED ="enabled";
-    //final public String STATUS_DISABLED ="disabled";
-
     public interface TriggerListener {
         void onChangeStatus(boolean status);
     }
@@ -81,7 +78,7 @@ public class Trigger extends DBObject {
 
 
     public String getStatus() {
-        return "--";
+        return status;
     }
 
     public JSONObject toJson() throws JSONException {
@@ -179,7 +176,6 @@ public class Trigger extends DBObject {
     }
 
     public boolean setStatus(String status) throws Exception {
-
         for (String triggerstatus: statusList) {
             if (triggerstatus.equals(status)) {
                 this.status = status;
@@ -187,5 +183,13 @@ public class Trigger extends DBObject {
             }
         }
         return false;
+    }
+
+    public Boolean sendCommand(String cmd, JSONObject json) {
+        for (ActionCommand actionCommand : actionCommandList) {
+            if (cmd.equals(actionCommand.command))
+                actionCommand.commandMethod.execute(json);
+        }
+        return true;
     }
 }

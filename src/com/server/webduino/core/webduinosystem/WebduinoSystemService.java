@@ -71,8 +71,10 @@ public class WebduinoSystemService extends DBObject {
         json.put("id", id);
         json.put("webduinosystemid", webduinosystemid);
         Service service = Core.getServiceFromId(serviceid);
-        if (service != null)
+        if (service != null) {
             json.put("name", service.name);
+            //json.put("status", service.getStatus());
+        }
         json.put("serviceid", service.getId());
         return json;
     }

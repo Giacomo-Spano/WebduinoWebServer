@@ -48,7 +48,7 @@ public class Core {
     public static String APP_DNS_OPENSHIFT = "webduinocenter.rhcloud.com";
     public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
 
-    private List<WebduinoSystem> webduinoSystems = new ArrayList<>();
+    private static List<WebduinoSystem> webduinoSystems = new ArrayList<>();
     private static List<Zone> zones = new ArrayList<>();
     private static List<Service> services = new ArrayList<>();
     private static Triggers triggerClass = new Triggers();
@@ -89,7 +89,7 @@ public class Core {
     public void initScenarios() {
 
         if (scenarios.scenarioList != null) {
-            for (Scenario scenario : scenarios.scenarioList) {
+            for (WebduinoSystemScenario scenario : scenarios.scenarioList) {
                 scenario.stop();
             }
         }
@@ -97,7 +97,7 @@ public class Core {
         readWebduinoSystems();
         scenarios.scenarioList.clear();
         scenarios.scenarioList = getWebduinoSystemScenarios();
-        for (Scenario scenario:scenarios.scenarioList) {
+        for (WebduinoSystemScenario scenario:scenarios.scenarioList) {
             scenario.setActionListener(new Action.ActionListener() {
                 @Override
                 public void onStart(Action action) {
@@ -210,7 +210,7 @@ public class Core {
         return null;
     }
 
-    public WebduinoSystem getWebduinoSystemFromId(int systemid) {
+    public static WebduinoSystem getWebduinoSystemFromId(int systemid) {
         for (WebduinoSystem system : webduinoSystems) {
             if (systemid == system.getId()) {
                 return system;
@@ -249,10 +249,10 @@ public class Core {
         return null;
     }
 
-    public List<Scenario> getWebduinoSystemScenarios() {
-        List<Scenario> list = new ArrayList<>();
+    public List<WebduinoSystemScenario> getWebduinoSystemScenarios() {
+        List<WebduinoSystemScenario> list = new ArrayList<>();
         for (WebduinoSystem system : webduinoSystems) {
-            for (Scenario scenario: system.getScenarios()) {
+            for (WebduinoSystemScenario scenario: system.getScenarios()) {
                 list.add(scenario);
             }
         }
@@ -328,6 +328,14 @@ public class Core {
         }
         return jsonArray;
     }
+
+   /* public WebduinoSystem getWebduinoSystemFromId(int id) {
+        for (WebduinoSystem system : webduinoSystems) {
+           if(system.id == id)
+               return system;
+        }
+        return null;
+    }*/
 
 
     public void initMQTT() {
@@ -555,8 +563,9 @@ public class Core {
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 String type = rs.getString("type");
+                boolean enabled = rs.getBoolean("enabled");
                 WebduinoSystemFactory factory = new WebduinoSystemFactory();
-                WebduinoSystem system = factory.createWebduinoSystem(id, name, type);
+                WebduinoSystem system = factory.createWebduinoSystem(id, name, type, enabled);
                 if (system != null) {
                     system.readWebduinoSystemsZones(conn, id);
                     system.readWebduinoSystemsActuators(conn, id);
@@ -637,8 +646,8 @@ public class Core {
         }
     }
 
-    public Scenario saveScenario(JSONObject json) throws Exception {
-        Scenario scenario = new Scenario(json);
+    public WebduinoSystemScenario saveScenario(JSONObject json) throws Exception {
+        WebduinoSystemScenario scenario = new WebduinoSystemScenario(json);
         scenario.save();
         initScenarios();
         return scenario;
@@ -646,7 +655,7 @@ public class Core {
 
     public JSONArray removeScenario(JSONObject json) throws Exception {
 
-        Scenario scenario = new Scenario(json);
+        WebduinoSystemScenario scenario = new WebduinoSystemScenario(json);
         scenario.remove();
         initScenarios();
         JSONArray jarray = Scenarios.getScenariosJSONArray();
@@ -660,14 +669,14 @@ public class Core {
         return program;
     }
 
-    public Scenario removeScenarioProgram(int programid) throws Exception {
+    public WebduinoSystemScenario removeScenarioProgram(int programid) throws Exception {
 
         ScenarioProgram program = Scenarios.getScenarioProgramFromId(programid);
         if  (program != null) {
             int scenarioid = program.scenarioId;
             program.remove();
             initScenarios();
-            Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
+            WebduinoSystemScenario scenario = Scenarios.getScenarioFromId(scenarioid);
             return scenario;
         }
         return null;
@@ -722,14 +731,29 @@ public class Core {
         return trigger;
     }
 
-    public Scenario removeScenarioTrigger(JSONObject json) throws Exception {
+    public WebduinoSystemScenario removeScenarioTrigger(JSONObject json) throws Exception {
 
         ScenarioTrigger trigger = new ScenarioTrigger(json);
         int scenarioid = trigger.scenarioid;
         trigger.remove();
         initScenarios();
-        Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
+        WebduinoSystemScenario scenario = Scenarios.getScenarioFromId(scenarioid);
         return scenario;
+    }
+
+    public WebduinoSystem saveWebduinoSystem(JSONObject json) throws Exception {
+        WebduinoSystem webduinoSystem = new WebduinoSystem(json);
+        webduinoSystem.save();
+        initScenarios();
+        return webduinoSystem;
+    }
+
+    public WebduinoSystem removeWebduinoSystem(JSONObject json) throws Exception {
+
+        WebduinoSystem webduinoSystem = new WebduinoSystem(json);
+        webduinoSystem.remove();
+        initScenarios();
+        return webduinoSystem;
     }
 
     public WebduinoSystemService saveWebduinoSystemService(JSONObject json) throws Exception {
@@ -791,13 +815,13 @@ public class Core {
         return timeInterval;
     }
 
-    public Scenario removeScenarioTimeinterval(JSONObject json) throws Exception {
+    public WebduinoSystemScenario removeScenarioTimeinterval(JSONObject json) throws Exception {
 
         ScenarioTimeInterval timeInterval = new ScenarioTimeInterval(json);
         int scenarioid = timeInterval.scenarioid;
         timeInterval.remove();
         initScenarios();
-        Scenario scenario = Scenarios.getScenarioFromId(scenarioid);
+        WebduinoSystemScenario scenario = Scenarios.getScenarioFromId(scenarioid);
         return scenario;
     }
 

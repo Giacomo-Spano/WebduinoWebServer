@@ -8,7 +8,8 @@ const ACTION_TRIGGER = "trigger";
 var $actionTypes = {
     'actuator': 'Attuatore',
     'service': 'Servizio',
-    'trigger': 'Trigger'
+    'trigger': 'Trigger',
+    'webduinosystem': 'WebduinoSystem'
 };
 
 var $conditionTypes = {
@@ -24,17 +25,16 @@ var $operatorTypes = {
 };
 
 var $programtimerangePanel;
-
 var $conditionRow;
 var $actionRow;
 var $programtimerange;
 var $tag;
 
-function getTimerange(id, callback) {
-    $.getJSON(systemServletPath + "?requestcommand=timerange&id=" + id, function (program) {
-        callback(program);
-    });
-}
+/*function getTimerange(id, callback) {
+ $.getJSON(systemServletPath + "?requestcommand=timerange&id=" + id, function (program) {
+ callback(program);
+ });
+ }*/
 
 function addCondition(idx, elem, triggers, zones, sensors, services) {
     var condition = $conditionRow.clone();
@@ -172,7 +172,7 @@ function addCondition(idx, elem, triggers, zones, sensors, services) {
     });
 }
 
-function addAction(idx, elem, triggers, zones, sensors, services) {
+function addAction(idx, elem, triggers, zones, sensors, services, webduinosystems) {
     var action = $actionRow.clone();
 
     action.find('td[name="id"]').text(elem.id);
@@ -206,7 +206,7 @@ function addAction(idx, elem, triggers, zones, sensors, services) {
     action.find('td select[name="trigger"]').change(function () {
         triggerid = this.value;
         $('option', action.find('td select[name="actioncommand"]')).remove();
-        getTrigger(actuatorid, function (trigger) {
+        getTrigger(triggerid, function (trigger) {
             handleActionCommandList.call(this, trigger, action, elem);
         });
     });
@@ -215,6 +215,25 @@ function addAction(idx, elem, triggers, zones, sensors, services) {
         triggerid = triggers[0].id;
     } else {
         triggerid = elem.triggerid;
+    }
+    action.find('td select[name="trigger"]').val(triggerid).change();
+
+    // webduinosystem
+    $.each(webduinosystems, function (val, webduinosystem) {
+        action.find('td  select[name="webduinosystem"]').append(new Option(webduinosystem.name, webduinosystem.id));
+    });
+    action.find('td select[name="webduinosystem"]').change(function () {
+        webduinosystemid = this.value;
+        $('option', action.find('td select[name="actioncommand"]')).remove();
+        getWebduinoSystem(webduinosystemid, function (webduinosystem) {
+            handleActionCommandList.call(this, webduinosystem, action, elem);
+        });
+    });
+    webduinosystemid = 0;
+    if (elem.webduinosystemid == 0 || elem.webduinosystemid == null) {
+        webduinosystemid = webduinosystems[0].id;
+    } else {
+        webduinosystemid = elem.webduinosystemid;
     }
     action.find('td select[name="trigger"]').val(triggerid).change();
 
@@ -278,28 +297,33 @@ function addAction(idx, elem, triggers, zones, sensors, services) {
     });
     action.find('td select[name="type"]').change(function () {
         if (this.value == 'actuator') {
-
             action.find('td select[name="actuator"]').prop('disabled', false);
             action.find('td select[name="trigger"]').prop('disabled', true);
+            action.find('td select[name="webduinosystem"]').prop('disabled', true);
             action.find('td select[name="service"]').prop('disabled', true);
             action.find('td select[name="actuator"]').val(actuatorid).change();
         } else if (this.value == 'trigger') {
             action.find('td select[name="actuator"]').prop('disabled', true);
             action.find('td select[name="trigger"]').prop('disabled', false);
+            action.find('td select[name="webduinosystem"]').prop('disabled', true);
             action.find('td select[name="service"]').prop('disabled', true);
             action.find('td select[name="trigger"]').val(triggerid).change();
         } else if (this.value == 'service') {
             action.find('td select[name="actuator"]').prop('disabled', true);
             action.find('td select[name="trigger"]').prop('disabled', true);
+            action.find('td select[name="webduinosystem"]').prop('disabled', true);
             action.find('td select[name="service"]').prop('disabled', false);
             action.find('td select[name="service"]').val(serviceid).change();
+        } else if (this.value == 'webduinosystem') {
+            action.find('td select[name="actuator"]').prop('disabled', true);
+            action.find('td select[name="trigger"]').prop('disabled', true);
+            action.find('td select[name="webduinosystem"]').prop('disabled', false);
+            action.find('td select[name="service"]').prop('disabled', true);
+            action.find('td select[name="webduinosystem"]').val(webduinosystemid).change();
         }
     });
     action.find('td select[name="type"]').val(elem.type).change();
     $programtimerangePanel.find('tbody[name="actionlist"]').append(action);
-    /*action.find('td input[name="name"]').val(elem.name);
-     action.find('td input[name="description"]').val(elem.description);
-     action.find('td  input[name="targetvalue"]').val(elem.targetvalue);*/
 
     action.find('button[name="deleteaction"]').attr("idx", idx);
     action.find('button[name="deleteaction"]').click(function () {
@@ -307,8 +331,6 @@ function addAction(idx, elem, triggers, zones, sensors, services) {
         $programtimerange.actions.splice(index, 1);
         loadProgramTimeRange($tag, $programtimerange);
     });
-
-
 }
 
 function handleActionCommandList(sensor, action, elem) {
@@ -365,10 +387,10 @@ function handleActionCommandList(sensor, action, elem) {
     }
 }
 
-function loadActionsAndConditions(conditions, actions, triggers, zones, sensors, services) {
+function loadActionsAndConditions(conditions, actions, triggers, zones, sensors, services, webduinosystems) {
     var tbodycondition = $programtimerangePanel.find('tbody[name="conditionlist"]');
     tbodycondition[0].innerHTML = "";
-    if (conditions != null) {
+    if (conditions != undefined) {
         $.each(conditions, function (idx, elem) {
             addCondition(idx, elem, triggers, zones, sensors, services);
         });
@@ -376,13 +398,41 @@ function loadActionsAndConditions(conditions, actions, triggers, zones, sensors,
 
     var tbodyaction = $programtimerangePanel.find('tbody[name="actionlist"]');
     tbodyaction[0].innerHTML = "";
-    if (actions != null) {
+    if (actions != undefined) {
         $.each(actions, function (idx, elem) {
-            addAction(idx, elem, triggers, zones, sensors, services);
+            addAction(idx, elem, triggers, zones, sensors, services, webduinosystems);
         });
     }
 }
 
+function saveProgramTimerange(timerange) {
+    timerange.name = $programtimerangePanel.find('input[name="name"]').val();
+    timerange.description = $programtimerangePanel.find('textarea[name="description"]').val();
+    timerange.enabled = $programtimerangePanel.find('input[name="programtimerangeenabled"]').prop('checked');
+    timerange.starttime = $programtimerangePanel.find('input[name="starttime"]').val();
+    timerange.endtime = $programtimerangePanel.find('input[name="endtime"]').val();
+    timerange.priority = $programtimerangePanel.find('input[name="priority"]').val();
+
+    updateConditionAndActionData();
+    var newitem = (timerange.id == 0);
+    postData("timerange", timerange, function (result, response) {
+        if (result) {
+            var json = jQuery.parseJSON(response);
+            if (newitem) {
+                notification.show();
+                notificationsuccess.find('label[name="description"]').text("programma salvato");
+                loadProgramTimeRange($tag, json);
+            } else {
+                getProgram(json.programid, function (program) {
+                    loadProgram(program);
+                });
+            }
+        } else {
+            notification.show();
+            notification.find('label[name="description"]').text(response);
+        }
+    });
+}
 function loadProgramTimeRange(tag, timerange) {
 
     $tag = tag;
@@ -392,135 +442,131 @@ function loadProgramTimeRange(tag, timerange) {
         $.getJSON(systemServletPath + "?requestcommand=sensors", function (sensors) {
             $.getJSON(systemServletPath + "?requestcommand=triggers", function (triggers) {
                 $.getJSON(systemServletPath + "?requestcommand=services", function (services) {
-                    /*$("#result")*/
-                    tag.load("programtimerange.html", function () {
-                            // back button
-                            backbutton.unbind("click");
-                            backbutton.click(function () {
-                                getProgram(timerange.programid, function (program) {
-                                    loadProgram(program);
-                                })
-                            });
-                            pagetitle.text('Timerange');
-                            notification.hide();
-                            notificationsuccess.hide();
-
-
-                            $programtimerangePanel = $(this).find('div[id="panel"]');
-                            $conditionRow = $programtimerangePanel.find('tr[name="conditionrow"]');
-                            $actionRow = $programtimerangePanel.find('tr[name="actionrow"]');
-
-                            $programtimerangePanel.find('p[name="headingright"]').text(timerange.programid + "." + timerange.id);
-                            $programtimerangePanel.find('input[name="programtimerangeenabled"]').prop('checked', timerange.enabled);
-                            $programtimerangePanel.find('input[name="index"]').val(timerange.index);
-                            $programtimerangePanel.find('input[name="name"]').val(timerange.name);
-                            $programtimerangePanel.find('textarea[name="description"]').val(timerange.description);
-                            $programtimerangePanel.find('input[name="starttime"]').timepicker({
-                                timeFormat: 'HH:mm',
-                                interval: 15,
-                                minTime: '00:00',
-                                maxTime: '23:59',
-                                defaultTime: '00:00',
-                                startTime: '00:00',
-                                dynamic: true,
-                                dropdown: true,
-                                scrollbar: true
-                            });
-                            if (timerange.starttime != null) $programtimerangePanel.find('input[name="starttime"]').val(timerange.starttime);
-                            $programtimerangePanel.find('input[name="endtime"]').timepicker({
-                                timeFormat: 'HH:mm',
-                                interval: 15,
-                                minTime: '00:00',
-                                maxTime: '23:59',
-                                defaultTime: '23:59',
-                                startTime: '00:00',
-                                dynamic: true,
-                                dropdown: true,
-                                scrollbar: true
-                            });
-
-                            if (timerange.endtime != null) $programtimerangePanel.find('input[name="endtime"]').val(timerange.endtime);
-                            $programtimerangePanel.find('input[name="priority"]').val(timerange.priority);
-
-                            // save button
-                            var savebutton = $programtimerangePanel.find('button[name="save"]');
-                            savebutton.click(function () {
-
-                                timerange.name = $programtimerangePanel.find('input[name="name"]').val();
-                                timerange.description = $programtimerangePanel.find('textarea[name="description"]').val();
-                                timerange.enabled = $programtimerangePanel.find('input[name="programtimerangeenabled"]').prop('checked');
-                                timerange.starttime = $programtimerangePanel.find('input[name="starttime"]').val();
-                                timerange.endtime = $programtimerangePanel.find('input[name="endtime"]').val();
-                                timerange.priority = $programtimerangePanel.find('input[name="priority"]').val();
-
-
-                                updateConditionAndActionData();
-
-                                postData("timerange", timerange, function (result, response) {
-                                    if (result) {
-                                        notification.show();
-                                        notificationsuccess.find('label[name="description"]').text("timerange salvato");
-                                        var json = jQuery.parseJSON(response);
-                                        loadProgramTimeRange($tag, json);
-                                    } else {
-                                        notification.show();
-                                        notification.find('label[name="description"]').text(response);
-                                    }
+                    $.getJSON(systemServletPath + "?requestcommand=webduinosystems", function (webduinosystems) {
+                        /*$("#result")*/
+                        tag.load("programtimerange.html", function () {
+                                // back button
+                                backbutton.unbind("click");
+                                backbutton.click(function () {
+                                    getProgram(timerange.programid, function (program) {
+                                        loadProgram(program);
+                                    })
                                 });
-                            });
+                                pagetitle.text('Timerange');
+                                notification.hide();
+                                notificationsuccess.hide();
 
-                            var cancelbutton = $programtimerangePanel.find('button[name="cancel"]');
-                            cancelbutton.hide();
-                            cancelbutton.click(function () {
-                                getProgramInstruction($programtimerange.id, function (programinstruction) {
-                                    loadProgramTimeRange($tag, programinstruction);
-                                })
-                            });
 
-                            // sctions and conditions
-                            if (timerange.actions != undefined || timerange.conditions != null)
-                                loadActionsAndConditions($programtimerange.conditions, $programtimerange.actions, triggers, zones, sensors, services);
-                            var addconditionbutton = $programtimerangePanel.find('button[name="addcondition"]');
-                            addconditionbutton.click(function () {
-                                updateConditionAndActionData(); // questo serve per aggiornare eventuali modifiche manuali
-                                var condition = {
-                                    "programinstructionid": timerange.id,
-                                    "id": 0,
-                                    "type": "zonesensorvalue",
-                                    "zoneid": 0,
-                                    "zonesensorid": 0,
-                                    "sensorstatus": "",
-                                    "triggerstatus": "",
-                                    "value": 0,
-                                    "valueoperatoir": "=",
-                                };
-                                if (timerange.conditions == undefined) {
-                                    var emptyArray = [];
-                                    timerange["conditions"] = emptyArray;
-                                }
-                                timerange.conditions.push(condition);
-                                loadActionsAndConditions($programtimerange.conditions, $programtimerange.actions, triggers, zones, sensors, services);
-                            });
+                                $programtimerangePanel = $(this).find('div[id="panel"]');
+                                $conditionRow = $programtimerangePanel.find('tr[name="conditionrow"]');
+                                $actionRow = $programtimerangePanel.find('tr[name="actionrow"]');
 
-                            var addactionbutton = $programtimerangePanel.find('button[name="addaction"]');
-                            addactionbutton.click(function () {
-                                updateConditionAndActionData(); // questo serve per aggiornare eventuali modifiche manuali
-                                var action = {
-                                    "programinstructionid": timerange.id,
-                                    "id": 0,
-                                    "type": "actuator",
-                                    "zonesensorvalue": 0,
-                                    "zoneid": 0,
-                                };
-                                if (timerange.actions == undefined) {
-                                    var emptyArray = [];
-                                    timerange["actions"] = emptyArray;
-                                }
-                                timerange.actions.push(action);
-                                loadActionsAndConditions($programtimerange.conditions, $programtimerange.actions, triggers, zones, sensors, services);
-                            });
-                        }
-                    );
+                                $programtimerangePanel.find('p[name="headingright"]').text(timerange.programid + "." + timerange.id);
+                                $programtimerangePanel.find('input[name="programtimerangeenabled"]').prop('checked', timerange.enabled);
+                                $programtimerangePanel.find('input[name="index"]').val(timerange.index);
+                                $programtimerangePanel.find('input[name="name"]').val(timerange.name);
+                                $programtimerangePanel.find('textarea[name="description"]').val(timerange.description);
+                                $programtimerangePanel.find('input[name="starttime"]').timepicker({
+                                    timeFormat: 'HH:mm',
+                                    interval: 15,
+                                    minTime: '00:00',
+                                    maxTime: '23:59',
+                                    defaultTime: '00:00',
+                                    startTime: '00:00',
+                                    dynamic: true,
+                                    dropdown: true,
+                                    scrollbar: true
+                                });
+                                if (timerange.starttime != null) $programtimerangePanel.find('input[name="starttime"]').val(timerange.starttime);
+                                $programtimerangePanel.find('input[name="endtime"]').timepicker({
+                                    timeFormat: 'HH:mm',
+                                    interval: 15,
+                                    minTime: '00:00',
+                                    maxTime: '23:59',
+                                    defaultTime: '23:59',
+                                    startTime: '00:00',
+                                    dynamic: true,
+                                    dropdown: true,
+                                    scrollbar: true
+                                });
+
+                                if (timerange.endtime != null) $programtimerangePanel.find('input[name="endtime"]').val(timerange.endtime);
+                                $programtimerangePanel.find('input[name="priority"]').val(timerange.priority);
+
+                                // save button
+                                var savebutton = $programtimerangePanel.find('button[name="save"]');
+                                savebutton.click(function () {
+                                    saveProgramTimerange(timerange);
+                                });
+
+                                var cancelbutton = $programtimerangePanel.find('button[name="cancel"]');
+                                cancelbutton.click(function () {
+                                    getProgram(timerange.programid, function (program) {
+                                        loadProgram(program);
+                                    })
+                                });
+
+                                var deletebutton = $programtimerangePanel.find('button[name="delete"]').click(function () {
+                                    postData("timerange", timerange, function (result, response) {
+                                        if (result) {
+                                            getProgram(timerange.programid, function (program) {
+                                                loadProgram(program);
+                                            });
+                                        } else {
+                                            notification.show();
+                                            notification.find('label[name="description"]').text(response);
+                                        }
+                                    }, "delete");
+
+                                });
+                                if (timerange.id == 0)
+                                    deletebutton.prop('disabled', true);
+
+                                // sctions and conditions
+                                //if (timerange.actions != undefined || timerange.conditions != null)
+                                loadActionsAndConditions($programtimerange.conditions, $programtimerange.actions, triggers, zones, sensors, services, webduinosystems);
+                                var addconditionbutton = $programtimerangePanel.find('button[name="addcondition"]');
+                                addconditionbutton.click(function () {
+                                    updateConditionAndActionData(); // questo serve per aggiornare eventuali modifiche manuali
+                                    var condition = {
+                                        "programinstructionid": timerange.id,
+                                        "id": 0,
+                                        "type": "zonesensorvalue",
+                                        "zoneid": 0,
+                                        "zonesensorid": 0,
+                                        "sensorstatus": "",
+                                        "triggerstatus": "",
+                                        "value": 0,
+                                        "valueoperatoir": "=",
+                                    };
+                                    if (timerange.conditions == undefined) {
+                                        var emptyArray = [];
+                                        timerange["conditions"] = emptyArray;
+                                    }
+                                    timerange.conditions.push(condition);
+                                    loadActionsAndConditions($programtimerange.conditions, $programtimerange.actions, triggers, zones, sensors, services, webduinosystems);
+                                });
+
+                                var addactionbutton = $programtimerangePanel.find('button[name="addaction"]');
+                                addactionbutton.click(function () {
+                                    updateConditionAndActionData(); // questo serve per aggiornare eventuali modifiche manuali
+                                    var action = {
+                                        "programinstructionid": timerange.id,
+                                        "id": 0,
+                                        "type": "actuator",
+                                        "zonesensorvalue": 0,
+                                        "zoneid": 0,
+                                    };
+                                    if (timerange.actions == undefined) {
+                                        var emptyArray = [];
+                                        timerange["actions"] = emptyArray;
+                                    }
+                                    timerange.actions.push(action);
+                                    loadActionsAndConditions($programtimerange.conditions, $programtimerange.actions, triggers, zones, sensors, services, webduinosystems);
+                                });
+                            }
+                        );
+                    });
                 });
             });
         });

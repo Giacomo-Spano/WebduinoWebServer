@@ -29,12 +29,16 @@ function loadWebduinoSystemService(webduinosystemservice) {
         // save button
         var savebutton = panel.find('button[name="save"]');
         savebutton.click(function () {
+
             webduinosystemservice.serviceid = panel.find('select[name="serviceid"]').val();
             postData("webduinosystemservice", webduinosystemservice, function (result, response) {
                 if (result) {
-                    getWebduinoSystemScenario(json.scenarioid,function (scenario) {
-                        loadWebduinoSystemScenario(scenario);
+                    var json = jQuery.parseJSON(response);
+                    getWebduinoSystem(json.webduinosystemid, function (webduinosystem) {
+                        loadWebduinoSystem(webduinosystem);
                     });
+
+
                 } else {
                     notification.show();
                     notification.find('label[name="description"]').text(response);
@@ -44,18 +48,18 @@ function loadWebduinoSystemService(webduinosystemservice) {
 
         var cancelbutton = panel.find('button[name="cancel"]');
         cancelbutton.click(function () {
-            getWebduinoSystemScenario(webduinosystemservice.scenarioid,function (scenario) {
-                loadWebduinoSystemScenario(scenario);
+            getWebduinoSystem(webduinosystemservice.webduinosystemid,function (system) {
+                loadWebduinoSystem(system);
             });
         });
 
         var deletebutton = panel.find('button[name="delete"]');
         deletebutton.click(function () {
 
-            postData("scenariotrigger", webduinosystemservice, function (result, response) {
+            postData("webduinosystemservice", webduinosystemservice, function (result, response) {
                 if (result) {
-                    getWebduinoSystemScenario(webduinosystemservice.scenarioid, function (scenario) {
-                        loadWebduinoSystemScenario(scenario);
+                    getWebduinoSystem(webduinosystemservice.webduinosystemid, function (scenario) {
+                        loadWebduinoSystem(scenario);
                     })
                 } else {
                     notification.show();
@@ -63,5 +67,7 @@ function loadWebduinoSystemService(webduinosystemservice) {
                 }
             },"delete");
         });
+        if (webduinosystemservice.id == 0)
+            deletebutton.prop('disabled', true);
     });
 }

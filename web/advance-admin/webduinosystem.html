@@ -7,116 +7,152 @@
             </div>
             <div class="panel-body" name="body">
 
-                <div class="form-group col-md-12">
-                    <label>Sistema</label>
-                    <div name="name"></div>
-                </div>
+                <form role="form">
 
-                <div class="form-group col-md-12">
-                    <label>Attuatori</label>
-                    <div id="actuators" class="table-responsive">
-                        <table id="tbl1" class="table table-striped table-bordered table-hover">
-                            <thead>
-                            <tr name="header">
-                                <th>Id</th>
-                                <th>Id attuatore</th>
-                                <th>Name</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody name="actuatorlist">
-                            <tr name="actuatorrow">
-                                <td name="id"></td>
-                                <td name="actuatorid"></td>
-                                <td name="name"></td>
-                                <td name="command">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div class="form-group col-md-12">
+                        <label>Sistema</label>
+                        <div name="name"></div>
                     </div>
-                    <button type="button" name="addactuator" class="btn btn-info">Aggiungi</button>
-                </div>
 
-                <div class="form-group col-md-12">
-                    <label>Zone</label>
-                    <div id="zones" class="table-responsive">
-                        <table id="tbl2" class="table table-striped table-bordered table-hover">
-                            <thead>
-                            <tr name="header">
-                                <th>Id</th>
-                                <td name="id"></td>
-                                <th>Name</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody name="zonelist">
-                            <tr name="zonerow">
-                                <td name="id"></td>
-                                <td name="zoneid"></td>
-                                <td name="name"></td>
-                                <td name="command">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div class="form-group col-md-4">
+                        <label>Nome</label>
+                        <input class="form-control" name="name" type="text">
+                        <p class="help-block">Help text here.</p>
                     </div>
-                    <button type="button" name="addzone" class="btn btn-info">Aggiungi</button>
-                </div>
 
-                <div class="form-group col-md-12">
-                    <label>Servizi</label>
-                    <div id="services" class="table-responsive">
-                        <table id="tbl3" class="table table-striped table-bordered table-hover">
-                            <thead>
-                            <tr name="header">
-                                <th>Id</th>
-                                <th>service Id</th>
-                                <th>Name</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody name="servicelist">
-                            <tr name="servicerow">
-                                <td name="id"></td>
-                                <td name="serviceid"></td>
-                                <td name="name"></td>
-                                <td name="command">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div class="form-group col-md-6">
+                        <label>Tipo</label>
+                        <select class="form-control" name="type">
+                        </select>
                     </div>
-                    <button type="button" name="addservice" class="btn btn-info">Aggiungi</button>
-                </div>
 
-                <div class="form-group col-md-12">
-                    <label>Scenari</label>
-                    <div id="scenarios" class="table-responsive">
-                        <table id="tbl4" class="table table-striped table-bordered table-hover">
-                            <thead>
-                            <tr name="header">
-                                <th>Id</th>
-                                <th>Name</th>
-                                <th>Abilitato</th>
-                                <th>Stato</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody name="scenariolist">
-                            <tr name="scenariorow">
-                                <td name="id"></td>
-                                <td name="name"></td>
-                                <td name="enabled"></td>
-                                <td name="status"></td>
-                                <td name="command"></td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div class="form-group col-md-2">
+                        <label>Abilitato</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="systemenabled" value="">Abilitato
+                            </label>
+                        </div>
                     </div>
-                    <button type="button" name="addscenario" class="btn btn-info">Aggiungi</button>
-                </div>
 
+
+                    <div class="form-group col-md-12">
+                        <label>Attuatori</label>
+                        <div id="actuators" class="table-responsive">
+                            <table id="tbl1" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>Id attuatore</th>
+                                    <th>Name</th>
+                                    <th>Stato</th>
+                                    <th>Comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="actuatorlist">
+                                <tr name="actuatorrow">
+                                    <td name="id"></td>
+                                    <td name="actuatorid"></td>
+                                    <td name="name"></td>
+                                    <td name="status">
+                                    <td name="command">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" name="addactuator" class="btn btn-info">Aggiungi</button>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Zone</label>
+                        <div id="zones" class="table-responsive">
+                            <table id="tbl2" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>Zone id</td>
+                                    <th>Name</th>
+                                    <th>Stato</th>
+                                    <th>Comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="zonelist">
+                                <tr name="zonerow">
+                                    <td name="id"></td>
+                                    <td name="zone id"></td>
+                                    <td name="name"></td>
+                                    <td name="status"></td>
+                                    <td name="command">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" name="addzone" class="btn btn-info">Aggiungi</button>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Servizi</label>
+                        <div id="services" class="table-responsive">
+                            <table id="tbl3" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>service Id</th>
+                                    <th>Name</th>
+                                    <th>Stato</th>
+                                    <th>Comandi</th>
+                                </tr>
+                                </thead>
+                                <tbody name="servicelist">
+                                <tr name="servicerow">
+                                    <td name="id"></td>
+                                    <td name="serviceid"></td>
+                                    <td name="name"></td>
+                                    <td name="status"></td>
+                                    <td name="command"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" name="addservice" class="btn btn-info">Aggiungi</button>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <label>Scenari</label>
+                        <div id="scenarios" class="table-responsive">
+                            <table id="tbl4" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                <tr name="header">
+                                    <th>Id</th>
+                                    <th>Name</th>
+                                    <th>Abilitato</th>
+                                    <th>Stato</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody name="scenariolist">
+                                <tr name="scenariorow">
+                                    <td name="id"></td>
+                                    <td name="name"></td>
+                                    <td name="enabled"></td>
+                                    <td name="status"></td>
+                                    <td name="command"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" name="addscenario" class="btn btn-info">Aggiungi</button>
+                    </div>
+
+                    <div class="form-group col-md-4">
+                        <button type="button" name="save" class="btn btn-info">Salva</button>
+                        <button type="button" name="cancel" class="btn btn-info">Annulla</button>
+                        <button type="button" name="delete" class="btn btn-info">Elimina</button>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>

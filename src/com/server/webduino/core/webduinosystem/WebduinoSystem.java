@@ -1,11 +1,10 @@
 package com.server.webduino.core.webduinosystem;
 
+import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
-import com.server.webduino.core.webduinosystem.scenario.Scenario;
-import com.server.webduino.core.webduinosystem.services.Service;
-import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.keys.SecurityKey;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,25 +18,107 @@ import java.util.logging.Logger;
 /**
  * Created by giaco on 12/05/2017.
  */
-public class WebduinoSystem {
+public class WebduinoSystem extends DBObject {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     private List<SecurityKey> keys = new ArrayList<>();
-    private int id;
+    private List<ActionCommand> actionCommandList = new ArrayList<>();
+    protected List<Status> statusList = new ArrayList<>();
+    public Status status;
+
+    public int id;
     private String name;
     private String type;
+    private boolean enabled;
     public List<WebduinoSystemZone> zones = new ArrayList<>();
     public List<WebduinoSystemActuator> actuators = new ArrayList<>();
     public List<WebduinoSystemService> services = new ArrayList<>();
-    public List<Scenario> scenarios = new ArrayList<>();
+    public List<WebduinoSystemScenario> scenarios = new ArrayList<>();
 
-    public WebduinoSystem(int id, String name, String type) {
+    private class Status {
+        String status;
+        String description;
+        public Status(String status, String description) {
+            this.status = status;
+            this.description = description;
+        }
+    }
+
+    public WebduinoSystem(int id, String name, String type, boolean enabled) {
         this.id = id;
         this.name = name;
         this.type = type;
+        this.enabled = enabled;
+        initCommandList();
     }
 
-    public List<Scenario> getScenarios() {
+    public WebduinoSystem(JSONObject json) throws Exception {
+        fromJson(json);
+        initCommandList();
+    }
+
+    public JSONArray getStatusListJSONArray() {
+        JSONArray jsonArray = new JSONArray();
+        for (Status status : statusList) {
+            jsonArray.put(status.status);
+        }
+        return jsonArray;
+    }
+
+    public JSONArray getActionCommandListJSONArray() throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (ActionCommand command : actionCommandList) {
+            jsonArray.put(command.toJson());
+        }
+        return jsonArray;
+    }
+
+    private void initCommandList() {
+
+        Status status_enabled = new Status("enabled", "Abilitato");
+        statusList.add(status_enabled);
+        Status status_disabled = new Status("disabled", "Disabilitato");
+        statusList.add(status_enabled);
+        status = status_enabled;
+
+        ActionCommand cmd = new ActionCommand("enable", "Abilita");
+        cmd.addStatus("Stato");
+        cmd.addCommand(new ActionCommand.Command() {
+            @Override
+            public void execute(JSONObject json) {
+                try {
+                    setStatus(status_enabled);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void end() {
+
+            }
+        });
+        actionCommandList.add(cmd);
+
+        cmd = new ActionCommand("disable", "Disabilita");
+        cmd.addStatus("Stato");
+        cmd.addCommand(new ActionCommand.Command() {
+            @Override
+            public void execute(JSONObject json) {
+                try {
+                    setStatus(status_disabled);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void end() {
+
+            }
+        });
+        actionCommandList.add(cmd);
+    }
+
+    public List<WebduinoSystemScenario> getScenarios() {
         return scenarios;
     }
 
@@ -71,7 +152,7 @@ public class WebduinoSystem {
         while (rs.next()) {
             int id = rs.getInt("id");
             int zoneid = rs.getInt("zoneid");
-            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id,zoneid,webduinosystemid);
+            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id, zoneid, webduinosystemid);
             zones.add(webduinosystemzone);
         }
         rs.close();
@@ -141,7 +222,7 @@ public class WebduinoSystem {
             ResultSet scenariosResultSet = stmt.executeQuery(sql);
             scenarios = new ArrayList<>();
             while (scenariosResultSet.next()) {
-                Scenario scenario = new Scenario();
+                WebduinoSystemScenario scenario = new WebduinoSystemScenario();
                 scenario.fromResulSet(conn, scenariosResultSet);
                 scenarios.add(scenario);
             }
@@ -160,6 +241,7 @@ public class WebduinoSystem {
         json.put("id", id);
         json.put("name", name);
         json.put("type", type);
+        json.put("enabled", enabled);
 
         JSONArray zonearray = new JSONArray();
         for (WebduinoSystemZone zone : zones) {
@@ -183,13 +265,134 @@ public class WebduinoSystem {
         json.put("services", servicearray);
 
         JSONArray scenarioarray = new JSONArray();
-        for (Scenario scenario : scenarios) {
+        for (WebduinoSystemScenario scenario : scenarios) {
             JSONObject j = scenario.toJson();
             scenarioarray.put(j);
         }
         json.put("scenarios", scenarioarray);
 
+        json.put("actioncommandlist", getActionCommandListJSONArray());
+        json.put("statuslist", getStatusListJSONArray());
+
+        json.put("status", status.status);
+
         return json;
     }
 
+    @Override
+    public void delete(Statement stmt) throws SQLException {
+        String sql = "DELETE FROM webduino_systems WHERE id=" + id;
+        stmt.executeUpdate(sql);
+    }
+
+    @Override
+    public void write(Connection conn) throws SQLException {
+
+        String sql = "INSERT INTO webduino_systems (id, type, name, enabled)" +
+                " VALUES ("
+                + id + ","
+                + "\"" + type + "\","
+                + "\"" + name + "\","
+                + Core.boolToString(enabled)
+                + ") " +
+                "ON DUPLICATE KEY UPDATE "
+                + "type=\"" + type + "\","
+                + "name=\"" + name + "\","
+                + "enabled=" + Core.boolToString(enabled) + ";";
+
+        Statement stmt = conn.createStatement();
+        Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+        ResultSet rs = stmt.getGeneratedKeys();
+        if (rs.next()) {
+            id = rs.getInt(1);
+        }
+
+        for (WebduinoSystemActuator actuator : actuators) {
+            if (actuator.webduinosystemid == 0) actuator.webduinosystemid = id;
+            actuator.write(conn);
+        }
+
+        for (WebduinoSystemZone actuator : zones) {
+            if (actuator.webduinosystemid == 0) actuator.webduinosystemid = id;
+            actuator.write(conn);
+        }
+
+        for (WebduinoSystemService service : services) {
+            if (service.webduinosystemid == 0) service.webduinosystemid = id;
+            service.write(conn);
+        }
+
+        for (WebduinoSystemScenario scenario : scenarios) {
+            if (scenario.webduinosystemid == 0) scenario.webduinosystemid = id;
+            scenario.write(conn);
+        }
+
+
+    }
+
+    public void fromJson(JSONObject json) throws Exception {
+
+        if (json.has("id"))
+            id = json.getInt("id");
+        if (json.has("type"))
+            type = json.getString("type");
+        if (json.has("name"))
+            name = json.getString("name");
+        if (json.has("enabled"))
+            enabled = json.getBoolean("enabled");
+
+        if (json.has("actuators")) {
+            JSONArray jArray = json.getJSONArray("actuators");
+            for (int k = 0; k < jArray.length(); k++) {
+                WebduinoSystemActuator actuator = new WebduinoSystemActuator(jArray.getJSONObject(k));
+                actuators.add(actuator);
+            }
+        }
+
+        if (json.has("zones")) {
+            JSONArray jArray = json.getJSONArray("zones");
+            for (int k = 0; k < jArray.length(); k++) {
+                WebduinoSystemZone zone = new WebduinoSystemZone(jArray.getJSONObject(k));
+                zones.add(zone);
+            }
+        }
+
+        if (json.has("services")) {
+            JSONArray jArray = json.getJSONArray("services");
+            for (int k = 0; k < jArray.length(); k++) {
+                WebduinoSystemService service = new WebduinoSystemService(jArray.getJSONObject(k));
+                services.add(service);
+            }
+        }
+
+        if (json.has("scenarios")) {
+            JSONArray jArray = json.getJSONArray("scenarios");
+            for (int k = 0; k < jArray.length(); k++) {
+                WebduinoSystemScenario scenario = new WebduinoSystemScenario(jArray.getJSONObject(k));
+                scenarios.add(scenario);
+            }
+        }
+    }
+
+    public Boolean sendCommand(String cmd, JSONObject json) {
+        for (ActionCommand actionCommand : actionCommandList) {
+            if (cmd.equals(actionCommand.command))
+                actionCommand.commandMethod.execute(json);
+        }
+        return true;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public boolean setStatus(Status status) throws Exception {
+        for (Status webduinosystemstatus: statusList) {
+            if (webduinosystemstatus.status.equals(status)) {
+                this.status = status;
+                return true;
+            }
+        }
+        return false;
+    }
 }

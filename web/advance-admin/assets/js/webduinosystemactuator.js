@@ -2,7 +2,7 @@
  * Created by gs163400 on 13/05/2018.
  */
 
-function loadWebduinoSystemActuator(webduinosystemactuator) {
+function loadWebduinoSystemActuator(webduinosystemactuator, webduinosystem) {
 
     $("#result").load("webduinosystemactuator.html", function () {
 
@@ -48,6 +48,7 @@ function loadWebduinoSystemActuator(webduinosystemactuator) {
             getWebduinoSystem(webduinosystemactuator.webduinosystemid, function (webduinosystem) {
                 loadWebduinoSystem(webduinosystem);
             });
+            loadWebduinoSystem(webduinosystem);
         });
 
         var $webduinosystemactuator = webduinosystemactuator;
@@ -66,5 +67,7 @@ function loadWebduinoSystemActuator(webduinosystemactuator) {
                 }
             }, "delete");
         });
+        if (webduinosystemactuator.id == 0)
+            deletebutton.prop('disabled', true);
     });
 }

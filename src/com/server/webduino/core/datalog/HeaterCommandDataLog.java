@@ -88,7 +88,7 @@ public class HeaterCommandDataLog extends CommandDataLog {
     }
 
     private void fromResulSet(Connection conn, ResultSet datalogResultSet) throws Exception {
-        //Scenario scenario = new Scenario();
+        //WebduinoSystemScenario scenario = new WebduinoSystemScenario();
         this.id = datalogResultSet.getInt("id");
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.date = df.parse(String.valueOf(datalogResultSet.getTimestamp("date")));

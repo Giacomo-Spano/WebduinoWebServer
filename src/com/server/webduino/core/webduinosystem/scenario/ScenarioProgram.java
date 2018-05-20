@@ -402,7 +402,7 @@ public class ScenarioProgram extends DBObject {
         return timeRanges.get(0);
     }
 
-    boolean dayOfWeekActive(int dayOfWeek) {
+    public boolean dayOfWeekActive(int dayOfWeek) {
 
         switch (dayOfWeek) {
             case Calendar.SUNDAY:
@@ -512,8 +512,8 @@ public class ScenarioProgram extends DBObject {
                 ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(jo);
                 if (timeRange != null) {
 
-                    if (i > 0 && timeRanges.get(timeRanges.size() - 1).endTime.compareTo(timeRange.startTime) > 0)
-                        throw new Exception("time range " + i + "cannot start before time range " + (i - 1));
+                    /*if (i > 0 && timeRanges.get(timeRanges.size() - 1).endTime.compareTo(timeRange.startTime) > 0)
+                        throw new Exception("time range " + i + "cannot start before time range " + (i - 1));*/
                     timeRanges.add(timeRange);
                 }
             }
@@ -594,7 +594,8 @@ public class ScenarioProgram extends DBObject {
         List<ScenarioProgramTimeRange> list = new ArrayList<>();
         String sql;
         Statement stmt = conn.createStatement();
-        sql = "SELECT * FROM scenarios_programtimeranges WHERE programid=" + programid + " ORDER BY scenarios_programtimeranges.index ASC;";
+        //sql = "SELECT * FROM scenarios_programtimeranges WHERE programid=" + programid + " ORDER BY scenarios_programtimeranges.index ASC;";
+        sql = "SELECT * FROM scenarios_programtimeranges WHERE programid=" + programid + " ORDER BY scenarios_programtimeranges.starttime ASC;";
         ResultSet resultSet = stmt.executeQuery(sql);
         while (resultSet.next()) {
             ScenarioProgramTimeRange timeRange = new ScenarioProgramTimeRange(conn, programid, resultSet);

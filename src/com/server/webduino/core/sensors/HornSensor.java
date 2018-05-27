@@ -5,6 +5,7 @@ import com.server.webduino.core.datalog.HornSensorDataLog;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.sensors.commands.HornActuatorCommand;
+import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +20,14 @@ public class HornSensor extends Actuator {
     private static Logger LOGGER = Logger.getLogger(HornSensor.class.getName());
 
     private boolean alarmActive;
+    Status activeStatus, notActiveStatus;
+
+
+    public static final String STATUS_ACTIVE = "active";
+    public static final String STATUS_NOTACTIVE = "notactive";
+
+    public static final String STATUS_DESCRIPTION_ACTIVE = "Attivo";
+    public static final String STATUS_DESCRIPTION_NOTACTIVE = "Non attivo";
 
     public HornSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
@@ -26,10 +35,38 @@ public class HornSensor extends Actuator {
 
         ActionCommand cmd = new ActionCommand("on","Attiva sirena");
         cmd.addDuration("Durata");
+        cmd.addCommand(new ActionCommand.Command() {
+            @Override
+            public void execute(JSONObject json) {
+                try {
+                    setStatus(activeStatus.status);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void end() {
+
+            }
+        });
         actionCommandList.add(cmd);
 
         cmd = new ActionCommand("off","Disattiva sirena");
         cmd.addDuration("Durata");
+        cmd.addCommand(new ActionCommand.Command() {
+            @Override
+            public void execute(JSONObject json) {
+                try {
+                    setStatus(notActiveStatus.status);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            @Override
+            public void end() {
+
+            }
+        });
         actionCommandList.add(cmd);
 
         command = new HornActuatorCommand(shieldid,id);
@@ -37,11 +74,22 @@ public class HornSensor extends Actuator {
     }
 
     @Override
+    protected void createStatusList() {
+        super.createStatusList();
+
+        activeStatus = new Status(STATUS_NOTACTIVE,STATUS_DESCRIPTION_NOTACTIVE);
+        statusList.add(activeStatus);
+        notActiveStatus = new Status(STATUS_ACTIVE,STATUS_DESCRIPTION_ACTIVE);
+        statusList.add(notActiveStatus);
+    }
+
+
+    @Override
     public ActuatorCommand getCommandFromJson(JSONObject json) {
         return null;
     }
 
-    public void setStatus(boolean open) {
+    /*public void setStatus(boolean open) {
         LOGGER.info("setStatus");
 
         boolean oldAlarmActive = this.alarmActive;
@@ -53,21 +101,13 @@ public class HornSensor extends Actuator {
                 listener.changeDoorStatus(id, open, oldAlarmActive);
             }
         }
-    }
+    }*/
 
     @Override
     public void writeDataLog(String event) {
         datalog.writelog(event, this);
     }
 
-    /*@Override
-    public Boolean sendCommand(ActuatorCommand cmd) {
-        return null;
-    }*/
-
-    public boolean getAlarmActiveStatus() {
-        return alarmActive;
-    }
 
     @Override
     public void updateFromJson(Date date, JSONObject json) {
@@ -75,8 +115,12 @@ public class HornSensor extends Actuator {
         super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
-            if (json.has("alarmActive"))
-                setStatus(json.getBoolean("alarmActive"));
+            if (json.has("alarmActive")) {
+                if (json.getBoolean("alarmActive"))
+                    setStatus(STATUS_ACTIVE);
+                else
+                    setStatus(STATUS_NOTACTIVE);
+            }
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

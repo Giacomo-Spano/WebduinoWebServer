@@ -3,6 +3,7 @@ package com.server.webduino.core.sensors;
 import com.server.webduino.core.*;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
@@ -19,13 +20,16 @@ import java.util.logging.Logger;
 
 public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorListener/*, Zone.WebduinoZoneListener*/ {
 
-    public static final String STATUS_IDLE = "idle";
-    public static final String STATUS_AUTOPROGRAM = "program";
+    //public static final String STATUS_IDLE = "idle";
+    //public static final String STATUS_AUTOPROGRAM = "program";
     //static final String STATUS_MANUALPROGRAM = "manualprogram";
     public static final String STATUS_MANUAL = "manual";
     public static final String STATUS_KEEPTEMPERATURE = "keeptemperature";
-    public static final String STATUS_MANUALOFF = "manualoff";
-    public static final String STATUS_DISABLED = "disabled";
+    public static final String STATUS_OFF = "off";
+
+    public static final String STATUS_DESCRIPTION_MANUAL = "Manuale";
+    public static final String STATUS_DESCRIPTION_KEEPTEMPERATURE = "Mantieni temperature";
+    public static final String STATUS_DESCRIPTION_OFF = "Off";
 
     private static final Logger LOGGER = Logger.getLogger(HeaterActuator.class.getName());
 
@@ -45,28 +49,14 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     private int remoteSensorId;
 
     private SensorListener remoteSensorListener = new SensorListener() {
+
         @Override
-        public void changeOnlineStatus(boolean online) {
+        public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
 
         }
 
         @Override
-        public void changeOnlineStatus(int sensorId, boolean online) {
-
-        }
-
-        @Override
-        public void onChangeStatus(String newStatus, String oldStatus) {
-
-        }
-
-        @Override
-        public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
-
-        }
-
-        @Override
-        public void changeValue(double value) {
+        public void onChangeValue(SensorBase sensor, double value) {
             if (value != temperature)
                 sendTemperature(value);
             temperature = value;
@@ -163,6 +153,18 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         startPrograms();
     }
 
+    @Override
+    protected void createStatusList() {
+        super.createStatusList();
+
+        Status status = new Status(STATUS_MANUAL,STATUS_DESCRIPTION_MANUAL);
+        statusList.add(status);
+        status = new Status(STATUS_KEEPTEMPERATURE,STATUS_DESCRIPTION_KEEPTEMPERATURE);
+        statusList.add(status);
+        status = new Status(STATUS_OFF,STATUS_DESCRIPTION_OFF);
+        statusList.add(status);
+    }
+
 
     public boolean receiveEvent(String eventtype) {
         return true;
@@ -192,34 +194,15 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     protected void setActionId(int actionId) { //  questo valore non è letto dal sensore ma rimane solo sul server
 
         this.actionId = actionId;
-        //WebduinoSystemScenario scenario = WebduinoSystemScenario.scenarioFromProgramTimeRange()
     }
 
     public int getTimeRangeId() {
         return timeRange;
     }
 
-    /*protected void setTimeRangeId(int timeRangeId) { //  questo valore non è letto dal sensore ma rimane solo sul server
-        this.timeRange = timeRangeId;
-    }*/
-
     public int getZoneId() {
         return zoneId;
     }
-
-    /*protected void setZoneId(int zoneId) {
-
-        if (zoneId == this.zoneId)
-            return;
-
-        Zone zone = Core.getZoneFromId(getZoneId());
-        if (zone != null) {
-            zone.removeListener(this);
-        }
-
-        this.zoneId = zoneId;
-
-    }*/
 
     protected void setSensorId(int sensorId) {
 
@@ -313,10 +296,15 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         boolean oldReleStatus = this.releStatus;
         //int oldScenario = scenario;
         //int oldTimeInterval = timeInterval;
-        String oldStatus = getStatus();
+        //String oldStatus = getStatus();
 
         try {
             LOGGER.info("received jsonResultSring=" + json.toString());
+
+            if (json.has("status")) {
+                String status = json.getString("status");
+                setStatus(status);
+            }
 
             if (json.has("remotetemp")) {
                 setTemperature(json.getDouble("remotetemp"));
@@ -380,12 +368,12 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
             else
                 Core.sendPushNotification(SendPushMessages.notification_relestatuschange, "titolo", "rele", "spento", getId());
         }
-        if (!getStatus().equals(oldStatus)) {
+        /*if (!getStatus().equals(oldStatus)) {
             // notifica Schedule che è cambiato lo stato ed invia una notifica alle app
             //sensorSchedule.checkProgram();
             String description = "Status changed from " + oldStatus + " to " + getStatus();
             Core.sendPushNotification(SendPushMessages.notification_statuschange, "Status", description, "0", getId());
-        }
+        }*/
 
         writeDataLog("update");
         //LOGGER.info("updateFromJson HeaterActuator old=" + oldRemoteTemperature + "new " + getRemoteTemperature());
@@ -453,7 +441,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     }
 
     @Override
-    public void changeValue(double value) {
+    public void onChangeValue(double value) {
         if (value != temperature)
             sendTemperature(value);
         temperature = value;
@@ -466,26 +454,29 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     }*/
 
     @Override
-    public void setStatus(String status) {
+    public boolean setStatus(String status) {
         //String oldStatus = status;
-        super.setStatus(status);
-        if (!oldStatus.equals(status) && status.equals(STATUS_MANUAL)) {
-            // se lo stato diventa manual si mettein ascolto sulla
-            // zona della temperatura manuale e manda una richiesta di aggiornamento temperatura alla zona
-            SensorBase sensor = Core.getSensorFromId(remoteSensorId);
-            if (sensor != null) {
-                sensor.removeListener(remoteSensorListener);
-                sensor.addListener(remoteSensorListener);
+        boolean res = super.setStatus(status);
+        if (res) {
+            if (!oldStatus.status.equals(status) && status.equals(STATUS_MANUAL)) {
+                // se lo stato diventa manual si mettein ascolto sulla
+                // zona della temperatura manuale e manda una richiesta di aggiornamento temperatura alla zona
+                SensorBase sensor = Core.getSensorFromId(remoteSensorId);
+                if (sensor != null) {
+                    sensor.removeListener(remoteSensorListener);
+                    sensor.addListener(remoteSensorListener);
 
-                temperature = 0;
-                sensor.requestAsyncSensorStatusUpdate();
-            }
-        } else if (!status.equals(STATUS_MANUAL)) {
-            SensorBase sensorBase = Core.getSensorFromId(remoteSensorId);
-            if (sensorBase != null) {
-                sensorBase.removeListener(remoteSensorListener);
+                    temperature = 0;
+                    sensor.requestAsyncSensorStatusUpdate();
+                }
+            } else if (!status.equals(STATUS_MANUAL)) {
+                SensorBase sensorBase = Core.getSensorFromId(remoteSensorId);
+                if (sensorBase != null) {
+                    sensorBase.removeListener(remoteSensorListener);
+                }
             }
         }
+        return res;
     }
 
     public String sendTemperature(double temperature) {

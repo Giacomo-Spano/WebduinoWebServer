@@ -76,6 +76,15 @@ public class Shield extends DBObject {
         return Core.publish("fromServer/shield/" + MACAddress + "/reboot", "immediate");
     }
 
+    public boolean requestResetSettings() { //
+
+        LOGGER.info("requestResetSettings:");
+        sensorStatus = updateStatus_updating;
+        return Core.publish("fromServer/shield/" + MACAddress + "/resetsettings", "immediate");
+    }
+
+
+
     public boolean requestSettingUpdate() { //
 
         LOGGER.info("requestSettingUpdate:");

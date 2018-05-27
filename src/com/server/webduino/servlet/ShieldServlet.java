@@ -90,37 +90,22 @@ public class ShieldServlet extends HttpServlet {
 
             } else if (json.has("command")) {
 
-                /*if (json.getString("command").equals("saveshieldsettings")) { // questo credo si possa rimuoveew
-                    handleSaveSettingEvent(json);
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    return;
-                } else */if (json.getString("command").equals("reboot")) {
-
+                if (json.getString("command").equals("reboot")) {
                     if (json.has("shieldid")) {
                         int id = json.getInt("shieldid");
                         Shield shield = Core.getShieldFromId(id);
                         shield.requestReboot();
-                        out.print("command sent");
+                        out.print("reboot command sent");
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
-                } else if (json.getString("command").equals("teststart") || json.getString("command").equals("teststop")
-                        || json.getString("command").equals("testopen") || json.getString("command").equals("testclose")) {
-
-                    if (json.has("actuatorid")) {
-                        int id = json.getInt("actuatorid");
-                        SensorBase actuator = Core.getSensorFromId(id);
-
-                        //DoorSensorCommand cmd = new DoorSensorCommand(json);
-                        DoorSensorCommand cmd = new DoorSensorCommand(json.getString("command"), actuator.getShieldId(), id, "close");
-                        boolean res = cmd.send();
-                        /*if (res) {
-                            out.print(cmd.getResult());
-                            response.setStatus(HttpServletResponse.SC_OK);
-                        } else {
-                            out.print("errore");
-                            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        }*/
+                } else if (json.getString("command").equals("reset")) {
+                    if (json.has("shieldid")) {
+                        int id = json.getInt("shieldid");
+                        Shield shield = Core.getShieldFromId(id);
+                        shield.requestResetSettings();
+                        out.print("reset command sent");
+                        response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
                 } else if (json.getString("command").equals("updatesensorstatus")) {

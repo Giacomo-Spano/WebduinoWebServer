@@ -17,7 +17,7 @@ import java.util.Date;
 /**
  * Created by giaco on 17/05/2017.
  */
-public class ScenarioProgramInstruction implements Zone.WebduinoZoneListener {
+public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/ {
 
     public int id = 0;
     public int timerangeid = 0;
@@ -92,13 +92,18 @@ public class ScenarioProgramInstruction implements Zone.WebduinoZoneListener {
         startDate = date;
     }
 
-    @Override
+    /*@Override
     public void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature) {
-    }
+    }*/
 
-    @Override
+    /*@Override
     public void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus) {
-    }
+    }*/
+
+    /*@Override
+    public void onChangeStatus(int zoneId, int sensorid, String status, String oldstatus) {
+
+    }*/
 
     public void init() {
     }

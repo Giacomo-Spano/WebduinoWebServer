@@ -1,31 +1,19 @@
 package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.webduinosystem.Status;
+
 /**
  * Created by giaco on 24/04/2018.
  */
 public class SensorListenerClass implements SensorBase.SensorListener {
+
     @Override
-    public void changeOnlineStatus(boolean online) {
+    public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
 
     }
 
     @Override
-    public void changeOnlineStatus(int sensorId, boolean online) {
-
-    }
-
-    @Override
-    public void onChangeStatus(String newStatus, String oldStatus) {
-
-    }
-
-    @Override
-    public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
-
-    }
-
-    @Override
-    public void changeValue(double value) {
+    public void onChangeValue(SensorBase sensor, double value) {
 
     }
 }

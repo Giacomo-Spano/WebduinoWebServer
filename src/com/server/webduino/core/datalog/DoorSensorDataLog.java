@@ -25,8 +25,8 @@ public class DoorSensorDataLog extends DataLog {
 
         DoorSensor doorSensor = (DoorSensor) object;
         String sql;
-        sql = "INSERT INTO " + tableName + " (id, sensorid, date, open) VALUES ("
-                + doorSensor.getId() + "," + doorSensor.getId() + ","  + getStrDate() + "," + doorSensor.getDoorStatus() + ");";
+        sql = "INSERT INTO " + tableName + " (id, sensorid, date, status) VALUES ("
+                + doorSensor.getId() + "," + doorSensor.getId() + ","  + getStrDate() + ",\"" + doorSensor.getStatus().status + "\");";
         return sql;
     }
 

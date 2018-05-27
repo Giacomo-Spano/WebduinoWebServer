@@ -213,7 +213,7 @@ public class ScenarioTimeInterval extends DBObject {
     public JSONObject toJson() {
 
         JSONObject json = new JSONObject();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
         try {
             json.put("id", id);
@@ -235,9 +235,9 @@ public class ScenarioTimeInterval extends DBObject {
             json.put("priority", priority);
 
             if (isActive(Core.getDate()))
-                json.put("zonesensorstatus", "on");
+                json.put("status", "active");
             else
-                json.put("zonesensorstatus", "off");
+                json.put("status", "inactive");
 
             return json;
         } catch (JSONException e) {

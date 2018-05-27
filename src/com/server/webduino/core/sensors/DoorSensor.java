@@ -1,6 +1,7 @@
 package com.server.webduino.core.sensors;
 
 import com.server.webduino.core.datalog.DoorSensorDataLog;
+import com.server.webduino.core.webduinosystem.Status;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,7 +14,12 @@ public class DoorSensor extends SensorBase {
 
     private static Logger LOGGER = Logger.getLogger(DoorSensor.class.getName());
 
-    private boolean open;
+    //private boolean open;
+    public static final String STATUS_OPEN = "open";
+    public static final String STATUS_CLOSED = "closed";
+
+    public static final String STATUS_DESCRIPTION_OPEN = "Porta aperta";
+    public static final String STATUS_DESCRIPTION_CLOSED = "Porta chiusa";
 
     public DoorSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
         super(id, name, description, subaddress, shieldid, pin, enabled);
@@ -24,11 +30,14 @@ public class DoorSensor extends SensorBase {
     @Override
     protected void createStatusList() {
         super.createStatusList();
-        statusList.add("open");
-        statusList.add("close");
+
+        Status status = new Status(STATUS_OPEN,STATUS_DESCRIPTION_OPEN);
+        statusList.add(status);
+        status = new Status(STATUS_CLOSED,STATUS_DESCRIPTION_CLOSED);
+        statusList.add(status);
     }
 
-    public void setStatus(boolean open) {
+    /*public void setStatus(boolean open) {
         LOGGER.info("setStatus");
 
         boolean oldOpen = this.open;
@@ -40,16 +49,16 @@ public class DoorSensor extends SensorBase {
                 listener.changeDoorStatus(id, open, oldOpen);
             }
         }
-    }
+    }*/
 
     @Override
     public void writeDataLog(String event) {
         datalog.writelog(event, this);
     }
 
-    public boolean getDoorStatus() {
-        return open;
-    }
+    /*public String getDoorStatus() {
+        return status;
+    }*/
 
     @Override
     public void updateFromJson(Date date, JSONObject json) {
@@ -57,8 +66,13 @@ public class DoorSensor extends SensorBase {
         super.updateFromJson(date,json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
-            if (json.has("open"))
-                setStatus(json.getBoolean("open"));
+
+            if (json.has("open")) {
+                if (json.getBoolean("open"))
+                    setStatus(STATUS_OPEN);
+                else
+                    setStatus(STATUS_CLOSED);
+            }
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -70,11 +84,11 @@ public class DoorSensor extends SensorBase {
 
     @Override
     public void getJSONField(JSONObject json) {
-        try {
-            json.put("openstatus", open);
+        /*try {
+            //json.put("openstatus", open);
 
         } catch (JSONException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 }

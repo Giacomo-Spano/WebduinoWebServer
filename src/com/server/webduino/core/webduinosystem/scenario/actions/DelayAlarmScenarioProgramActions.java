@@ -19,11 +19,11 @@ public class DelayAlarmScenarioProgramActions extends ScenarioProgramInstruction
 
         Zone zone = Core.getZoneFromId(zoneId);
         if (zone != null) {
-            zone.addListener(this);
+            //zone.addListener(this);
         }
     }
 
-    @Override
+    /*@Override
     public void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus) {
 
         if (openStatus && openStatus != oldOpenStatus) {
@@ -39,7 +39,7 @@ public class DelayAlarmScenarioProgramActions extends ScenarioProgramInstruction
             alarmActive = false;
         }
 
-    }
+    }*/
 
     @Override
     public String getStatus() {

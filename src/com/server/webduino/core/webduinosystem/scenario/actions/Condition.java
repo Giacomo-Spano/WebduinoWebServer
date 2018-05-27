@@ -4,6 +4,7 @@ import com.server.webduino.core.Core;
 import com.server.webduino.core.Trigger;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.SensorListenerClass;
+import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
 import org.json.JSONArray;
@@ -95,14 +96,37 @@ public class Condition extends SensorListenerClass {
         zone = Core.getZoneFromId(zoneid);
         if (zone != null) {
             zone.addListener(new Zone.WebduinoZoneListener() {
-                @Override
+                /*@Override
                 public void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature) {
 
-                }
+                }*/
 
-                @Override
+                /*@Override
                 public void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus) {
 
+                }*/
+
+                @Override
+                public void onChangeStatus(int zoneId, int sensorid, String status, String oldstatus) {
+                    boolean oldactive = active;
+                    zone = Core.getZoneFromId(zoneid);
+                    if (zone != null) {
+                        zoneSensor = zone.zoneSensorFromId(zonesensorid);
+                        if (zoneSensor != null) {
+                            sensor = Core.getSensorFromId(zoneSensor.getSensorId());
+                            if (sensor != null && sensor.getId() == sensorid) {
+                                if (status.equals(sensorstatus))
+                                    active = true;
+                                else
+                                    active = false;
+                            }
+                        }
+                    }
+                    if (oldactive != active) {
+                        for (ConditionListener listener : listeners) {
+                            listener.onActiveChange(active);
+                        }
+                    }
                 }
             });
         }
@@ -116,29 +140,13 @@ public class Condition extends SensorListenerClass {
                 sensor = Core.getSensorFromId(zoneSensor.getSensorId());
                 if (sensor != null) {
                     sensor.addListener(new SensorBase.SensorListener() {
-                        @Override
-                        public void changeOnlineStatus(boolean online) {
 
+                        @Override
+                        public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
                         }
 
                         @Override
-                        public void changeOnlineStatus(int sensorId, boolean online) {
-
-                        }
-
-                        @Override
-                        public void onChangeStatus(String newStatus, String oldStatus) {
-
-                        }
-
-                        @Override
-                        public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
-
-                        }
-
-                        @Override
-                        public void changeValue(double val) {
-
+                        public void onChangeValue(SensorBase sensor, double val) {
                             boolean oldactive = active;
 
                             if (valueoperator.equals(">")) {
@@ -173,7 +181,7 @@ public class Condition extends SensorListenerClass {
     }
 
     @Override
-    public void changeValue(double value) {
+    public void onChangeValue(SensorBase sensor, double value) {
 
     }
 
@@ -235,6 +243,8 @@ public class Condition extends SensorListenerClass {
                 jsonArray.put(valueoperators[i]);
             }
             json.put("valueoperators", jsonArray);
+
+            json.put("status", getStatus());
         } catch (JSONException e) {
             e.printStackTrace();
         }

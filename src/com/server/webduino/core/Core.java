@@ -109,6 +109,7 @@ public class Core {
                     scenarios.removeConflict(action);
                 }
             });
+            scenario.start();
         }
 
 

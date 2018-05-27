@@ -44,12 +44,21 @@ public class OTAServlet extends HttpServlet {
         [HTTP_X_ESP8266_SDK_VERSION] => 1.3.0
         [HTTP_X_ESP8266_VERSION] => DOOR-7-g14f53a19
          */
+        LOGGER.severe("OTA servlet - doGet");
 
         SWVersion latestVersion = SWVersion.getLatestVersion();
+        LOGGER.severe("latestVersion:" + latestVersion.name);
         String swversion = request.getHeader("x-esp8266-version");
+        LOGGER.severe("swversion:" + swversion);
 
         String[] split1 = swversion.split("\\.");
+        LOGGER.severe("split1[0]:" + split1[0]);
+        LOGGER.severe("split1[1]:" + split1[1]);
         String[] split2 = latestVersion.version.split("\\.");
+        LOGGER.severe("split2[0]:" + split2[0]);
+        LOGGER.severe("split2[1]:" + split2[1]);
+
+
 
 
         if ((Integer.parseInt(split2[0]) == Integer.parseInt(split1[0]) &&
@@ -58,6 +67,7 @@ public class OTAServlet extends HttpServlet {
                 (Integer.parseInt(split2[0]) > Integer.parseInt(split2[0]))) {
 
 
+            LOGGER.info("update software");
             /*String path = System.getProperty("java.io.tmpdir");
             if (!Core.isProduction())
                 path = System.getenv("tmp");
@@ -79,6 +89,8 @@ public class OTAServlet extends HttpServlet {
 
             File my_file = new File(path + "/" + fileName);
 
+            LOGGER.info("my_file:" + path + "/" + fileName);
+
             response.setContentLength((int) my_file.length());
 
             // This should send the file to browser
@@ -93,6 +105,7 @@ public class OTAServlet extends HttpServlet {
             out.flush();
 
         } else {
+            LOGGER.info("update not needed");
             response.setStatus(304);
 
         }

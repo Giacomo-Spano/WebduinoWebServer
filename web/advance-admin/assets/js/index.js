@@ -455,15 +455,15 @@ function setSensorElement(element, sensor) {
     // subaddress
     element.find('td[name="subaddress"]').text(sensor.subaddress);
 
-    var detailButton = element.find('button[name="detailbutton"]');
+    /*var detailButton = element.find('button[name="detailbutton"]');
     detailButton.text(label);
     detailButton.click(function () {
         loadHeater(sensor);
 
-    });
+    });*/
 
     var statusButton = element.find('button[name="statusbutton"]');
-    statusButton.text(label);
+    //statusButton.text(label);
     statusButton.click(function () {
 
         var command = 'updatesensor'
@@ -493,42 +493,8 @@ function setSensorElement(element, sensor) {
         element.find('td[name="status"]').text(text);
     } else if (sensor.type == "doorsensor") {
 
-        text = "door ";
-        if (sensor.openstatus == true)
-            text += "open";
-        else
-            text += "closed";
+        text = sensor.statusdetails;
         element.find('td[name="status"]').text(text);
-
-        // testmode button
-        var label = "test mode";
-        if (sensor.testmode)
-            var label = "end test mode";
-        var testButton = element.find('button[name="testbutton"]');
-        testButton.text(label);
-        testButton.click(function () {
-            var command = 'teststart'
-            if (sensor.testmode) {
-                command = 'teststop';
-            }
-            statusButton.text("sending" + command + " command...");
-            var commandJson = {
-                'shieldid': sensor.shieldid,
-                'actuatorid': sensor.id,
-                'command': command
-            };
-            //sendSensorCommand(commandJson, sensor)
-            $.post(shieldServletPath, JSON.stringify(commandJson), function (data) {
-                console.log(data.name); // John
-                console.log(data.time); // 2pm
-            }, "json");
-        });
-
-        // test open/close button
-        label = "close";
-        
-        if (!sensor.openstatus)
-            label = "open";
 
 
     } else if (sensor.type == "heatersensor") {
@@ -746,7 +712,7 @@ function loadScenarioTimeinterval(timeinterval) {
             timeinterval.enabled = panel.find('input[name="enabled"]').prop('checked');
             timeinterval.priority = panel.find('input[name="priority"]').val();
             timeinterval.startdatetime = panel.find('input[name="startdatetime"]').val();
-            timeinterval.enddatetime = panel.find('input[name="enddatetime"]').val();
+            timeinterval.enddatetime = timeinterval.enddatetime = panel.find('input[name="enddatetime"]').val();
             timeinterval.sunday = panel.find('input[name="sunday"]').prop('checked');
             timeinterval.monday = panel.find('input[name="monday"]').prop('checked');
             timeinterval.tuesday = panel.find('input[name="tuesday"]').prop('checked');
@@ -793,6 +759,14 @@ function loadScenarioTimeinterval(timeinterval) {
         if (timeinterval.id == 0)
             deletebutton.prop('disabled', true);
     });
+}
+
+function getDate(str1){
+// str1 format should be dd/mm/yyyy. Separator can be anything e.g. / or -. It wont effect
+    var day   = parseInt(str1.substring(0,2));
+    var month  = parseInt(str1.substring(3,5));
+    var year1   = parseInt(str1.substring(6,10));
+    return date;
 }
 
 function loadScenarioTrigger(scenariotrigger) {

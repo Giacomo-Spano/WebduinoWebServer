@@ -16,12 +16,7 @@ function addTrigger(idx, elem) {
 
     trigger.find('td[name="id"]').text(elem.id);
     trigger.find('td input[name="name"]').val(elem.name);
-
-    if (elem.status)
-        trigger.find('td[name="status"]').text("Attivo");
-    else
-        trigger.find('td[name="status"]').text("Non Attivo");
-
+    trigger.find('td[name="status"]').text(elem.status);
     trigger.find('button[name="deletetrigger"]').attr("idx", idx);
     trigger.find('button[name="deletetrigger"]').click(function () {
         var index = $(this).attr("idx");

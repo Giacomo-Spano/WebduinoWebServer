@@ -24,11 +24,12 @@ function getTrigger(id, callback) {
 function addScenarioTrigger(idx, elem) {
     var triggeritem = $triggerRow.clone();
     triggeritem.find('td[name="id"]').text(elem.id);
-    triggeritem.find('td[name="triggerenabled"]').prop('checked', elem.enabled).prop('disabled', true);
+    triggeritem.find('td input[name="triggerenabled"]').prop('checked', elem.enabled).prop('disabled', true);
     triggeritem.find('td[name="triggerid"]').text(elem.triggerid);
     triggeritem.find('td[name="triggername"]').text(elem.name);
-    triggeritem.find('td[name="triggerstatus"]').text(elem.status);
-    triggeritem.find('td[name="triggercurrentstatus"]').text(elem.currentstatus);
+    triggeritem.find('td[name="activestatus"]').text(elem.activestatus);
+    triggeritem.find('td[name="triggerstatus"]').text(elem.triggerstatus);
+    triggeritem.find('td[name="status"]').text(elem.status);
     triggeritem.attr("idx", idx);
 
     triggeritem.click(function () {

@@ -161,6 +161,8 @@ function addCondition(idx, elem, triggers, zones, sensors, services) {
         }
     });
     condition.find('td select[name="type"]').val(elem.type).change();
+
+    condition.find('td[name="status"]').text(elem.status);
     $programtimerangePanel.find('tbody[name="conditionlist"]').append(condition);
 
 
@@ -184,7 +186,7 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
     action.find('td select[name="actuator"]').change(function () {
         actuatorid = this.value;
         actioncommand = 0;
-        $('option', action.find('td select[name="actioncommand"]')).remove();
+        //$('option', action.find('td select[name="actioncommand"]')).remove();
         getSensor(actuatorid, function (sensor) {
                 handleActionCommandList.call(this, sensor, action, elem);
             }
@@ -323,6 +325,8 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
         }
     });
     action.find('td select[name="type"]').val(elem.type).change();
+
+    action.find('td[name="status"]').text(elem.status);
     $programtimerangePanel.find('tbody[name="actionlist"]').append(action);
 
     action.find('button[name="deleteaction"]').attr("idx", idx);
@@ -334,11 +338,11 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
 }
 
 function handleActionCommandList(sensor, action, elem) {
+    $('option', action.find('td select[name="actioncommand"]')).remove();
     if (sensor.actioncommandlist.length != null && sensor.actioncommandlist.length > 0) {
         action.find('td select[name="actioncommand"]').prop('disabled', false);
         var index = 0;
         $.each(sensor.actioncommandlist, function (index, elem) {
-
             var option = new Option(elem.name, elem.command);
             action.find('td select[name="actioncommand"]').append($(option));
         });

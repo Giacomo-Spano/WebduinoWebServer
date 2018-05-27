@@ -6,6 +6,7 @@ import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.SensorCommand;
+import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,7 +20,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static com.server.webduino.core.sensors.SensorBase.SensorListener.SensorEvents;
+import static com.server.webduino.core.webduinosystem.Status.*;
+
+//import static com.server.webduino.core.sensors.SensorBase.SensorListener.SensorEvents;
 
 public class SensorBase extends DBObject {
 
@@ -44,13 +47,14 @@ public class SensorBase extends DBObject {
     protected double doubleValue, minDoubleValue, maxDoubleValue, stepDoubleValue;
     protected int intValue;
 
-    protected List<String> statusList = new ArrayList<String>();
+    protected List<Status> statusList = new ArrayList<Status>();
     protected List<ActionCommand> actionCommandList = new ArrayList<ActionCommand>();
 
     // dynamic state
     protected boolean testMode;
-    protected String status = "idle";
-    protected String oldStatus = "";
+
+    protected Status status;
+    protected Status oldStatus = null;
     public boolean updating = false;
 
     protected List<SensorListener> listeners = new ArrayList<>();
@@ -68,10 +72,17 @@ public class SensorBase extends DBObject {
         datalog = new DataLog();
 
         createStatusList();
+
     }
 
     protected void createStatusList() {
-        statusList.add("idle");
+        Status status = new Status(STATUS_OFFLINE,STATUS_DESCRIPTION_OFFLINE);
+        this.status = status;
+        statusList.add(status);
+        status = new Status(STATUS_DISABLED,STATUS_DESCRIPTION_DISABLED);
+        statusList.add(status);
+        status = new Status(STATUS_IDLE,STATUS_DESCRIPTION_IDLE);
+        statusList.add(status);
     }
 
     public void requestAsyncSensorStatusUpdate() { // async sensor zonesensorstatus request
@@ -93,8 +104,8 @@ public class SensorBase extends DBObject {
 
     public JSONArray getStatusListJSONArray() {
         JSONArray jsonArray = new JSONArray();
-        for (String status: statusList) {
-            jsonArray.put(status);
+        for (Status status: statusList) {
+            jsonArray.put(status.status);
         }
         return jsonArray;
     }
@@ -152,9 +163,15 @@ public class SensorBase extends DBObject {
         return null;
     }
 
-    public Boolean sendCommand(String cmd,JSONObject json) {
-        return false;
+
+    public Boolean sendCommand(String cmd, JSONObject json) {
+        for (ActionCommand actionCommand : actionCommandList) {
+            if (cmd.equals(actionCommand.command))
+                actionCommand.commandMethod.execute(json);
+        }
+        return true;
     }
+
 
     public Boolean endCommand() {
         return false;
@@ -189,14 +206,12 @@ public class SensorBase extends DBObject {
     }
 
     public interface SensorListener {
-        static public String SensorEvents = "sensor event";
-        public void changeOnlineStatus(boolean online);
-        public void changeOnlineStatus(int sensorId, boolean online);
-        public void onChangeStatus(String newStatus, String oldStatus);
-
-        public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
-
-        public abstract void changeValue(double value);
+        //static public String SensorEvents = "sensor event";
+        //public void changeOnlineStatus(boolean online);
+        //public void changeOnlineStatus(int sensorId, boolean online);
+        public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus);
+        //public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
+        public void onChangeValue(SensorBase sensor, double value);
     }
 
     public void addListener(SensorListener toAdd) {
@@ -207,7 +222,7 @@ public class SensorBase extends DBObject {
         listeners.remove(toRemove);
     }
 
-    public boolean receiveEvent(String eventtype) {
+    /*public boolean receiveEvent(String eventtype) {
         if (eventtype == SensorEvents)
             return true;
         return false;
@@ -217,7 +232,7 @@ public class SensorBase extends DBObject {
         if (eventtype == SensorEvents)
             return true;
         return false;
-    }
+    }*/
 
     public void init() {
 
@@ -290,7 +305,7 @@ public class SensorBase extends DBObject {
         this.enabled = enabled;
     }
 
-    public void setStatus(String status) {
+    /*public void setStatus(String status) {
         oldStatus = this.status;
         this.status = status;
 
@@ -298,9 +313,24 @@ public class SensorBase extends DBObject {
             for (SensorListener listener : listeners)
                 listener.onChangeStatus(status, oldStatus);
         }
+    }*/
+
+    public boolean setStatus(String status) {
+        oldStatus = this.status;
+        for (Status sensorstatus: statusList) {
+            if (sensorstatus.status.equals(status)) {
+                this.status = sensorstatus;
+                if (!status.equals(oldStatus.status)) {
+                    for (SensorListener listener : listeners)
+                        listener.onChangeStatus(this, this.status, oldStatus);
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
@@ -354,8 +384,8 @@ public class SensorBase extends DBObject {
                 pin = json.getString("pin");*/
             if (json.has("enabled"))
                 enabled = json.getBoolean("enabled");
-            if (json.has("zonesensorstatus"))
-                status = json.getString("zonesensorstatus");
+            /*if (json.has("zonesensorstatus"))
+                status = json.getString("zonesensorstatus");*/
 
             if (json.has("children")) {
                 JSONArray jsonChildSensorArray = json.getJSONArray("children");
@@ -369,6 +399,8 @@ public class SensorBase extends DBObject {
                     }
                 }
             }
+
+            writeDataLog("updateFromJson");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block
@@ -401,7 +433,8 @@ public class SensorBase extends DBObject {
             json.put("addr", subaddress);
             json.put("testmode", testMode);
 
-            json.put("status", getStatus());
+            json.put("status", getStatus().status);
+            json.put("statusdetails", getStatus().description);
 
             json.put("statuslist", getStatusListJSONArray());
             json.put("actioncommandlist", getActionCommandListJSONArray());

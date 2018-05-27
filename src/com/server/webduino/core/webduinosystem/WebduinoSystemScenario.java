@@ -467,17 +467,16 @@ public class WebduinoSystemScenario extends DBObject implements ScenarioTimeInte
             active = statusActiveAtDate(Core.getDate());
         }
 
-        if (active && triggers.size() > 0) {
+        if (!active && triggers.size() > 0) {
             active = false;
             // controlla se c'è almeno un ttrigger attivo
             for (ScenarioTrigger trigger : triggers) {
-                if (trigger.getStatus().equals(trigger.status)) {
-                    active = true;
-                    break;
+                if (trigger.isActive()) {
+                        active = true;
+                        break;
                 }
             }
         }
-
 
         // se lo scenario è attivo avvia i programmi
         for (ScenarioProgram program : programs) {
@@ -594,7 +593,7 @@ public class WebduinoSystemScenario extends DBObject implements ScenarioTimeInte
         if (triggers != null && triggers.size() > 0) {
             boolean triggerActive = false;
             for (ScenarioTrigger trigger : triggers) {
-                if (trigger.getStatus().equals(trigger.status)) {
+                if (trigger.isActive()) {
                     triggerActive = true;
                 }
             }

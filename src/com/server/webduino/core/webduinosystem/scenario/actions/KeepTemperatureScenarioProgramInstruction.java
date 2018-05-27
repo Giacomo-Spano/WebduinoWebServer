@@ -4,6 +4,7 @@ import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.scenario.Conflict;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
@@ -160,7 +161,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
         return status;
     }
 
-    @Override
+    /*@Override
     public void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature) {
 
         if (!active)
@@ -171,18 +172,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
         temperature = newTemperature;
 
 
-        /*if (conflictList.size() == 0) {
-
-            duration = (endDate.getTime() - Core.getDate().getTime()) / 1000;  // durata in secondi
-            if (duration <= 0)
-                return;
-
-            // crea un thread separato per inviare il comando Command_KeepTemperature
-            // altrrimenti non si riceve la risposta
-            sendCommandThread commandThread = new sendCommandThread();
-            commandThread.start();
-        }*/
-    }
+    }*/
 
     public class sendCommandThread extends Thread {
 
@@ -237,30 +227,17 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
 
     private class HeaterListenerClass implements SensorBase.SensorListener {
 
-        @Override
-        public void changeOnlineStatus(boolean online) {
-
-        }
 
         @Override
-        public void changeOnlineStatus(int sensorId, boolean online) {
-
-        }
-
-        @Override
-        public void onChangeStatus(String newStatus, String oldStatus) {
+        public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
             if (newStatus.equals(HeaterActuator.STATUS_MANUAL) || newStatus.equals(HeaterActuator.STATUS_KEEPTEMPERATURE)) {
                 requestZoneStatusUpdate();
             }
         }
 
-        @Override
-        public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
-
-        }
 
         @Override
-        public void changeValue(double value) {
+        public void onChangeValue(SensorBase sensor, double value) {
 
         }
     }

@@ -50,12 +50,10 @@ public class Trigger extends DBObject {
 
     protected void createStatusList() {
 
-        statusList.add("off");
-        statusList.add("on");
+        statusList.add("disabled");
+        statusList.add("enabled");
         status = statusList.get(0);
     }
-
-
 
     public Trigger(int id, String name/*, String status, */,java.util.Date date) {
         createStatusList();
@@ -75,7 +73,6 @@ public class Trigger extends DBObject {
         createStatusList();
         fromJson(json);
     }
-
 
     public String getStatus() {
         return status;

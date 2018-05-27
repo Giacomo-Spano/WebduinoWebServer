@@ -6,6 +6,7 @@ import com.server.webduino.core.Trigger;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.WebduinoSystem;
 import com.server.webduino.core.webduinosystem.scenario.Conflict;
+import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -145,6 +146,15 @@ public class Action {
                 }
             }
         } else if (type.equals(ACTION_SERVICE)) {
+            Service service = Core.getServiceFromId(serviceid);
+            if (service != null) {
+                JSONObject json = new JSONObject();
+                /*json.put("targetvalue", targetvalue);
+                json.put("seconds", seconds);
+                json.put("zoneid", zoneid);
+                json.put("zonesensorid", zonesensorid);*/
+                service.sendCommand(actioncommand,json);
+            }
 
         } else if (type.equals(ACTION_TRIGGER)) {
             Trigger trigger = Core.getTriggerFromId(triggerid);
@@ -246,6 +256,8 @@ public class Action {
             json.put("param", param);
             json.put("triggerid", triggerid);
             json.put("webduinosystemid", webduinosystemid);
+
+            json.put("status", getStatus());
         } catch (JSONException e) {
             e.printStackTrace();
         }

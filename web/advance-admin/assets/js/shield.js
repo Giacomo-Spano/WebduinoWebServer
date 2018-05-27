@@ -72,6 +72,28 @@ function setShieldElement(element, shield) {
         });
     });
 
+    var resetButton = element.find('button[name="resetbutton"]');
+    resetButton.click(function () {
+
+        var command = 'reset'
+        restartButton.text("sending" + command + " command...");
+        var json = {
+            'shieldid': shield.shieldid,
+            'command': command,
+        };
+        postShieldData(json, function (result, response) {
+            restartButton.text("command sent");
+            if (result) {
+                notificationsuccess.show();
+                notificationsuccess.find('label[name="description"]').text("comando inviato" + response);
+                loadDashboard();
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
+    });
+
 
 }
 

@@ -5,6 +5,7 @@ import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.TemperatureSensor;
+import com.server.webduino.core.webduinosystem.Status;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
 /**
  * Created by giaco on 12/05/2017.
  */
-public class Zone extends DBObject implements SensorBase.SensorListener, TemperatureSensor.TemperatureSensorListener {
+public class Zone extends DBObject implements SensorBase.SensorListener/*, TemperatureSensor.TemperatureSensorListener*/ {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     public String getStatus() {
@@ -30,13 +31,13 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
                 sensorstatus += sensor.getName() + ":" + sensor.getStatus() + "; ";
             }
         }
-        return status + " sensori: " + sensorstatus;
+        return "sensori: " + sensorstatus;
     }
 
     public interface WebduinoZoneListener {
-        void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature);
-
-        void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus);
+        //void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature);
+        //void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus);
+        void onChangeStatus(int zoneId, int sensorid, String status, String oldstatus);
     }
 
     protected List<WebduinoZoneListener> listeners = new CopyOnWriteArrayList<>();
@@ -53,17 +54,13 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
             //System.out.println("List Value:"+value);
             if (value == toRemove) listeners.remove(value);
         }
-
     }
 
     public int id;
     private String name;
     private String type;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
-    private String status;
-
     private double temperature = 0.0;
-    private boolean doorStatusOpen = false;
     public Date lastTemperatureUpdate = null;
 
     public Zone(int id, String name, String type) {
@@ -77,22 +74,6 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
         fromJson(json);
     }
 
-    public void requestSensorStatusUpdate() {
-
-        LOGGER.info("requestAsyncAllSensorStatusUpdate:");
-
-        for (ZoneSensor zoneSensor : zoneSensors) {
-
-            SensorBase sensor = Core.getSensorFromId(zoneSensor.getSensorId());
-            if (sensor != null) {
-                sensor.requestAsyncSensorStatusUpdate();
-                /*Shield shield = Core.getShieldFromId(sensor.getShieldId());
-                if (shield != null) {
-                    shield.requestAsyncAllSensorStatusUpdate();
-                }*/
-            }
-        }
-    }
 
     public void fromJson(JSONObject json) throws JSONException {
 
@@ -229,7 +210,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
         return null;
     }
 
-    @Override
+    /*@Override
     public void onUpdateTemperature(int sensorId, double temperature, double oldtemperature) {
 
         lastTemperatureUpdate = Core.getDate();
@@ -237,48 +218,25 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
             listener.onUpdateTemperature(id, temperature, oldtemperature);
         }
         this.temperature = temperature;
-    }
+    }*/
 
     public double getTemperature() {
         return temperature;
     }
 
     @Override
-    public void changeAvTemperature(int sensorId, double avTemperature) {
-
-    }
-
-    @Override
-    public void changeOnlineStatus(boolean online) {
-
-    }
-
-    @Override
-    public void changeOnlineStatus(int sensorId, boolean online) {
-
-    }
-
-    @Override
-    public void onChangeStatus(String newStatus, String oldStatus) {
-
-    }
-
-    @Override
-    public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen) {
+    public void onChangeStatus(SensorBase sensor, Status status, Status oldstatus) {
 
         for (WebduinoZoneListener listener : listeners) {
-            listener.onDoorStatusChange(id, open, oldOpen);
+            listener.onChangeStatus(id, sensor.getId(), status.status, oldstatus.status);
         }
-        this.doorStatusOpen = open;
     }
 
     @Override
-    public void changeValue(double value) {
-
-    }
-
-    public boolean getDoorStatusOpen() {
-        return doorStatusOpen;
+    public void onChangeValue(SensorBase sensor, double value) {
+        for (WebduinoZoneListener listener : listeners) {
+            //listener.onChangeStatus(id, sensor.getId(), status.status, oldstatus.status);
+        }
     }
 
     public void readZoneSensors(int zoneid) {
@@ -346,7 +304,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener, Tempera
                 }
             }
             json.put("zonesensors", jsonArray);
-            json.put("status", status + " sensori: " + sensorstatus);
+            json.put("status", getStatus() + " sensori: " + sensorstatus);
 
         } catch (JSONException e) {
             e.printStackTrace();

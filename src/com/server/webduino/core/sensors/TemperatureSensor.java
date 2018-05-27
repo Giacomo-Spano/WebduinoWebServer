@@ -7,8 +7,6 @@ import org.json.JSONObject;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
-
 public class TemperatureSensor extends SensorBase {
 
     private static Logger LOGGER = Logger.getLogger(TemperatureSensor.class.getName());
@@ -29,11 +27,11 @@ public class TemperatureSensor extends SensorBase {
         datalog = new TemperatureSensorDataLog(id);
     }
 
-    public boolean sendEvent(String eventtype) {
+    /*public boolean sendEvent(String eventtype) {
         if (super.sendEvent(eventtype) || eventtype == TemperatureEvents)
             return true;
         return false;
-    }
+    }*/
 
     @Override
     public void writeDataLog(String event) {
@@ -76,10 +74,10 @@ public class TemperatureSensor extends SensorBase {
         datalog.writelog("updateFromJson", this);
         // Notify everybody that may be interested.
         for (SensorListener listener : listeners) {
-            if (listener instanceof TemperatureSensorListener) { // da rimuovere
+            /*if (listener instanceof TemperatureSensorListener) { // da rimuovere
                 ((TemperatureSensorListener) listener).onUpdateTemperature(getId(), temperature, oldtemperature);
-            }
-            listener.changeValue(temperature);
+            }*/
+            listener.onChangeValue(this, temperature);
         }
     }
 

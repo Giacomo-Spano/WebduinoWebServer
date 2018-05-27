@@ -96,4 +96,12 @@ public class Service {
     public void getJSONField(JSONObject json) {
 
     }
+
+    public Boolean sendCommand(String cmd, JSONObject json) {
+        for (ActionCommand actionCommand : actionCommandList) {
+            if (cmd.equals(actionCommand.command))
+                actionCommand.commandMethod.execute(json);
+        }
+        return true;
+    }
 }

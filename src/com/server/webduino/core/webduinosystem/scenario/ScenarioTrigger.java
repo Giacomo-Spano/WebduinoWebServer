@@ -37,10 +37,19 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
     }
 
     public String getStatus() {
+        if (isActive())
+            return "active";
+        return "not active";
+    }
+
+    public boolean isActive() {
         Trigger trigger = Core.getTriggerFromId(triggerid);
-        if (trigger != null)
-            return trigger.status;
-        return "";
+        if (trigger != null) {
+            if (status.equals(trigger.status)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public interface ScenarioTriggerListener {
@@ -80,9 +89,10 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         if (trigger != null)
             json.put("name", trigger.name);
         json.put("enabled", enabled);
-        json.put("status", status);
+        json.put("activestatus", status); // stato considerato attivo per il trigger
         if (trigger != null)
-            json.put("currentstatus", trigger.status);
+            json.put("triggerstatus", trigger.status); // stato del triger attuale
+        json.put("status", getStatus()); // stato del triggere
         return json;
     }
 

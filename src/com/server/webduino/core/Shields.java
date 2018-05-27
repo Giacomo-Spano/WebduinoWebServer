@@ -415,7 +415,7 @@ public class Shields {
     }
 
     // chiamata per aggiungere un sensore
-    protected void updateSensorListeners(Shield shield) {
+    /*protected void updateSensorListeners(Shield shield) {
 
         for (SensorBase sensor : shield.sensors) {
             if (sensor.receiveEvent(TemperatureEvents)) {
@@ -438,7 +438,7 @@ public class Shields {
                 }
             }
         }
-    }
+    }*/
 
     // chiamata quand una shield si regiustra oppure quando viene letta da db
 
@@ -452,7 +452,7 @@ public class Shields {
 
         list.add(shield);
 
-        updateSensorListeners(shield);
+        //updateSensorListeners(shield);
     }
 
     public URL getURL(int id) {

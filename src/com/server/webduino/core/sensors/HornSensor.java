@@ -37,12 +37,14 @@ public class HornSensor extends Actuator {
         cmd.addDuration("Durata");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
+            public boolean execute(JSONObject json) {
                 try {
                     setStatus(activeStatus.status);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return false;
                 }
+                return true;
             }
             @Override
             public void end() {
@@ -55,12 +57,14 @@ public class HornSensor extends Actuator {
         cmd.addDuration("Durata");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
+            public boolean execute(JSONObject json) {
                 try {
                     setStatus(notActiveStatus.status);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return false;
                 }
+                return true;
             }
             @Override
             public void end() {

@@ -35,6 +35,10 @@ public class WebduinoSystem extends DBObject {
     public List<WebduinoSystemService> services = new ArrayList<>();
     public List<WebduinoSystemScenario> scenarios = new ArrayList<>();
 
+    public Boolean endCommand() {
+        return false;
+    }
+
     private class Status {
         String status;
         String description;
@@ -85,12 +89,14 @@ public class WebduinoSystem extends DBObject {
         cmd.addStatus("Stato");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
+            public boolean execute(JSONObject json) {
                 try {
                     setStatus(status_enabled);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return false;
                 }
+                return true;
             }
             @Override
             public void end() {
@@ -103,12 +109,14 @@ public class WebduinoSystem extends DBObject {
         cmd.addStatus("Stato");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
+            public boolean execute(JSONObject json) {
                 try {
                     setStatus(status_disabled);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return false;
                 }
+                return true;
             }
             @Override
             public void end() {

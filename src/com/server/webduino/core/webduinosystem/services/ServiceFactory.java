@@ -8,16 +8,16 @@ import com.server.webduino.core.webduinosystem.services.VoipService;
  */
 public class ServiceFactory {
 
-    public Service createService(int id, String name, String type) {
+    public Service createService(int id, String name, String type, String param) {
         Service service = null;
         if (type.equals("voip")) {
-            service = new VoipService(id,name,type);
+            service = new VoipService(id,name,type,param);
         } else if (type.equals("sms")) {
-            service = new AndroidNotificationService(id,name,type);
+            service = new AndroidNotificationService(id,name,type,param);
         } else if (type.equals("androidnotification")) {
-            service = new SMSService(id,name,type);
+            service = new SMSService(id,name,type,param);
         } else {
-            service = new Service(id,name,type);
+            service = new Service(id,name,type,param);
         }
         if (service != null) {
             service.init();

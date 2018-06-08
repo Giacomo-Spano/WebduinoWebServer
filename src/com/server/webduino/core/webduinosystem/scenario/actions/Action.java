@@ -149,10 +149,6 @@ public class Action {
             Service service = Core.getServiceFromId(serviceid);
             if (service != null) {
                 JSONObject json = new JSONObject();
-                /*json.put("targetvalue", targetvalue);
-                json.put("seconds", seconds);
-                json.put("zoneid", zoneid);
-                json.put("zonesensorid", zonesensorid);*/
                 service.sendCommand(actioncommand,json);
             }
 
@@ -160,10 +156,6 @@ public class Action {
             Trigger trigger = Core.getTriggerFromId(triggerid);
             if (trigger != null) {
                 JSONObject json = new JSONObject();
-                /*json.put("targetvalue", targetvalue);
-                json.put("seconds", seconds);
-                json.put("zoneid", zoneid);
-                json.put("zonesensorid", zonesensorid);*/
                 trigger.sendCommand(actioncommand,json);
             }
 
@@ -171,10 +163,6 @@ public class Action {
             WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(triggerid);
             if (webduinoSystem != null) {
                 JSONObject json = new JSONObject();
-                /*json.put("targetvalue", targetvalue);
-                json.put("seconds", seconds);
-                json.put("zoneid", zoneid);
-                json.put("zonesensorid", zonesensorid);*/
                 webduinoSystem.sendCommand(actioncommand,json);
             }
         }
@@ -193,11 +181,21 @@ public class Action {
                 sensor.endCommand();
             }
         } else if (type.equals(ACTION_SERVICE)) {
-
+            Service service = Core.getServiceFromId(serviceid);
+            if (service != null) {
+                service.endCommand();
+            }
         } else if (type.equals(ACTION_TRIGGER)) {
+            Trigger trigger = Core.getTriggerFromId(triggerid);
+            if (trigger != null) {
+                trigger.endCommand();
+            }
 
         } else if (type.equals(ACTION_WEBDUINOSYSTEM)) {
-
+            WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(triggerid);
+            if (webduinoSystem != null) {
+                webduinoSystem.endCommand();
+            }
         }
     }
 

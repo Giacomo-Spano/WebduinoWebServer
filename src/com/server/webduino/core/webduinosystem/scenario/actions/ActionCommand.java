@@ -13,7 +13,7 @@ public class ActionCommand {
 
     public interface Command
     {
-        public void execute(JSONObject json);
+        public boolean execute(JSONObject json);
         public void end();
     }
 

@@ -31,14 +31,16 @@ public class Service {
     public String name;
     private String type;
     private String status = "idle";
+    protected String param = "";
 
     protected List<String> statusList = new ArrayList<String>();
     protected List<ActionCommand> actionCommandList = new ArrayList<ActionCommand>();
 
-    public Service(int id, String name, String type) {
+    public Service(int id, String name, String type, String param) {
         this.id = id;
         this.name = name;
         this.type = type;
+        this.param = param;
     }
 
     public int getId() {
@@ -104,4 +106,9 @@ public class Service {
         }
         return true;
     }
+
+    public Boolean endCommand() {
+        return false;
+    }
+
 }

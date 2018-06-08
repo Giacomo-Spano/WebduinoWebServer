@@ -46,7 +46,7 @@ function addCondition(idx, elem, triggers, zones, sensors, services) {
         condition.find('td  select[name="zone"]').append(new Option(zone.name, zone.id));
     });
     condition.find('td select[name="zone"]').change(function () {
-        zoneid = this.value;
+        var zoneid = elem.zoneid;
         $('option', condition.find('td select[name="zonesensor"]')).remove();
         getZone(zoneid, function (zone) {
             // zonesensor
@@ -199,7 +199,9 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
     } else {
         actuatorid = elem.actuatorid;
     }
-    action.find('td select[name="actuator"]').val(actuatorid).change();
+    action.find('td select[name="actuator"]').val(actuatorid);
+    if (elem.type == "actuator")
+        action.find('td select[name="actuator"]').change();
 
     // trigger
     $.each(triggers, function (val, trigger) {
@@ -218,7 +220,9 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
     } else {
         triggerid = elem.triggerid;
     }
-    action.find('td select[name="trigger"]').val(triggerid).change();
+    action.find('td select[name="trigger"]').val(triggerid);
+    if (elem.type == "trigger")
+        action.find('td select[name="trigger"]').change();
 
     // webduinosystem
     $.each(webduinosystems, function (val, webduinosystem) {
@@ -237,7 +241,9 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
     } else {
         webduinosystemid = elem.webduinosystemid;
     }
-    action.find('td select[name="trigger"]').val(triggerid).change();
+    action.find('td select[name="webduinosystem"]').val(triggerid);
+    if (elem.type == "webduinosystem")
+        action.find('td select[name="webduinosystem"]').change();
 
     // service
     $.each(services, function (val, service) {
@@ -257,7 +263,9 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
     } else {
         serviceid = elem.serviceid;
     }
-    action.find('td select[name="service"]').val(serviceid).change();
+    action.find('td select[name="service"]').val(serviceid);
+    if (elem.type == "service")
+        action.find('td select[name="service"]').change();
 
 
     // zone
@@ -377,10 +385,10 @@ function handleActionCommandList(sensor, action, elem) {
                 }
             }
         });
-        actioncommand = sensor.actioncommandlist[this.value];
+        actioncommand = elem.actioncommand;//sensor.actioncommandlist[this.value];
         if (elem.actioncommand == null || elem.actioncommand == "")
             actioncommand = sensor.actioncommandlist[0];
-        action.find('td select[name="actioncommand"]').val(actioncommand.command).change();
+        action.find('td select[name="actioncommand"]').val(actioncommand).change();
     } else {
         action.find('td select[name="actioncommand"]').prop('disabled', true);
         action.find('td select[name="zone"]').prop('disabled', true);

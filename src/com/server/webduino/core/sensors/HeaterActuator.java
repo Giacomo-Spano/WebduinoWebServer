@@ -72,7 +72,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         cmd.addZone("Zona", TemperatureSensor.temperaturesensortype);
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
+            public boolean execute(JSONObject json) {
                 try {
                     int seconds = 1800;
                     /*if (json.has("seconds"))
@@ -95,7 +95,9 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    return false;
                 }
+                return  true;
             }
 
             @Override
@@ -109,7 +111,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         cmd.addTarget("Temperatura", 0, 30);
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
+            public boolean execute(JSONObject json) {
                 try {
                     int seconds = 1800;
                     /*if (json.has("seconds"))
@@ -120,7 +122,9 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
                     sendSwitchOnCommand(targetvalue,seconds);
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    return false;
                 }
+                return true;
             }
 
             @Override
@@ -134,8 +138,8 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         cmd = new ActionCommand("switchoff", "Spengi");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
-                sendSwitchOffCommand();
+            public boolean execute(JSONObject json) {
+                return sendSwitchOffCommand();
             }
             @Override
             public void end() {
@@ -572,7 +576,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         return "";
     }
 
-    public String sendSwitchOffCommand() {
+    public boolean sendSwitchOffCommand() {
 
         JSONObject json = new JSONObject();
         try {
@@ -587,8 +591,9 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
             cmd.send();
         } catch (JSONException e) {
             e.printStackTrace();
+            return false;
         }
-        return "";
+        return true;
     }
 
     /*@Override

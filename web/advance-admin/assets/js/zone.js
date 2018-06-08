@@ -11,13 +11,14 @@ function getZone(id, callback) {
     });
 }
 
-function setSensorList(type, zoneSensor) {
+function setSensorList(type,id, zoneSensor) {
     zoneSensor.find('td  select[name="sensor"]').empty();
 
     $.getJSON(systemServletPath + "?requestcommand=sensors&type=" + type, function (sensors) {
         $.each(sensors, function (val, sensor) {
             zoneSensor.find('td  select[name="sensor"]').append(new Option(sensor.name, sensor.id));
         });
+        zoneSensor.find('td select[name="sensor"]').val(id);
     });
 }
 
@@ -33,10 +34,13 @@ function addZoneSensor(idx, elem, sensortypes) {
     });
 
     zoneSensor.find('td  select[name="type"]').change(function () {
-        setSensorList(this.value, zoneSensor);
+        setSensorList(this.value,elem.sensorid, zoneSensor);
     });
     zoneSensor.find('td select[name="type"]').val(elem.type);
-    setSensorList(elem.type, zoneSensor);
+
+
+    setSensorList(elem.type,elem.sensorid, zoneSensor);
+    //zoneSensor.find('td select[name="sensor"]').val(elem.id);
 
     zoneSensor.find('td[name="status"]').val(elem.status);
     zoneSensor.find('td[name="name"]').val(elem.name);
@@ -137,7 +141,7 @@ function loadZone(zone) {
                         "zoneid": zone.id,
                         "id": 0,
                         "name": "nuovo sensore",
-                        "type": sensortypes[0],
+                        "type": sensortypes[0].value,
                         "enabled": false,
                         "zoneid": 0,
 
@@ -162,11 +166,7 @@ function updateZoneSensorData() {
         var i = 0;
         $zonePanel.find('tr[name="row"]').each(function (idx, elem) {
             var elem = $zone.zonesensors[i];
-            elem.enabled = $(this).find('td input[name="enabled"]').prop('checked');
             elem.type = $(this).find('td select[name="type"]').val();
-            elem.name = $(this).find('td input[name="name"]').val();
-            elem.description = $(this).find('td input[name="description"]').val();
-            elem.zoneid = $(this).find('td select[name="zoneid"]').val();
             elem.sensorid = $(this).find('td select[name="sensor"]').val();
             i++;
         });

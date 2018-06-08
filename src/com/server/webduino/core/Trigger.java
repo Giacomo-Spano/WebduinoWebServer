@@ -30,6 +30,10 @@ public class Trigger extends DBObject {
     public String status;
     public java.util.Date date;
 
+    public Boolean endCommand() {
+        return false;
+    }
+
     public interface TriggerListener {
         void onChangeStatus(boolean status);
     }

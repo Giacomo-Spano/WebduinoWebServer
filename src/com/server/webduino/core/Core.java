@@ -527,7 +527,8 @@ public class Core {
                 int id = servicesResultSet.getInt("id");
                 String name = servicesResultSet.getString("name");
                 String type = servicesResultSet.getString("type");
-                Service service = factory.createService(id, name, type);
+                String param = servicesResultSet.getString("param");
+                Service service = factory.createService(id, name, type, param);
                 if (service != null)
                     services.add(service);
             }

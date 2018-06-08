@@ -68,6 +68,7 @@ public class Condition extends SensorListenerClass {
     }
 
     public void stop() {
+
         if (sensor != null)
             sensor.removeListener(this);
         active = false;
@@ -95,40 +96,44 @@ public class Condition extends SensorListenerClass {
     private void handleZoneSensorStatus() {
         zone = Core.getZoneFromId(zoneid);
         if (zone != null) {
-            zone.addListener(new Zone.WebduinoZoneListener() {
-                /*@Override
-                public void onUpdateTemperature(int zoneId, double newTemperature, double oldTemperature) {
 
-                }*/
+            zoneSensor = zone.zoneSensorFromId(zonesensorid);
+            if (zoneSensor != null) {
+                sensor = Core.getSensorFromId(zoneSensor.getSensorId());
+                if (sensor != null) {
+                    sensor.addListener(new SensorBase.SensorListener() {
 
-                /*@Override
-                public void onDoorStatusChange(int zoneId, boolean openStatus, boolean oldOpenStatus) {
+                        @Override
+                        public void onChangeValue(SensorBase sensor, double val) {
 
-                }*/
+                        }
 
-                @Override
-                public void onChangeStatus(int zoneId, int sensorid, String status, String oldstatus) {
-                    boolean oldactive = active;
-                    zone = Core.getZoneFromId(zoneid);
-                    if (zone != null) {
-                        zoneSensor = zone.zoneSensorFromId(zonesensorid);
-                        if (zoneSensor != null) {
-                            sensor = Core.getSensorFromId(zoneSensor.getSensorId());
-                            if (sensor != null && sensor.getId() == sensorid) {
-                                if (status.equals(sensorstatus))
-                                    active = true;
-                                else
-                                    active = false;
+                        @Override
+                        public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
+
+                            boolean oldactive = active;
+                            zone = Core.getZoneFromId(zoneid);
+                            if (zone != null) {
+                                zoneSensor = zone.zoneSensorFromId(zonesensorid);
+                                if (zoneSensor != null) {
+                                    sensor = Core.getSensorFromId(zoneSensor.getSensorId());
+                                    if (sensor != null && sensor.getId() == zoneSensor.getSensorId()) {
+                                        if (newStatus.status.equals(sensorstatus))
+                                            active = true;
+                                        else
+                                            active = false;
+                                    }
+                                }
+                            }
+                            if (oldactive != active) {
+                                for (ConditionListener listener : listeners) {
+                                    listener.onActiveChange(active);
+                                }
                             }
                         }
-                    }
-                    if (oldactive != active) {
-                        for (ConditionListener listener : listeners) {
-                            listener.onActiveChange(active);
-                        }
-                    }
+                    });
                 }
-            });
+            }
         }
     }
 

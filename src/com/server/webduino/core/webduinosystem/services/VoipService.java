@@ -19,18 +19,23 @@ import java.util.logging.Logger;
 public class VoipService extends Service {
     private static final Logger LOGGER = Logger.getLogger(VoipService.class.getName());
 
-    public VoipService(int id, String name, String type) {
-        super(id, name, type);
+    public VoipService(int id, String name, String type, String param) {
+        super(id, name, type, param);
         ActionCommand cmd = new ActionCommand("voipcall","Chiamata VoIP");
         cmd.addParam("Numero telefono",10);
         cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public void execute(JSONObject json) {
+            public boolean execute(JSONObject json) {
                 try {
-                    //send();
+                    httpClientResult res = send();
+                    if (res != null)
+                        return res.res;
+
                 } catch (Exception e) {
                     e.printStackTrace();
+                    return false;
                 }
+                return false;
             }
             @Override
             public void end() {
@@ -45,7 +50,8 @@ public class VoipService extends Service {
     public httpClientResult send() {
 
 
-        String stringUrl = "https://maker.ifttt.com/trigger/makecall/with/key/dF2YNsgRCU5bWMZXuNqBt6";
+        //String stringUrl = "https://maker.ifttt.com/trigger/makecall/with/key/dF2YNsgRCU5bWMZXuNqBt6";
+        String stringUrl = param;
 
         String parameters = "";
 

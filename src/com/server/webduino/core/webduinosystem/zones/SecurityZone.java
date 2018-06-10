@@ -14,7 +14,7 @@ public class SecurityZone extends Zone implements SensorBase.SensorListener {
 
 
     public SecurityZone(int id, String name, String type) {
-        super(id, name, type);
+        super(id, name);
     }
 
 

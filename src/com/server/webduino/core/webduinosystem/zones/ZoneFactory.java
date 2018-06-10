@@ -12,7 +12,7 @@ public class ZoneFactory {
         } else if (type.equals("heaterzone")) {
             zone = new HeaterZone(id,name,type);
         } else {
-            zone = new Zone(id,name,type);
+            zone = new Zone(id,name);
         }
         if (zone != null) {
             zone.init();

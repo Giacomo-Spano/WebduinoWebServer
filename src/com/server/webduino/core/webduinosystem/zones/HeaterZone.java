@@ -14,7 +14,7 @@ public class HeaterZone extends Zone implements SensorBase.SensorListener {
 
 
     public HeaterZone(int id, String name, String type) {
-        super(id, name, type);
+        super(id, name);
     }
 
 

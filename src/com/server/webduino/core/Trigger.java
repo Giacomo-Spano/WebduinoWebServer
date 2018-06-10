@@ -34,6 +34,10 @@ public class Trigger extends DBObject {
         return false;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public interface TriggerListener {
         void onChangeStatus(boolean status);
     }

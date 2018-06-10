@@ -3,6 +3,8 @@ package com.server.webduino.core;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.Actuator;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.core.virtual.VirtualShield;
 import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.exits.Exit;
 import com.server.webduino.core.webduinosystem.exits.ExitFactory;
@@ -364,6 +366,10 @@ public class Core {
         mShields.init();
         //mSchedule = new Schedule(); // DA ELIMINARE
 
+        VirtualShield virtualshield = new VirtualShield();
+        Thread thread = new Thread(virtualshield, "commandThread" + 1);
+        thread.start();
+
         // caricamento dati scernari e zone
         readZones();
         readServices();
@@ -444,11 +450,11 @@ public class Core {
             // Extract data from result set
             zones.clear();
             while (zonesResultSet.next()) {
-                ZoneFactory factory = new ZoneFactory();
+                //ZoneFactory factory = new ZoneFactory();
                 int id = zonesResultSet.getInt("id");
                 String name = zonesResultSet.getString("name");
-                String type = zonesResultSet.getString("type");
-                Zone zone = factory.createWebduinoZone(id, name, type);
+                //Zone zone = factory.createWebduinoZone(id, name);
+                Zone zone = new Zone(id,name);
                 if (zone != null)
                     zones.add(zone);
             }
@@ -482,7 +488,7 @@ public class Core {
             ResultSet triggersResultSet = stmt.executeQuery(sql);
             triggerClass.clear();
             while (triggersResultSet.next()) {
-                ZoneFactory factory = new ZoneFactory();
+                //ZoneFactory factory = new ZoneFactory();
                 int id = triggersResultSet.getInt("id");
                 String name = triggersResultSet.getString("name");
                 //boolean status = triggersResultSet.getBoolean("status");

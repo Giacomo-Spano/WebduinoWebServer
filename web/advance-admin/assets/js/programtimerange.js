@@ -479,24 +479,24 @@ function loadProgramTimeRange(tag, timerange) {
                                 $programtimerangePanel.find('input[name="name"]').val(timerange.name);
                                 $programtimerangePanel.find('textarea[name="description"]').val(timerange.description);
                                 $programtimerangePanel.find('input[name="starttime"]').timepicker({
-                                    timeFormat: 'HH:mm',
+                                    timeFormat: 'HH:mm:ss',
                                     interval: 15,
-                                    minTime: '00:00',
-                                    maxTime: '23:59',
-                                    defaultTime: '00:00',
-                                    startTime: '00:00',
+                                    minTime: '00:00:00',
+                                    maxTime: '23:59:59',
+                                    defaultTime: '00:00:00',
+                                    startTime: '00:00:00',
                                     dynamic: true,
                                     dropdown: true,
                                     scrollbar: true
                                 });
                                 if (timerange.starttime != null) $programtimerangePanel.find('input[name="starttime"]').val(timerange.starttime);
                                 $programtimerangePanel.find('input[name="endtime"]').timepicker({
-                                    timeFormat: 'HH:mm',
+                                    timeFormat: 'HH:mm:ss',
                                     interval: 15,
-                                    minTime: '00:00',
-                                    maxTime: '23:59',
-                                    defaultTime: '23:59',
-                                    startTime: '00:00',
+                                    minTime: '00:00:00',
+                                    maxTime: '23:59:59',
+                                    defaultTime: '23:59:59',
+                                    startTime: '00:00:00',
                                     dynamic: true,
                                     dropdown: true,
                                     scrollbar: true

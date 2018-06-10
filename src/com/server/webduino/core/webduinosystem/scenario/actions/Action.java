@@ -55,6 +55,7 @@ public class Action {
 
     public interface ActionListener {
         void onStart(Action action);
+
         void onStop(Action action);
     }
 
@@ -70,7 +71,7 @@ public class Action {
 
     public boolean hasConflict(Action action) {
 
-        if (action ==  null)
+        if (action == null)
             return false;
 
         if (type.equals(ACTION_ACTUATOR)) {
@@ -140,7 +141,7 @@ public class Action {
                     json.put("seconds", seconds);
                     json.put("zoneid", zoneid);
                     json.put("zonesensorid", zonesensorid);
-                    sensor.sendCommand(actioncommand,json);
+                    sensor.sendCommand(actioncommand, json);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -149,21 +150,21 @@ public class Action {
             Service service = Core.getServiceFromId(serviceid);
             if (service != null) {
                 JSONObject json = new JSONObject();
-                service.sendCommand(actioncommand,json);
+                service.sendCommand(actioncommand, json);
             }
 
         } else if (type.equals(ACTION_TRIGGER)) {
             Trigger trigger = Core.getTriggerFromId(triggerid);
             if (trigger != null) {
                 JSONObject json = new JSONObject();
-                trigger.sendCommand(actioncommand,json);
+                trigger.sendCommand(actioncommand, json);
             }
 
         } else if (type.equals(ACTION_WEBDUINOSYSTEM)) {
             WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(triggerid);
             if (webduinoSystem != null) {
                 JSONObject json = new JSONObject();
-                webduinoSystem.sendCommand(actioncommand,json);
+                webduinoSystem.sendCommand(actioncommand, json);
             }
         }
     }
@@ -200,9 +201,43 @@ public class Action {
     }
 
     public String getStatus() {
+
+        String statustext = "";
+        if (type.equals(ACTION_ACTUATOR)) {
+            SensorBase sensor = Core.getSensorFromId(actuatorid);
+            if (sensor != null) {
+                statustext += "Attuatore:" + sensor.getName();
+                statustext += " targetvalue:" + targetvalue;
+                statustext += " seconds:" + seconds;
+                statustext += " zoneid:" + zoneid;
+                statustext += " zonesensorid:" + zonesensorid;
+                statustext += " actioncommand:" + actioncommand;
+            }
+        } else if (type.equals(ACTION_SERVICE)) {
+            Service service = Core.getServiceFromId(serviceid);
+            if (service != null) {
+                statustext += "Servizio:" + service.getName();
+                statustext += " actioncommand:" + actioncommand;
+            }
+
+        } else if (type.equals(ACTION_TRIGGER)) {
+            Trigger trigger = Core.getTriggerFromId(triggerid);
+            if (trigger != null) {
+                statustext += "Trigger:" + trigger.getName();
+                statustext += " actioncommand:" + actioncommand;
+            }
+
+        } else if (type.equals(ACTION_WEBDUINOSYSTEM)) {
+            WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(triggerid);
+            if (webduinoSystem != null) {
+                statustext += "System:" + webduinoSystem.getName();
+                statustext += " actioncommand:" + actioncommand;
+            }
+        }
+
         if (active)
-            return "active";
-        return "not active";
+            return statustext += "Status: active";
+        return statustext += "Status: not active";
     }
 
 
@@ -323,23 +358,23 @@ public class Action {
 
     public void write(Connection conn) throws SQLException {
 
-        String serviceidstr ="null";
-        if (serviceid>0)
+        String serviceidstr = "null";
+        if (serviceid > 0)
             serviceidstr = "" + serviceid;
-        String actuatoridstr ="null";
-        if (actuatorid>0)
+        String actuatoridstr = "null";
+        if (actuatorid > 0)
             actuatoridstr = "" + actuatorid;
-        String triggeridstr ="null";
-        if (triggerid>0)
+        String triggeridstr = "null";
+        if (triggerid > 0)
             triggeridstr = "" + triggerid;
-        String webduinosystemidstr ="null";
-        if (webduinosystemid>0)
+        String webduinosystemidstr = "null";
+        if (webduinosystemid > 0)
             webduinosystemidstr = "" + webduinosystemid;
-        String zoneidstr ="null";
-        if (zoneid>0)
+        String zoneidstr = "null";
+        if (zoneid > 0)
             zoneidstr = "" + zoneid;
-        String zonesensoridstr ="null";
-        if (zonesensorid>0)
+        String zonesensoridstr = "null";
+        if (zonesensorid > 0)
             zonesensoridstr = "" + zonesensorid;
 
         String sql;

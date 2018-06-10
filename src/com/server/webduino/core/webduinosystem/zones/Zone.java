@@ -58,15 +58,13 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
 
     public int id;
     private String name;
-    private String type;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
     private double temperature = 0.0;
     public Date lastTemperatureUpdate = null;
 
-    public Zone(int id, String name, String type) {
+    public Zone(int id, String name) {
         this.id = id;
         this.name = name;
-        this.type = type;
         readZoneSensors(id);
     }
 
@@ -81,8 +79,6 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
             id = json.getInt("id");
         if (json.has("name"))
             name = json.getString("name");
-        if (json.has("type"))
-            type = json.getString("type");
         if (json.has("zonesensors")) {
             JSONArray sensors = json.getJSONArray("zonesensors");
             for (int i = 0; i < sensors.length(); i++) {
@@ -135,14 +131,12 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
         Statement stmt = null;
 
         stmt = conn.createStatement();
-        String sql = "INSERT INTO zones (id, name, type)" +
+        String sql = "INSERT INTO zones (id, name)" +
                 " VALUES ("
                 + id + ","
-                + "\"" + name + "\","
-                + "\"" + type + "\" ) " +
+                + "\"" + name + "\") " +
                 "ON DUPLICATE KEY UPDATE "
-                + "name=\"" + name + "\","
-                + "type=\"" + type + "\";";
+                + "name=\"" + name + "\";";
 
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
         ResultSet rs = stmt.getGeneratedKeys();

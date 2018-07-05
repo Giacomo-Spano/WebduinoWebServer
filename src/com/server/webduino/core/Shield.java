@@ -1,9 +1,12 @@
 package com.server.webduino.core;
 
 import com.server.webduino.DBObject;
+import com.server.webduino.core.datalog.ShieldDataLog;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.SensorFactory;
 import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.sensors.commands.ShieldCommand;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,13 +25,15 @@ public class Shield extends DBObject {
 
     private static Logger LOGGER = Logger.getLogger(Shield.class.getName());
 
-    protected int id;
+    public int id;
     public String MACAddress;
     protected String boardName;
     protected String description = "";
     protected boolean enabled = false;
     protected Date lastUpdate = new Date();
     protected List<SensorBase> sensors = new ArrayList<>();
+
+    public ShieldDataLog datalog;
 
     public String swVersion = "";
 
@@ -52,6 +57,7 @@ public class Shield extends DBObject {
     }
 
     public Shield() {
+        datalog = new ShieldDataLog(id);
     }
 
     public Shield(JSONObject json) throws Exception {
@@ -67,6 +73,21 @@ public class Shield extends DBObject {
         for (SensorBase sensor : sensors) {
             sensor.requestAsyncSensorStatusUpdate();
         }
+    }
+
+    public boolean checkHealth() { //
+
+        LOGGER.info("checkHealth:");
+        JSONObject json = new JSONObject();
+        try {
+            json.put("shieldid", id);
+            json.put("command", ShieldCommand.Command_CheckHealth);
+            ShieldCommand cmd = new ShieldCommand(json);
+            return cmd.send();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public boolean requestReboot() { //
@@ -204,7 +225,7 @@ public class Shield extends DBObject {
         return null;
     }
 
-    boolean updateShieldStatus(JSONObject json) {
+    public boolean updateShieldStatus(JSONObject json) {
 
         try {
             if (json.has("swversion")) {

@@ -39,6 +39,9 @@ public class ActionCommand {
     int duration = 0;
     String durationname = "Durata";
 
+    boolean hasdevice = false;
+    String devicename = "stato";
+
     public ActionCommand(String command, String name) {
         this.command = command;
         this.name = name;
@@ -79,6 +82,11 @@ public class ActionCommand {
         durationname = name;
     }
 
+    public void addDevice(String name) {
+        hasdevice = true;
+        devicename = name;
+    }
+
     public void addStatus(String name) {
         hasstatus = true;
     }
@@ -111,6 +119,11 @@ public class ActionCommand {
             json.put("param",true);
             json.put("paramname",paramname);
             json.put("paramlen",paramlen);
+        }
+
+        if (hasdevice) {
+            json.put("device",true);
+            json.put("devicename",devicename);
         }
 
         if (hasstatus) {

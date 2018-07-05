@@ -42,7 +42,7 @@ public class HornActuatorCommand extends Command {
     }
 
     @Override
-    public JSONObject getJSON() {
+    public JSONObject toJSON() {
 
         JSONObject json = new JSONObject();
 

@@ -15,8 +15,8 @@ public class DoorSensor extends SensorBase {
     private static Logger LOGGER = Logger.getLogger(DoorSensor.class.getName());
 
     //private boolean open;
-    public static final String STATUS_OPEN = "open";
-    public static final String STATUS_CLOSED = "closed";
+    public static final String STATUS_OPEN = "dooropen";
+    public static final String STATUS_CLOSED = "doorclosed";
 
     public static final String STATUS_DESCRIPTION_OPEN = "Porta aperta";
     public static final String STATUS_DESCRIPTION_CLOSED = "Porta chiusa";
@@ -37,28 +37,10 @@ public class DoorSensor extends SensorBase {
         statusList.add(status);
     }
 
-    /*public void setStatus(boolean open) {
-        LOGGER.info("setStatus");
-
-        boolean oldOpen = this.open;
-        this.open = open;
-        if (open != oldOpen) {
-            datalog.writelog("updateFromJson",this);
-            // Notify everybody that may be interested.
-            for (SensorListener listener : listeners) {
-                listener.changeDoorStatus(id, open, oldOpen);
-            }
-        }
-    }*/
-
     @Override
     public void writeDataLog(String event) {
         datalog.writelog(event, this);
     }
-
-    /*public String getDoorStatus() {
-        return status;
-    }*/
 
     @Override
     public void updateFromJson(Date date, JSONObject json) {
@@ -67,12 +49,12 @@ public class DoorSensor extends SensorBase {
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
 
-            if (json.has("open")) {
+            /*if (json.has("open")) {
                 if (json.getBoolean("open"))
                     setStatus(STATUS_OPEN);
                 else
                     setStatus(STATUS_CLOSED);
-            }
+            }*/
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

@@ -3,8 +3,6 @@ package com.server.webduino.core;
 import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.Actuator;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.commands.Command;
-import com.server.webduino.core.virtual.VirtualShield;
 import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.exits.Exit;
 import com.server.webduino.core.webduinosystem.exits.ExitFactory;
@@ -16,7 +14,6 @@ import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
 import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.webduinosystem.services.ServiceFactory;
 import com.server.webduino.core.webduinosystem.zones.Zone;
-import com.server.webduino.core.webduinosystem.zones.ZoneFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -60,7 +57,7 @@ public class Core {
     public static Shields mShields; // rendere private
     private static List<SWVersion> swversions = new ArrayList<>();
 
-    public static Devices mDevices = new Devices();
+    public static Devices devices = new Devices();
 
     static SimpleMqttClient smc;
 
@@ -281,6 +278,18 @@ public class Core {
         return jsonArray;
     }
 
+    public static JSONArray getDevicesJSONArray() throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (Device device : devices.getList()) {
+            jsonArray.put(device.toJson());
+        }
+        return jsonArray;
+    }
+
+    public static Device getDevicesFromId(int id) {
+        return devices.getDeviceFromId(id);
+    }
+
     public static JSONArray getSensorsJSONArray(int shieldid, String type) {
         JSONArray jsonArray = new JSONArray();
         for (SensorBase sensor : mShields.getLastSensorData()) {
@@ -366,9 +375,9 @@ public class Core {
         mShields.init();
         //mSchedule = new Schedule(); // DA ELIMINARE
 
-        VirtualShield virtualshield = new VirtualShield();
+        /*VirtualShield virtualshield = new VirtualShield();
         Thread thread = new Thread(virtualshield, "commandThread" + 1);
-        thread.start();
+        thread.start();*/
 
         // caricamento dati scernari e zone
         readZones();
@@ -385,7 +394,7 @@ public class Core {
         //mShields.addListener(this);
 
         // inizializzazione client android remoti
-        mDevices.read();
+        devices.read();
     }
 
 
@@ -883,7 +892,14 @@ public class Core {
     public static void sendPushNotification(String type, String title, String description, String value, int id) {
 
         LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
-        new PushNotificationThread(type, title, description, value, id).start();
+        new PushNotificationThread(type, title, description, value, id, null).start();
+        LOGGER.info("sendPushNotification sent");
+    }
+
+    public static void sendPushNotification(String type, String title, String description, String value, int id, List<Device> devices) {
+
+        LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
+        new PushNotificationThread(type, title, description, value, id, devices).start();
         LOGGER.info("sendPushNotification sent");
     }
 
@@ -918,6 +934,11 @@ public class Core {
     public static Shield getShieldFromId(int shieldid) {
         return mShields.fromId(shieldid);
     }
+
+    public static Shield getShieldFromMACAddress(String MACAddress) {
+        return mShields.getShieldFromMACAddress(MACAddress);
+    }
+
 
     public static boolean requestShieldSettingsUpdate(int shieldid) {
         return mShields.requestShieldSettingStatusUpdate(shieldid);

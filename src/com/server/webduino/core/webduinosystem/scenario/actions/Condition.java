@@ -34,6 +34,11 @@ public class Condition extends SensorListenerClass {
     public double value;
     public String[] valueoperators = {">", "<", "="};
 
+    SensorBase.SensorListener zoneSensorStatusListener;
+    SensorBase.SensorListener zoneSensorValueListener;
+    Trigger.TriggerListener triggerListener;
+
+
     private boolean active = false;
 
     Zone zone = null;
@@ -59,19 +64,41 @@ public class Condition extends SensorListenerClass {
         active = false;
 
         if (type.equals("zonesensorvalue")) {
-            handleZoneSensorValue();
+            startZoneSensorValueHandling();
         } else if (type.equals("zonesensorstatus")) {
-            handleZoneSensorStatus();
+            startZoneSensorStatusHandling();
         } else if (type.equals("triggerstatus")) {
-            handleTriggerStatus();
+            startHandleTriggerStatusHandling();
         }
     }
 
     public void stop() {
 
-        if (sensor != null)
-            sensor.removeListener(this);
+        if (type.equals("zonesensorvalue")) {
+            stopZoneSensorValueHandling();
+        } else if (type.equals("zonesensorstatus")) {
+            stopZoneSensorStatusHandling();
+        } else if (type.equals("triggerstatus")) {
+            stopHandleTriggerStatusHandling();
+        }
+
+        /*if (sensor != null)
+            sensor.removeListener(this);*/
         active = false;
+
+
+    }
+
+    private void stopHandleTriggerStatusHandling() {
+        trigger.removeListener(triggerListener);
+    }
+
+    private void stopZoneSensorStatusHandling() {
+        sensor.removeListener(zoneSensorStatusListener);
+    }
+
+    private void stopZoneSensorValueHandling() {
+        sensor.removeListener(zoneSensorValueListener);
     }
 
     public String getStatus() {
@@ -81,19 +108,20 @@ public class Condition extends SensorListenerClass {
     }
 
 
-    private void handleTriggerStatus() {
+    private void startHandleTriggerStatusHandling() {
         trigger = Core.getTriggerFromId(triggerid);
         if (trigger != null) {
-            trigger.addListener(new Trigger.TriggerListener() {
+            triggerListener = new Trigger.TriggerListener() {
                 @Override
                 public void onChangeStatus(boolean status) {
 
                 }
-            });
+            };
+            trigger.addListener(triggerListener);
         }
     }
 
-    private void handleZoneSensorStatus() {
+    private void startZoneSensorStatusHandling() {
         zone = Core.getZoneFromId(zoneid);
         if (zone != null) {
 
@@ -101,7 +129,7 @@ public class Condition extends SensorListenerClass {
             if (zoneSensor != null) {
                 sensor = Core.getSensorFromId(zoneSensor.getSensorId());
                 if (sensor != null) {
-                    sensor.addListener(new SensorBase.SensorListener() {
+                    zoneSensorStatusListener = new SensorBase.SensorListener() {
 
                         @Override
                         public void onChangeValue(SensorBase sensor, double val) {
@@ -131,20 +159,22 @@ public class Condition extends SensorListenerClass {
                                 }
                             }
                         }
-                    });
+                    };
+
+                    sensor.addListener(zoneSensorStatusListener);
                 }
             }
         }
     }
 
-    private void handleZoneSensorValue() {
+    private void startZoneSensorValueHandling() {
         zone = Core.getZoneFromId(zoneid);
         if (zone != null) {
             zoneSensor = zone.zoneSensorFromId(zonesensorid);
             if (zoneSensor != null) {
                 sensor = Core.getSensorFromId(zoneSensor.getSensorId());
                 if (sensor != null) {
-                    sensor.addListener(new SensorBase.SensorListener() {
+                    zoneSensorValueListener = new SensorBase.SensorListener() {
 
                         @Override
                         public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
@@ -179,7 +209,8 @@ public class Condition extends SensorListenerClass {
                                 }
                             }
                         }
-                    });
+                    };
+                    sensor.addListener(zoneSensorValueListener);
                 }
             }
         }

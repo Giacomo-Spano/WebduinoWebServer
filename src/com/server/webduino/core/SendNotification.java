@@ -14,16 +14,18 @@ public class SendNotification extends httpClient {
 
     private static final Logger LOGGER = Logger.getLogger(NotificationServlet.class.getName());
 
-    httpClientResult send(String title, String description, String notificationType, int id) {
+    httpClientResult send(String title, String description, String notificationType, int id, List<Device> devices) {
 
-        Devices devices = new Devices();
-        devices.read();
-        List<Device> list = devices.getList();
+        if (devices == null) {
+            Devices _devices = new Devices();
+            _devices.read();
+            devices = _devices.getList();
+        }
 
-        if (list == null || list.size() == 0)
+        if (devices == null || devices.size() == 0)
             return null;
 
-        for (Device device : list) {
+        for (Device device : devices) {
             String to = device.tokenId;
 
 

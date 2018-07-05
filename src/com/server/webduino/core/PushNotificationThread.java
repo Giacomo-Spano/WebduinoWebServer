@@ -2,6 +2,8 @@ package com.server.webduino.core;
 
 import com.server.webduino.servlet.SendPushMessages;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -16,25 +18,23 @@ public class PushNotificationThread extends Thread {
     String description;
     String value;
     int id;
+    List<Device> devices;// = new ArrayList<>();
 
-    public PushNotificationThread(String type, String title, String description, String value, int id) {
+    public PushNotificationThread(String type, String title, String description, String value, int id, List<Device> devices) {
         super("str");
-
         this.type = type;
         this.title = title;
         this.description = description;
         this.value = value;
         this.id = id;
+        this.devices = devices;
 
     }
     public void run() {
 
         LOGGER.info("PushNotificationThread type=" + type + "title=" + title + "value=" + value);
-        //SendPushMessages sp = new SendPushMessages(type, title, description, value);
-        //sp.send();
-
         SendNotification notification = new SendNotification();
-        notification.send(title, description + " type=" + type + ",value=" + value, type, id);
+        notification.send(title, description + " type=" + type + ",value=" + value, type, id, devices);
         LOGGER.info("PushNotificationThread type=" + type + "title=" + title + "value=" + value);
     }
 }

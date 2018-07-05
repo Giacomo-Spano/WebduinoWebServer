@@ -2,6 +2,7 @@ package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -70,11 +71,20 @@ public class Shields {
 
                 if (topic.equals("toServer/shield/loadsettings")) {  // chiamata all'inizio dalla schesa
 
+
                     String MACAddress = message;
                     JSONObject jsonResult = loadShieldSettings(MACAddress);
-                    //Core.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
                     if (smc != null)
                         smc.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
+                    // questo va cambiato. Dovrebbe chiamare un comando e dovrebbe essere messo tutto nell'if successivop
+
+                    Shield shield = Core.getShieldFromMACAddress(MACAddress);
+
+                    if (shield != null) {
+                        shield.datalog.writelog("loadsettings",shield);
+                        String description = "Shield " + shield.boardName + " restarted";
+                        Core.sendPushNotification(SendPushMessages.notification_restarted, "Restart", description, "0", 0);
+                    }
 
                 } else if (topic.equals("toServer/shield/sensor/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
 
@@ -92,6 +102,7 @@ public class Shields {
                     }
 
                 } else if (topic.equals("toServer/shield/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
+                                                                    // da eliminarte
 
                     try {
                         JSONObject json = new JSONObject(message);
@@ -218,6 +229,11 @@ public class Shields {
     public void requestSensorsStatusUpdate() {
 
         for (Shield shield : getShields()) {
+            boolean res = shield.checkHealth(); // questo andrebbe messo in un quartz separato
+            if (!res) {
+                String description = "Shield " + shield.boardName + " offline";
+                Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+            }
             shield.requestAsyncAllSensorStatusUpdate();
         }
     }
@@ -362,7 +378,7 @@ public class Shields {
 
     public Shield getShieldFromMACAddress(String MACAddress) {
         for (Shield shield : list) {
-            if (shield.MACAddress.equals(MACAddress))
+            if (shield.MACAddress.equalsIgnoreCase(MACAddress))
                 return shield;
         }
         return null;

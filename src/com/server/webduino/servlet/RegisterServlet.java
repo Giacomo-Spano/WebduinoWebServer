@@ -38,7 +38,7 @@ public class RegisterServlet extends BaseServlet {
         device.name = getParameter(req, "name");
         device.date = Core.getDate();
 
-        int id = Core.mDevices.insert(device);
+        int id = Core.devices.insert(device);
 
         setSuccess(resp);
 

@@ -16,6 +16,7 @@ public class SendPushMessages {
     public static final String App_GPSAlarm = "GPSAlarm";
     public static final String App_WindAlarm = "WindAlarm";
 
+    public static final String notification_alarm = "alarm";
     public static final String notification_statuschange = "status_change";
     public static final String notification_restarted = "restart";
     public static final String notification_programchange = "program_change";
@@ -68,7 +69,7 @@ public class SendPushMessages {
 
         LOGGER.log(Level.INFO, "send message", mMessage);
 
-        if (Core.mDevices.getList().size() == 0) {
+        if (Core.devices.getList().size() == 0) {
             status = "Message ignored as there is no device registered!";
             LOGGER.info(status);
         } else {
@@ -86,11 +87,11 @@ public class SendPushMessages {
             } else {
                 // send a multicast message using JSON
                 // must split in chunks of 1000 devices (GCM limit)
-                int total = Core.mDevices.getList().size();
+                int total = Core.devices.getList().size();
                 List<String> partialDevices = new ArrayList<String>(total);
                 int counter = 0;
                 int tasks = 0;
-                for (Device device : Core.mDevices.getList()) {
+                for (Device device : Core.devices.getList()) {
                     counter++;
                     LOGGER.info("regid:" + device.tokenId + " name:" + device.name);
                     partialDevices.add(device.tokenId);

@@ -2,20 +2,20 @@ package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.DoorSensor;
-import com.server.webduino.core.sensors.HornSensor;
+import com.server.webduino.core.sensors.RFIDSensor;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class HornSensorDataLog extends DataLog {
+public class RFIDSensorDataLog extends DataLog {
 
     public boolean open = false;
-    public String tableName = "horndatalog";
+    public String tableName = "rfiddatalog";
     private int sensorid;
 
-    public HornSensorDataLog(int sensorid) {
+    public RFIDSensorDataLog(int sensorid) {
         super();
         this.sensorid = sensorid;
     }
@@ -23,10 +23,10 @@ public class HornSensorDataLog extends DataLog {
     @Override
     public String getSQLInsert(String event, Object object) {
 
-        HornSensor hornSensor = (HornSensor) object;
+        RFIDSensor rfidSensor = (RFIDSensor) object;
         String sql;
         sql = "INSERT INTO " + tableName + " (id, sensorid, date, status) VALUES ("
-                + hornSensor.getId() + "," + hornSensor.getId() + ","  + getStrDate() + ",\"" + hornSensor.getStatus().status + "\");";
+                + rfidSensor.getId() + "," + rfidSensor.getId() + ","  + getStrDate() + ",\"" + rfidSensor.getStatus().status + "\");";
         return sql;
     }
 

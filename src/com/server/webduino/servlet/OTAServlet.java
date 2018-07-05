@@ -2,6 +2,7 @@ package com.server.webduino.servlet;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.SWVersion;
+import com.server.webduino.core.Shield;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -51,15 +52,18 @@ public class OTAServlet extends HttpServlet {
         String swversion = request.getHeader("x-esp8266-version");
         LOGGER.severe("swversion:" + swversion);
 
+        String mac = request.getHeader("x-esp8266-sta-mac");
+        Shield shield = Core.getShieldFromMACAddress(mac);
+        if (shield != null) {
+            shield.datalog.writelog("ota curr sw=" + swversion, shield);
+        }
+
         String[] split1 = swversion.split("\\.");
         LOGGER.severe("split1[0]:" + split1[0]);
         LOGGER.severe("split1[1]:" + split1[1]);
         String[] split2 = latestVersion.version.split("\\.");
         LOGGER.severe("split2[0]:" + split2[0]);
         LOGGER.severe("split2[1]:" + split2[1]);
-
-
-
 
         if ((Integer.parseInt(split2[0]) == Integer.parseInt(split1[0]) &&
                 Integer.parseInt(split2[1]) > Integer.parseInt(split1[1])) ||
@@ -68,15 +72,8 @@ public class OTAServlet extends HttpServlet {
 
 
             LOGGER.info("update software");
-            /*String path = System.getProperty("java.io.tmpdir");
-            if (!Core.isProduction())
-                path = System.getenv("tmp");
-            else
-                path = System.getProperty("java.io.tmpdir");*/
             String path = latestVersion.path;
 
-
-            //String fileName = "ESP8266Webduino.ino.bin";
             String fileName = latestVersion.filename;
             String fileType = ".bin";
 
@@ -84,7 +81,7 @@ public class OTAServlet extends HttpServlet {
 
             // Make sure to show the download dialog
             //response.setHeader("Content-disposition", "attachment; filename=ESP8266Webduino.ino");
-            response.setHeader("Content-disposition", "attachment; filename="+fileName);
+            response.setHeader("Content-disposition", "attachment; filename=" + fileName);
             response.setStatus(SC_OK);
 
             File my_file = new File(path + "/" + fileName);
@@ -104,12 +101,15 @@ public class OTAServlet extends HttpServlet {
             in.close();
             out.flush();
 
+            if (shield != null) {
+                shield.datalog.writelog("ota loaded sw=" + latestVersion.version, shield);
+            }
         } else {
             LOGGER.info("update not needed");
+            if (shield != null) {
+                shield.datalog.writelog("ota update not needed", shield);
+            }
             response.setStatus(304);
-
         }
-
-
     }
 }

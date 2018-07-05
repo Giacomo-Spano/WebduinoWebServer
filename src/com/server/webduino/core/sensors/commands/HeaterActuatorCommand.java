@@ -84,7 +84,7 @@ public class HeaterActuatorCommand extends Command {
     }
 
     @Override
-    public JSONObject getJSON() {
+    public JSONObject toJSON() {
 
         JSONObject json = new JSONObject();
 

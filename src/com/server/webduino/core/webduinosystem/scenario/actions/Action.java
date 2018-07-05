@@ -40,6 +40,7 @@ public class Action {
     public int triggerid = 0;
     public int webduinosystemid = 0;
     public String param = "";
+    public int deviceid = 0;
 
     private boolean active = false;
 
@@ -150,7 +151,12 @@ public class Action {
             Service service = Core.getServiceFromId(serviceid);
             if (service != null) {
                 JSONObject json = new JSONObject();
-                service.sendCommand(actioncommand, json);
+                try {
+                    json.put("deviceid", deviceid);
+                    service.sendCommand(actioncommand, json);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
 
         } else if (type.equals(ACTION_TRIGGER)) {
@@ -253,6 +259,7 @@ public class Action {
         zoneid = resultSet.getInt("zoneid");
         zonesensorid = resultSet.getInt("zonesensorid");
         param = resultSet.getString("param");
+        deviceid = resultSet.getInt("deviceid");
         triggerid = resultSet.getInt("triggerid");
         webduinosystemid = resultSet.getInt("webduinosystemid");
     }
@@ -269,6 +276,7 @@ public class Action {
         if (json.has("zoneid")) zoneid = json.getInt("zoneid");
         if (json.has("zonesensorid")) zonesensorid = json.getInt("zonesensorid");
         if (json.has("param")) param = json.getString("param");
+        if (json.has("deviceid")) deviceid = json.getInt("deviceid");
         if (json.has("triggerid")) triggerid = json.getInt("triggerid");
         if (json.has("webduinosystemid")) webduinosystemid = json.getInt("webduinosystemid");
     }
@@ -287,6 +295,7 @@ public class Action {
             json.put("zoneid", zoneid);
             json.put("zonesensorid", zonesensorid);
             json.put("param", param);
+            json.put("deviceid", deviceid);
             json.put("triggerid", triggerid);
             json.put("webduinosystemid", webduinosystemid);
 
@@ -376,10 +385,13 @@ public class Action {
         String zonesensoridstr = "null";
         if (zonesensorid > 0)
             zonesensoridstr = "" + zonesensorid;
+        String deviceidstr = "null";
+        if (deviceid > 0)
+            deviceidstr = "" + deviceid;
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_actions (id, timerangeid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, webduinosystemid, param)" +
+        sql = "INSERT INTO scenarios_actions (id, timerangeid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, deviceid, webduinosystemid, param)" +
                 " VALUES ("
                 + id + ","
                 + timerangeid + ","
@@ -392,6 +404,7 @@ public class Action {
                 + zoneidstr + ","
                 + zonesensoridstr + ","
                 + triggeridstr + ","
+                + deviceidstr + ","
                 + webduinosystemidstr + ","
                 + "\"" + param + "\""
                 + ") " +
@@ -407,6 +420,7 @@ public class Action {
                 + "zoneid=" + zoneidstr + ","
                 + "zonesensorid=" + zonesensoridstr + ","
                 + "triggerid=" + triggeridstr + ","
+                + "deviceid=" + deviceidstr + ","
                 + "webduinosystemid=" + webduinosystemidstr + ","
                 + "param=\"" + param + "\""
                 + ";";

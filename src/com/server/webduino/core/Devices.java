@@ -24,6 +24,15 @@ public class Devices {
         return mDeviceList;
     }
 
+    public Device getDeviceFromId(int id) {
+
+        for (Device device:mDeviceList) {
+            if (device.id == id)
+                return device;
+        }
+        return null;
+    }
+
     public Device getFromId(int id) {
         Iterator<Device> iterator = mDeviceList.iterator();
         while (iterator.hasNext()) {

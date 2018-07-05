@@ -46,7 +46,7 @@ function addCondition(idx, elem, triggers, zones, sensors, services) {
         condition.find('td  select[name="zone"]').append(new Option(zone.name, zone.id));
     });
     condition.find('td select[name="zone"]').change(function () {
-        var zoneid = elem.zoneid;
+        var zoneid = this.value;
         $('option', condition.find('td select[name="zonesensor"]')).remove();
         getZone(zoneid, function (zone) {
             // zonesensor
@@ -174,7 +174,7 @@ function addCondition(idx, elem, triggers, zones, sensors, services) {
     });
 }
 
-function addAction(idx, elem, triggers, zones, sensors, services, webduinosystems) {
+function addAction(idx, elem, triggers, zones, sensors, services, webduinosystems, devices) {
     var action = $actionRow.clone();
 
     action.find('td[name="id"]').text(elem.id);
@@ -267,6 +267,23 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
     if (elem.type == "service")
         action.find('td select[name="service"]').change();
 
+    // device
+    $.each(devices, function (val, device) {
+        action.find('td select[name="device"]').append(new Option(device.name, device.id));
+    });
+    action.find('td select[name="device"]').change(function () {
+        deviceid = this.value;
+    });
+    deviceid = 0;
+    if (elem.deviceid == 0 || elem.deviceid == null) {
+        deviceid = devices[0].id;
+    } else {
+        deviceid = elem.deviceid;
+    }
+    action.find('td select[name="device"]').val(deviceid);
+    /*if (elem.type == "device")
+     action.find('td select[name="device"]').change();*/
+
 
     // zone
     $.each(zones, function (index, zone) {
@@ -285,7 +302,10 @@ function addAction(idx, elem, triggers, zones, sensors, services, webduinosystem
             });
             //zonesensorid = 0;
             if (elem.zonesensorid == null || elem.zonesensorid == 0) {
-                zonesensorid = zone.zonesensors[0].id;
+                if (zone.zonesensors.length > 0)
+                    zonesensorid = zone.zonesensors[0].id;
+                else
+                    zonesensorid = 0;
             } else {
                 zonesensorid = elem.zonesensorid;
             }
@@ -377,9 +397,15 @@ function handleActionCommandList(sensor, action, elem) {
                         action.find('td input[name="seconds"]').prop('disabled', true);
                     }
                     if (actioncommand.param) {
-                        action.find('td input[name="param "]').prop('disabled', false);
+                        action.find('td input[name="param"]').prop('disabled', false);
                     } else {
                         action.find('td input[name="param"]').prop('disabled', true);
+                    }
+                    if (actioncommand.device) {
+                        action.find('td select[name="device"]').prop('disabled', false);
+                    } else {
+                        action.find('td select[name="device"]').prop('disabled', true);
+                        action.find('td select[name="device"]').val(deviceid).change();
                     }
                     break;
                 }
@@ -396,6 +422,7 @@ function handleActionCommandList(sensor, action, elem) {
         action.find('td input[name="value"]').prop('disabled', true);
         action.find('td input[name="seconds"]').prop('disabled', true);
         action.find('td input[name="param"]').prop('disabled', true);
+        action.find('td select[name="device"]').prop('disabled', true);
     }
 }
 
@@ -411,9 +438,12 @@ function loadActionsAndConditions(conditions, actions, triggers, zones, sensors,
     var tbodyaction = $programtimerangePanel.find('tbody[name="actionlist"]');
     tbodyaction[0].innerHTML = "";
     if (actions != undefined) {
-        $.each(actions, function (idx, elem) {
-            addAction(idx, elem, triggers, zones, sensors, services, webduinosystems);
-        });
+        getDevices(function (devices) {
+                $.each(actions, function (idx, elem) {
+                    addAction(idx, elem, triggers, zones, sensors, services, webduinosystems, devices);
+                });
+            }
+        )
     }
 }
 
@@ -593,7 +623,10 @@ function updateConditionAndActionData() {
             var elem = $programtimerange.conditions[i];
             elem.type = $(this).find('td select[name="type"]').val();
             elem.zoneid = parseInt($(this).find('td select[name="zone"]').val());
-            elem.zonesensorid = parseInt($(this).find('td select[name="zonesensor"]').val());
+
+            val = parseInt($(this).find('td select[name="zonesensor"]').val());
+            if (val > 0)
+                elem.zonesensorid = val;
             elem.triggerid = parseInt($(this).find('td select[name="trigger"]').val());
             elem.sensorstatus = $(this).find('td select[name="sensorstatus"]').val();
             elem.triggerstatus = $(this).find('td select[name="triggerstatus"]').val();
@@ -614,9 +647,13 @@ function updateConditionAndActionData() {
             elem.actuatorid = parseInt($(this).find('td select[name="actuator"]').val());
             elem.serviceid = parseInt($(this).find('td select[name="service"]').val());
             elem.zoneid = parseInt($(this).find('td select[name="zone"]').val());
-            elem.zonesensorid = $(this).find('td select[name="zonesensor"]').val();
+            //elem.zonesensorid = $(this).find('td select[name="zonesensor"]').val();
+            val = parseInt($(this).find('td select[name="zonesensor"]').val());
+            if (val > 0)
+                elem.zonesensorid = val;
             elem.triggerid = parseInt($(this).find('td select[name="trigger"]').val());
             elem.param = $(this).find('td input[name="param"]').val();
+            elem.deviceid = parseInt($(this).find('td select[name="device"]').val());
             i++;
         });
     }

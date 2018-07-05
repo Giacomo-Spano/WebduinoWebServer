@@ -8,6 +8,7 @@ import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
+import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,6 +93,18 @@ public class SensorBase extends DBObject {
         SendCommandThread sendCommandThread = new SendCommandThread(cmd);
         Thread thread = new Thread(sendCommandThread, "sendCommandThread");
         thread.start();
+    }
+
+    public boolean requestStatusUpdate() {
+
+        SensorCommand command = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, shieldid, id);
+        boolean res = command.send();
+        if (!res && !status.status.equals(STATUS_OFFLINE)) {
+            setStatus(STATUS_OFFLINE);
+            String description = "Sensor " + name + " offline";
+            Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+        }
+        return res;
     }
 
     public void addChildSensor(SensorBase childSensor) {
@@ -384,6 +397,10 @@ public class SensorBase extends DBObject {
                 pin = json.getString("pin");*/
             if (json.has("enabled"))
                 enabled = json.getBoolean("enabled");
+            if (json.has("status")) {
+                String status = json.getString("status");
+                setStatus(status);
+            }
             /*if (json.has("zonesensorstatus"))
                 status = json.getString("zonesensorstatus");*/
 
@@ -593,7 +610,17 @@ public class SensorBase extends DBObject {
 
         @Override
         public void run() {
-            boolean res = command.send();
+            /*boolean res = command.send();
+            if (!res) {
+                SensorBase sensor = Core.getSensorFromId(command.actuatorid);
+                if (sensor != null && !sensor.status.status.equals(STATUS_OFFLINE)) {
+                    sensor.setStatus(STATUS_OFFLINE);
+                    String description = "Sensor " + sensor.name + " offline";
+                    Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+                }
+            }*/
+            SensorBase sensor = Core.getSensorFromId(command.actuatorid);
+            sensor.requestStatusUpdate();
             LOGGER.info("SendCommandThread command.uuid=" + command.uuid.toString());
         }
     }

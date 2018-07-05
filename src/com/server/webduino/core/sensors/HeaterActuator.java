@@ -305,10 +305,10 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         try {
             LOGGER.info("received jsonResultSring=" + json.toString());
 
-            if (json.has("status")) {
+            /*if (json.has("status")) {
                 String status = json.getString("status");
                 setStatus(status);
-            }
+            }*/
 
             if (json.has("remotetemp")) {
                 setTemperature(json.getDouble("remotetemp"));

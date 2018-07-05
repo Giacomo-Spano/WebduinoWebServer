@@ -1,6 +1,8 @@
 package com.server.webduino.core.sensors.commands;
 
+import com.server.webduino.core.Core;
 import com.server.webduino.core.datalog.CommandDataLog;
+import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,7 +42,7 @@ public class SensorCommand extends Command {
     }
 
     @Override
-    public JSONObject getJSON() {
+    public JSONObject toJSON() {
 
         JSONObject json = new JSONObject();
 
@@ -48,8 +50,6 @@ public class SensorCommand extends Command {
             json.put("actuatorid", actuatorid);
             json.put("uuid",uuid);
             if (command.equals(SensorCommand.Command_RequestSensorStatusUpdate)) {
-
-
 
                 json.put("command", SensorCommand.Command_RequestSensorStatusUpdate);
 
@@ -62,5 +62,27 @@ public class SensorCommand extends Command {
             return null;
         }
         return json;
+    }
+
+    @Override
+    public boolean processResponseReceived(String message) {
+        JSONObject jsonObject = null;
+        try {
+            if (command.equals(SensorCommand.Command_RequestSensorStatusUpdate)) {
+                jsonObject = new JSONObject(message);
+                if (jsonObject.has("sensorid")) {
+                    int sensorid = jsonObject.getInt("sensorid");
+                    SensorBase sensor = Core.getSensorFromId(sensorid);
+                    if (sensor != null) {
+                        sensor.updating = false;
+                        sensor.updateFromJson(Core.getDate(), jsonObject);
+                        return true;
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

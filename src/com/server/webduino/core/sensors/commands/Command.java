@@ -49,7 +49,7 @@ public class Command {
     public void fromJson(JSONObject json) throws JSONException {
     }
 
-    public JSONObject getJSON() {
+    public JSONObject toJSON() {
         return null;
     }
 
@@ -84,24 +84,13 @@ public class Command {
         return commandThread.commandSuccess;
     }
 
-    private /*synchronized */boolean messageReceived(String message) {
+    private boolean messageReceived(String message) {
         LOGGER.info("Command response received: " + uuid);
-        JSONObject jsonObject = null;
-        try {
-            jsonObject = new JSONObject(message);
-            if (jsonObject.has("sensorid")) {
-                int sensorid = jsonObject.getInt("sensorid");
-                SensorBase sensor = Core.getSensorFromId(sensorid);
-                if (sensor != null) {
-                    sensor.updating = false;
-                    sensor.updateFromJson(Core.getDate(), jsonObject);
-                    return true;
-                }
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return processResponseReceived(message);
+    }
+
+    public boolean processResponseReceived(String message) {
+        return true;
     }
 
     public class CommandThread implements Runnable/*, Core.CoreListener*/ {
@@ -143,7 +132,7 @@ public class Command {
             });
 
             String topic = "fromServer/shield/" + shield.MACAddress + "/command";
-            smc.publish(topic,command.getJSON().toString());
+            smc.publish(topic,command.toJSON().toString());
             //Core.postCommand(command);
 
             // il thread si mette in attesa di aggiornamento per 10 secondi e poi esce

@@ -663,6 +663,12 @@ function getWebduinoSystemTypes(callback) {
     });
 }
 
+function getDevices(callback) {
+    $.getJSON(systemServletPath + "?requestcommand=devices", function (devices) {
+        callback(devices);
+    });
+}
+
 function loadScenarioTimeinterval(timeinterval) {
 
     $timeinterval = timeinterval;

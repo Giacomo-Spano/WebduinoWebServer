@@ -52,7 +52,7 @@ public class Trigger extends DBObject {
         listeners.add(toAdd);
     }
 
-    public void deleteListener(TriggerListener toRemove) {
+    public void removeListener(TriggerListener toRemove) {
         listeners.remove(toRemove);
     }
 

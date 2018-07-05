@@ -12,9 +12,11 @@ public class ServiceFactory {
         Service service = null;
         if (type.equals("voip")) {
             service = new VoipService(id,name,type,param);
-        } else if (type.equals("sms")) {
-            service = new AndroidNotificationService(id,name,type,param);
+        } else if (type.equals("alarmnotification")) {
+            service = new AlarmNotificationService(id,name,type,param);
         } else if (type.equals("androidnotification")) {
+            service = new AndroidNotificationService(id,name,type,param);
+        } else if (type.equals("sms")) {
             service = new SMSService(id,name,type,param);
         } else {
             service = new Service(id,name,type,param);

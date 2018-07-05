@@ -1,5 +1,6 @@
 package com.server.webduino.core;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -23,7 +24,14 @@ public class Device {
     public Date date;
 
     public Device() {
+    }
 
+    public JSONObject toJson() throws JSONException {
 
+        JSONObject json = new JSONObject();
+        json.put("id", id);
+        json.put("name", name);
+        json.put("tokenid", tokenId);
+        return json;
     }
 }

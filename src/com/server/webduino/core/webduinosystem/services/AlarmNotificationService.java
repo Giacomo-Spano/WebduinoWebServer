@@ -13,11 +13,11 @@ import java.util.logging.Logger;
 /**
  * Created by giaco on 10/03/2018.
  */
-public class AndroidNotificationService extends Service {
-    private static final Logger LOGGER = Logger.getLogger(AndroidNotificationService.class.getName());
-    public AndroidNotificationService(int id, String name, String type, String param) {
+public class AlarmNotificationService extends Service {
+    private static final Logger LOGGER = Logger.getLogger(AlarmNotificationService.class.getName());
+    public AlarmNotificationService(int id, String name, String type, String param) {
         super(id, name, type, param);
-        ActionCommand cmd = new ActionCommand("androidnotification","Notifica Android");
+        ActionCommand cmd = new ActionCommand("alarmnotification","Notifica Allarme");
         cmd.addDevice("Device");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
@@ -46,7 +46,7 @@ public class AndroidNotificationService extends Service {
         Device device = Core.getDevicesFromId(deviceid);
         List<Device> list = new ArrayList<>();
         list.add(device);
-        String description = "androidnotification";
+        String description = "alarmnotification";
         Core.sendPushNotification(SendPushMessages.notification_alarm, "Allarme", description, "0", 0,list);
         return true;
     }

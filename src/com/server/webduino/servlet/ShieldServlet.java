@@ -127,8 +127,9 @@ public class ShieldServlet extends HttpServlet {
 
                             //sensor.requestAsyncSensorStatusUpdate();
 
-                            SensorCommand cmd = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, sensor.getShieldId(), id);
-                            boolean res = cmd.send();
+                            //SensorCommand cmd = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, sensor.getShieldId(), id);
+                            //boolean res = cmd.send();
+                            boolean res = sensor.requestStatusUpdate();
 
                             if (res) {
                                 out.print("command sent");

@@ -79,7 +79,7 @@ public class ReleActuatorCommand extends ActuatorCommand {
         }
     }
 
-    @Override
+    //@Override
     public JSONObject getJSONCommand(int actuatorId, String subaddress) {
 
         JSONObject json = new JSONObject();

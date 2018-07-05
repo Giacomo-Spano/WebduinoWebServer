@@ -1,6 +1,8 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
+import com.server.webduino.core.sensors.DoorSensor;
+import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.Command;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +15,7 @@ import java.util.List;
 
 public class DataLog {
     public Date date = new Date();
+    public String tableName = "sensordatalog";
 
     protected String getStrDate() {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -23,7 +26,11 @@ public class DataLog {
 
     public String getSQLInsert(String event, Object object) {
 
-        return "";
+        SensorBase sensor = (SensorBase) object;
+        String sql;
+        sql = "INSERT INTO " + tableName + " (sensorid, date, status) VALUES ("
+                + sensor.getId() + ","  + getStrDate() + ",\"" + sensor.getStatus().status + "\");";
+        return sql;
     }
 
     public int writelog(String event, Object object) {

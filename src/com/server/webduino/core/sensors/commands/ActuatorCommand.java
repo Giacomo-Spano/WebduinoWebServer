@@ -19,7 +19,7 @@ public class ActuatorCommand {
         return false;
     }
 
-    public JSONObject getJSONCommand(int actuatorId, String subaddress) {
+    public JSONObject toJSONCommand(int actuatorId, String subaddress) {
         return null;
     }
 

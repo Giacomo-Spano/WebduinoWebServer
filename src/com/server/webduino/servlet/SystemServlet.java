@@ -288,7 +288,7 @@ public class SystemServlet extends HttpServlet {
                     if (json.has("status")) {
                         String status = json.getString("status");
                         Trigger trigger = core.getTriggerFromId(id);
-                        if (trigger.setStatus(status)) {
+                        if (trigger != null && trigger.setStatus(status)) {
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print("trigger " + status);
                             return;
@@ -516,6 +516,21 @@ public class SystemServlet extends HttpServlet {
                 out.print(jarray.toString());
                 return;
             }
+
+        } else if (requestCommand != null && requestCommand.equals("devices")) {
+
+            JSONArray jarray = null;
+            try {
+                jarray = Core.getDevicesJSONArray();
+                if (jarray != null) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(jarray.toString());
+                    return;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
 
         } else if (requestCommand != null && requestCommand.equals("service") && id != null) {
             int serviceid = Integer.parseInt(id);

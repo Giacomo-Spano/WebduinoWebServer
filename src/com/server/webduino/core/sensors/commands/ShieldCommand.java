@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 public class ShieldCommand extends Command {
 
     private static final Logger LOGGER = Logger.getLogger(ShieldCommand.class.getName());
+    public static final String Command_CheckHealth = "checkhealth";
 
     public ShieldCommand(JSONObject json) throws JSONException {
         super(json);
@@ -29,18 +30,17 @@ public class ShieldCommand extends Command {
             shieldid = json.getInt("shieldid");
     }
 
-    private boolean messageReceived(String message) {
-        LOGGER.info("Command response received: " + uuid);
-        JSONObject jsonObject = null;
+    @Override
+    public boolean processResponseReceived(String message) {
         try {
-            jsonObject = new JSONObject(message);
-            if (jsonObject.has("shieldid")) {
-                int shieldid = jsonObject.getInt("shieldid");
-                Shield shield = Core.getShieldFromId(shieldid);
-                if (shield != null) {
-                    //shield.updating = false;
-                    shield.updateFromJson(jsonObject);
-                    return true;
+            if (command.equals(Command_CheckHealth)) {
+                JSONObject json = new JSONObject(message);
+                if (json.has("MAC")) {
+                    String macaddress = json.getString("MAC");
+                    Shield shield = Core.getShieldFromMACAddress(macaddress);
+                    if (shield != null) {
+                        return shield.updateShieldStatus(json);
+                    }
                 }
             }
         } catch (JSONException e) {
@@ -49,7 +49,7 @@ public class ShieldCommand extends Command {
         return false;
     }
 
-    public JSONObject getJSON() {
+    public JSONObject toJSON() {
 
         JSONObject json = new JSONObject();
         try {

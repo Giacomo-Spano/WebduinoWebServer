@@ -8,9 +8,9 @@ import java.util.logging.Logger;
 /**
  * Created by Giacomo Spanò on 29/12/2016.
  */
-public class DoorSensorCommand extends Command {
+public class RFIDSensorCommand extends Command {
 
-    private static final Logger LOGGER = Logger.getLogger(DoorSensorCommand.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(RFIDSensorCommand.class.getName());
 
     public static final String Command_Test = "test"; // "programoff";
     //public static final String Command_Off = "Off";
@@ -19,12 +19,12 @@ public class DoorSensorCommand extends Command {
 
     public String status;
 
-    public DoorSensorCommand(String command, int shieldid, int actuatorid, String status) {
-        super(command, shieldid, actuatorid);
+    public RFIDSensorCommand(int shieldid, int actuatorid) {
+        super(shieldid, actuatorid);
         this.status = status;
     }
 
-    public DoorSensorCommand(JSONObject json) throws JSONException {
+    public RFIDSensorCommand(JSONObject json) throws JSONException {
         super(json);
     }
 

@@ -32,7 +32,7 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
     public List<Action> actions = new ArrayList<>();
 
     public boolean active = false;
-    private ActionDataLog dataLog = new ActionDataLog();
+
 
    //protected List<ProgramInstructionListener> listeners = new ArrayList<>();
 
@@ -113,7 +113,7 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
             return;
 
         startDate = Core.getDate();
-        dataLog.id = dataLog.writelog("start",this);
+
 
         active = true;
 
@@ -130,8 +130,7 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
     }
 
     public void stop() {
-        if (active)
-            dataLog.writelog("stop",this);
+
         active = false;
         /*for (ProgramInstructionListener listener : listeners) {
             listener.onStop(this);
@@ -197,6 +196,7 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
         }
     }
 
+
     public JSONObject toJson() {
         JSONObject json = new JSONObject();
         try {
@@ -229,7 +229,6 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
     }
 
     public void save() throws Exception {
-
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
@@ -268,7 +267,6 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
             throw new Exception(e.toString());
         }
     }
-
 
     public void delete() throws Exception {
 
@@ -328,10 +326,7 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
     }
 
     public void delete(Statement stmt) throws SQLException {
-
         String sql = "DELETE FROM scenarios_programinstructions WHERE id=" + id;
         stmt.executeUpdate(sql);
-
     }
-
 }

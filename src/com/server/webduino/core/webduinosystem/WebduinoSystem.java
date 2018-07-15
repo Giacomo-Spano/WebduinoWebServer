@@ -4,6 +4,7 @@ import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
 import com.server.webduino.core.webduinosystem.keys.SecurityKey;
+import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
@@ -61,6 +62,15 @@ public class WebduinoSystem extends DBObject {
         initCommandList();
     }
 
+    public Action getActionFromId(int id) {
+        for (WebduinoSystemScenario scenario : scenarios) {
+            Action action = scenario.getActionFromId(id);
+            if (action != null)
+                return action;
+        }
+        return null;
+    }
+
     public JSONArray getStatusListJSONArray() {
         JSONArray jsonArray = new JSONArray();
         for (Status status : statusList) {
@@ -112,6 +122,26 @@ public class WebduinoSystem extends DBObject {
             public boolean execute(JSONObject json) {
                 try {
                     setStatus(status_disabled);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+                return true;
+            }
+            @Override
+            public void end() {
+
+            }
+        });
+        actionCommandList.add(cmd);
+
+        cmd = new ActionCommand("pause", "Metti in pausa");
+        cmd.addStatus("Stato");
+        cmd.addCommand(new ActionCommand.Command() {
+            @Override
+            public boolean execute(JSONObject json) {
+                try {
+                    //setStatus(status_disabled);
                 } catch (Exception e) {
                     e.printStackTrace();
                     return false;
@@ -202,24 +232,6 @@ public class WebduinoSystem extends DBObject {
         rs.close();
         stmt.close();
     }
-
-    /*public void readWebduinoSystemsScenarios(Connection conn, int webduinosystemid) throws SQLException {
-        LOGGER.info(" readWebduinoSystemServices");
-
-        Statement stmt = conn.createStatement();
-        String sql = "SELECT * FROM scenarios WHERE webduinosystemid=" + webduinosystemid;
-        ResultSet rs = stmt.executeQuery(sql);
-        // Extract data from result set
-        scenarios = new ArrayList<>();
-        while (rs.next()) {
-            int id = rs.getInt("id");
-            int scenarioid = rs.getInt("scenarioid");
-            WebduinoSystemScenario webduinosystemsscenario = new WebduinoSystemScenario(id, scenarioid);
-            scenarios.add(webduinosystemsscenario);
-        }
-        rs.close();
-        stmt.close();
-    }*/
 
     public void readWebduinoSystemsScenarios(Connection conn, int webduinosystemid) throws SQLException {
         LOGGER.info("readWebduinoSystemsScenarios");
@@ -334,8 +346,6 @@ public class WebduinoSystem extends DBObject {
             if (scenario.webduinosystemid == 0) scenario.webduinosystemid = id;
             scenario.write(conn);
         }
-
-
     }
 
     public void fromJson(JSONObject json) throws Exception {
@@ -356,7 +366,6 @@ public class WebduinoSystem extends DBObject {
                 actuators.add(actuator);
             }
         }
-
         if (json.has("zones")) {
             JSONArray jArray = json.getJSONArray("zones");
             for (int k = 0; k < jArray.length(); k++) {
@@ -364,7 +373,6 @@ public class WebduinoSystem extends DBObject {
                 zones.add(zone);
             }
         }
-
         if (json.has("services")) {
             JSONArray jArray = json.getJSONArray("services");
             for (int k = 0; k < jArray.length(); k++) {
@@ -372,7 +380,6 @@ public class WebduinoSystem extends DBObject {
                 services.add(service);
             }
         }
-
         if (json.has("scenarios")) {
             JSONArray jArray = json.getJSONArray("scenarios");
             for (int k = 0; k < jArray.length(); k++) {
@@ -382,10 +389,16 @@ public class WebduinoSystem extends DBObject {
         }
     }
 
-    public Boolean sendCommand(String cmd, JSONObject json) {
+    public Boolean sendCommand(JSONObject json) {
         for (ActionCommand actionCommand : actionCommandList) {
-            if (cmd.equals(actionCommand.command))
-                actionCommand.commandMethod.execute(json);
+            String cmd = null;
+            try {
+                cmd = json.getString("command");
+                if (cmd.equals(actionCommand.command))
+                    actionCommand.commandMethod.execute(json);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         return true;
     }

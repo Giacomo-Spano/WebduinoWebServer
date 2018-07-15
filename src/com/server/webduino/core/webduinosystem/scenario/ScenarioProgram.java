@@ -79,6 +79,15 @@ public class ScenarioProgram extends DBObject {
         fromJson(json);
     }
 
+    public Action getActionFromId(int id) {
+        for (ScenarioProgramTimeRange timeRange : timeRanges) {
+            Action action = timeRange.getActionFromId(id);
+            if (action != null)
+                return action;
+        }
+        return null;
+    }
+
     public boolean isEnabled() {
         return enabled;
     }

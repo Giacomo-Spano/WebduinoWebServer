@@ -35,6 +35,10 @@ public class SensorFactory {
             sensor = (SensorBase) new HornSensor(id,name,description,subaddress,shieldid,pin,enabled);
         } else if (type.equals("rfidsensor")) {
             sensor = (SensorBase) new RFIDSensor(id,name,description,subaddress,shieldid,pin,enabled);
+        } else if (type.equals("irsensor")) {
+            sensor = (SensorBase) new IRSensor(id,name,description,subaddress,shieldid,pin,enabled);
+        } else if (type.equals("irreceivesensor")) {
+            sensor = (SensorBase) new IRReceiverSensor(id,name,description,subaddress,shieldid,pin,enabled);
         } else {
             return null;
         }
@@ -150,6 +154,20 @@ public class SensorFactory {
             json.put("value", "rfidsensor");
             json.put("description", "RFIDsensor");
             sensor = createSensor("rfidsensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
+            jsonArray.put(json);
+
+            json = new JSONObject();
+            json.put("value", "irsensor");
+            json.put("description", "irsensor");
+            sensor = createSensor("irsensor","", "","",0,0,"",false);
+            json.put("statuslist", sensor.getStatusListJSONArray());
+            jsonArray.put(json);
+
+            json = new JSONObject();
+            json.put("value", "irreceivesensor");
+            json.put("description", "irreceivesensor");
+            sensor = createSensor("irreceivesensor","", "","",0,0,"",false);
             json.put("statuslist", sensor.getStatusListJSONArray());
             jsonArray.put(json);
 

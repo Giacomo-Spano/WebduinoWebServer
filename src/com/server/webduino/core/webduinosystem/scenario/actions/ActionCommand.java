@@ -40,6 +40,7 @@ public class ActionCommand {
     String durationname = "Durata";
 
     boolean hasdevice = false;
+    int  deviceid = 0;
     String devicename = "stato";
 
     public ActionCommand(String command, String name) {
@@ -82,9 +83,10 @@ public class ActionCommand {
         durationname = name;
     }
 
-    public void addDevice(String name) {
+    public void addDevice(int id,String name) {
         hasdevice = true;
         devicename = name;
+        deviceid = id;
     }
 
     public void addStatus(String name) {
@@ -122,7 +124,7 @@ public class ActionCommand {
         }
 
         if (hasdevice) {
-            json.put("device",true);
+            json.put("device",deviceid);
             json.put("devicename",devicename);
         }
 

@@ -68,7 +68,27 @@ public class SystemServlet extends HttpServlet {
             Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
             JSONObject json = new JSONObject(jb.toString());
-            if (data != null && data.equals("webduinosystemscenario")) {
+            if (data != null && data.equals("command")) {
+                try {
+                    if (json.has("webduinosystemid")) {
+                        int webduinosystemid = json.getInt("webduinosystemid");
+                        WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
+                        if (webduinoSystem != null) {
+                            webduinoSystem.sendCommand(json);
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            return;
+                        }
+                    } else if (json.has("triggerid")) {
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
+            } else if (data != null && data.equals("webduinosystemscenario")) {
                 try {
                     if (param != null && param.equals("delete")) {
                         if (json.has("id")) {
@@ -336,7 +356,15 @@ public class SystemServlet extends HttpServlet {
                             out.print(action.toJson());
                             return;
                         }
-                    } else {
+                    } else if (param != null && param.equals("stop")) {
+                        int id = json.getInt("id");
+                        Action action = core.getActionFromId(id);
+                        if (action != null) {
+                            action.stop();
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            return;
+                        }
+                    } else { // save
                         Action action = core.saveAction(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(action.toJson());

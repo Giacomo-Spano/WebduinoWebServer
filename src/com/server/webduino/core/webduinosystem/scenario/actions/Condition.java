@@ -2,6 +2,7 @@ package com.server.webduino.core.webduinosystem.scenario.actions;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Trigger;
+import com.server.webduino.core.datalog.ConditionDataLog;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.SensorListenerClass;
 import com.server.webduino.core.webduinosystem.Status;
@@ -41,6 +42,8 @@ public class Condition extends SensorListenerClass {
 
     private boolean active = false;
 
+    private ConditionDataLog dataLog = new ConditionDataLog();
+
     Zone zone = null;
     ZoneSensor zoneSensor = null;
     SensorBase sensor = null;
@@ -61,7 +64,7 @@ public class Condition extends SensorListenerClass {
     }
 
     public void start() {
-        active = false;
+        setActive(false);
 
         if (type.equals("zonesensorvalue")) {
             startZoneSensorValueHandling();
@@ -70,6 +73,7 @@ public class Condition extends SensorListenerClass {
         } else if (type.equals("triggerstatus")) {
             startHandleTriggerStatusHandling();
         }
+        dataLog.writelog("start",this);
     }
 
     public void stop() {
@@ -84,25 +88,28 @@ public class Condition extends SensorListenerClass {
 
         /*if (sensor != null)
             sensor.removeListener(this);*/
-        active = false;
-
+        setActive(false);
+        dataLog.writelog("stop",this);
 
     }
 
     private void stopHandleTriggerStatusHandling() {
-        trigger.removeListener(triggerListener);
+        if (trigger != null)
+            trigger.removeListener(triggerListener);
     }
 
     private void stopZoneSensorStatusHandling() {
-        sensor.removeListener(zoneSensorStatusListener);
+        if (sensor != null)
+            sensor.removeListener(zoneSensorStatusListener);
     }
 
     private void stopZoneSensorValueHandling() {
-        sensor.removeListener(zoneSensorValueListener);
+        if (sensor != null)
+            sensor.removeListener(zoneSensorValueListener);
     }
 
     public String getStatus() {
-        if (active)
+        if (getActive())
             return "active";
         return "not active";
     }
@@ -114,7 +121,8 @@ public class Condition extends SensorListenerClass {
             triggerListener = new Trigger.TriggerListener() {
                 @Override
                 public void onChangeStatus(boolean status) {
-
+                    if (status)
+                        setActive(true);
                 }
             };
             trigger.addListener(triggerListener);
@@ -139,7 +147,7 @@ public class Condition extends SensorListenerClass {
                         @Override
                         public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
 
-                            boolean oldactive = active;
+                            boolean oldactive = getActive();
                             zone = Core.getZoneFromId(zoneid);
                             if (zone != null) {
                                 zoneSensor = zone.zoneSensorFromId(zonesensorid);
@@ -147,15 +155,15 @@ public class Condition extends SensorListenerClass {
                                     sensor = Core.getSensorFromId(zoneSensor.getSensorId());
                                     if (sensor != null && sensor.getId() == zoneSensor.getSensorId()) {
                                         if (newStatus.status.equals(sensorstatus))
-                                            active = true;
+                                            setActive(true);
                                         else
-                                            active = false;
+                                            setActive(false);
                                     }
                                 }
                             }
-                            if (oldactive != active) {
+                            if (oldactive != getActive()) {
                                 for (ConditionListener listener : listeners) {
-                                    listener.onActiveChange(active);
+                                    listener.onActiveChange(getActive());
                                 }
                             }
                         }
@@ -165,6 +173,18 @@ public class Condition extends SensorListenerClass {
                 }
             }
         }
+    }
+
+    private void setActive(boolean active) {
+        this.active = active;
+        if (active)
+            dataLog.writelog("active",this);
+        else
+            dataLog.writelog("not active",this);
+    }
+
+    private boolean getActive() {
+        return active;
     }
 
     private void startZoneSensorValueHandling() {
@@ -182,30 +202,30 @@ public class Condition extends SensorListenerClass {
 
                         @Override
                         public void onChangeValue(SensorBase sensor, double val) {
-                            boolean oldactive = active;
+                            boolean oldactive = getActive();
 
                             if (valueoperator.equals(">")) {
                                 if (val > value)
-                                    active = true;
+                                    setActive(true);
                                 else
-                                    active = false;
+                                    setActive(false);
                             } else if (valueoperator.equals("<")) {
                                 if (val < value)
-                                    active = true;
+                                    setActive(true);
                                 else
-                                    active = false;
+                                    setActive(false);
                             } else if (valueoperator.equals("=")) {
                                 if (val == value)
-                                    active = true;
+                                    setActive(true);
                                 else
-                                    active = false;
+                                    setActive(false);
                             } else {
-                                active = false;
+                                setActive(false);
                             }
 
-                            if (oldactive != active) {
+                            if (oldactive != getActive()) {
                                 for (ConditionListener listener : listeners) {
-                                    listener.onActiveChange(active);
+                                    listener.onActiveChange(getActive());
                                 }
                             }
                         }
@@ -223,7 +243,7 @@ public class Condition extends SensorListenerClass {
 
 
     public boolean isActive() {
-        return active;
+        return getActive();
     }
 
 

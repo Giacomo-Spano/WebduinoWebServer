@@ -455,13 +455,6 @@ function setSensorElement(element, sensor) {
     // subaddress
     element.find('td[name="subaddress"]').text(sensor.subaddress);
 
-    /*var detailButton = element.find('button[name="detailbutton"]');
-    detailButton.text(label);
-    detailButton.click(function () {
-        loadHeater(sensor);
-
-    });*/
-
     var statusButton = element.find('button[name="statusbutton"]');
     //statusButton.text(label);
     statusButton.click(function () {
@@ -485,17 +478,40 @@ function setSensorElement(element, sensor) {
             }
         });
     });
-
-
     //
-    if (sensor.type == "temperaturesensor") {
+    element.find('td[name="status"]').text(sensor.status);
+
+
+    var testButton = element.find('button[name="testbutton"]');
+    testButton.click(function () {
+
+        var command = 'send'
+        testButton.text("sending" + command + " command...");
+        var json = {
+            'id': sensor.id,
+            'command': command,
+        };
+        postShieldData(json, function (result, response) {
+            testButton.text("command sent");
+            if (result) {
+                notificationsuccess.show();
+                notificationsuccess.find('label[name="description"]').text("comando inviato" + response);
+                loadDashboard();
+            } else {
+                notification.show();
+                notification.find('label[name="description"]').text(response);
+            }
+        });
+    });
+
+
+    /*if (sensor.type == "temperaturesensor") {
         text = "temp:" + sensor.temperature + "°C" + " av.temp:" + sensor.avtemperature + "°C";
         element.find('td[name="status"]').text(text);
     } else if (sensor.type == "doorsensor") {
 
         text = sensor.statusdetails;
         element.find('td[name="status"]').text(text);
-
 
     } else if (sensor.type == "heatersensor") {
         text = "status: " + sensor.status
@@ -514,7 +530,7 @@ function setSensorElement(element, sensor) {
         element.find('td[name="status"]').text(text);
     } else {
         element.find('td[name="status"]').text("undefined");
-    }
+    }*/
 
 }
 

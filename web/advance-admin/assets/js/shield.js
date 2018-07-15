@@ -47,8 +47,6 @@ function setShieldElement(element, shield) {
 
     });
 
-
-
     var restartButton = element.find('button[name="rebootbutton"]');
     restartButton.click(function () {
 

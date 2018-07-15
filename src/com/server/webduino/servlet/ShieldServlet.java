@@ -67,15 +67,7 @@ public class ShieldServlet extends HttpServlet {
             String error = "";
 
             if (json.has("event")) {
-                /*if (json.getString("event").equals("register")) { // receive zonesensorstatus update
-                    if (json.has("shield")) {
-                        JSONObject jsonShield = json.getJSONObject("shield");
-                        jsonResponse = handleRegisterEvent(jsonShield);
-                        out.print(jsonResponse.toString());
-                        response.setStatus(HttpServletResponse.SC_OK);
-                    }
-                    return;
-                } else */if (json.getString("event").equals("loadsettings")) { // chiato all'avvio della shield
+                if (json.getString("event").equals("loadsettings")) { // chiato all'avvio della shield
                     String MACAddress = json.getString("MAC");
                     jsonResponse = handleLoadSettingEvent(MACAddress);
                     out.print(jsonResponse.toString());
@@ -118,6 +110,32 @@ public class ShieldServlet extends HttpServlet {
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
+                } else if (json.getString("command").equals("send")) {
+
+                    if (json.has("id")) {
+                        int id = json.getInt("id");
+                        SensorBase sensor = Core.getSensorFromId(id);
+                        if (sensor != null) {
+
+
+                            JSONObject jsonObject = new JSONObject();
+                            try {
+                                jsonObject.put("command", json.getString("command"));
+                                jsonObject.put("code", "aa");
+                                boolean res = sensor.sendCommand(json.getString("command"), jsonObject);
+                                if (res) {
+                                    out.print("command sent");
+                                    response.setStatus(HttpServletResponse.SC_OK);
+                                } else {
+                                    out.print("errore");
+                                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                                    return;
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                 } else if (json.getString("command").equals("updatesensor")) {
 
                     if (json.has("id")) {
@@ -142,7 +160,7 @@ public class ShieldServlet extends HttpServlet {
                             return;
                         }
                     }
-                }else if (json.getString("command").equals("manual") || json.getString("command").equals("off")) {
+                } else if (json.getString("command").equals("manual") || json.getString("command").equals("off")) {
 
                     if (json.has("actuatorid")) {
                         int id = json.getInt("actuatorid");

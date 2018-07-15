@@ -85,6 +85,15 @@ public class Core {
 
     }
 
+    public Action getActionFromId(int id) {
+        for (WebduinoSystem webduinoSystem : webduinoSystems) {
+            Action action = webduinoSystem.getActionFromId(id);
+            if (action != null)
+                return action;
+        }
+        return null;
+    }
+
     public void initScenarios() {
 
         if (scenarios.scenarioList != null) {
@@ -280,7 +289,7 @@ public class Core {
 
     public static JSONArray getDevicesJSONArray() throws JSONException {
         JSONArray jsonArray = new JSONArray();
-        for (Device device : devices.getList()) {
+        for (Device device : devices.get()) {
             jsonArray.put(device.toJson());
         }
         return jsonArray;
@@ -394,7 +403,7 @@ public class Core {
         //mShields.addListener(this);
 
         // inizializzazione client android remoti
-        devices.read();
+        //devices.read();
     }
 
 
@@ -901,6 +910,11 @@ public class Core {
         LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
         new PushNotificationThread(type, title, description, value, id, devices).start();
         LOGGER.info("sendPushNotification sent");
+    }
+
+    public static void sendPushNotification(JSONObject json) {
+
+        new PushNotificationThread(json).start();
     }
 
     public List<Shield> getShields() {

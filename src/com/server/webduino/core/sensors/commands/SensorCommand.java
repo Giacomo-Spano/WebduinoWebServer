@@ -49,14 +49,16 @@ public class SensorCommand extends Command {
         try {
             json.put("actuatorid", actuatorid);
             json.put("uuid",uuid);
-            if (command.equals(SensorCommand.Command_RequestSensorStatusUpdate)) {
+            json.put("command",command);
+
+            /*if (command.equals(SensorCommand.Command_RequestSensorStatusUpdate)) {
 
                 json.put("command", SensorCommand.Command_RequestSensorStatusUpdate);
 
             } else if (command.equals(SensorCommand.Command_Off)) {
 
                 json.put("command", SensorCommand.Command_Off);
-            }
+            }*/
         } catch (JSONException e) {
             e.printStackTrace();
             return null;

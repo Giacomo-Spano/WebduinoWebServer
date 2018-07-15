@@ -102,7 +102,24 @@ public class Shields {
                     }
 
                 } else if (topic.equals("toServer/shield/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
-                                                                    // da eliminarte
+                    // da eliminarte
+
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("MAC")) {
+                            String MACAddress = json.getString("MAC");
+                            //int sensorid = json.getInt("MAC");
+                            Shield shield = getShieldFromMACAddress(MACAddress);
+                            if (shield != null) {
+                                shield.updateShieldStatus(json);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                } else if (topic.equals("toServer/shield/log/#")) { // chiamata dalla scheda quando un sensore cambia qualcosa
+                    // da eliminarte
 
                     try {
                         JSONObject json = new JSONObject(message);

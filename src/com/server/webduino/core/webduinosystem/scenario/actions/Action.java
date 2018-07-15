@@ -3,6 +3,7 @@ package com.server.webduino.core.webduinosystem.scenario.actions;
 import com.quartz.QuartzListener;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Trigger;
+import com.server.webduino.core.datalog.ActionDataLog;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.WebduinoSystem;
 import com.server.webduino.core.webduinosystem.scenario.Conflict;
@@ -41,6 +42,8 @@ public class Action {
     public int webduinosystemid = 0;
     public String param = "";
     public int deviceid = 0;
+
+    private ActionDataLog dataLog = new ActionDataLog();
 
     private boolean active = false;
 
@@ -152,7 +155,12 @@ public class Action {
             if (service != null) {
                 JSONObject json = new JSONObject();
                 try {
+                    json.put("actionid", id);
+                    json.put("webduinosystemid", webduinosystemid);
                     json.put("deviceid", deviceid);
+                    json.put("param", param);
+                    json.put("date",Core.getDate().toString());
+                    json.put("type", "alarm");
                     service.sendCommand(actioncommand, json);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -170,9 +178,15 @@ public class Action {
             WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(triggerid);
             if (webduinoSystem != null) {
                 JSONObject json = new JSONObject();
-                webduinoSystem.sendCommand(actioncommand, json);
+                try {
+                    json.put("command", actioncommand);
+                    webduinoSystem.sendCommand(json);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
+        dataLog.writelog("start",this);
     }
 
     public void stop() {
@@ -204,6 +218,7 @@ public class Action {
                 webduinoSystem.endCommand();
             }
         }
+        dataLog.writelog("stop",this);
     }
 
     public String getStatus() {

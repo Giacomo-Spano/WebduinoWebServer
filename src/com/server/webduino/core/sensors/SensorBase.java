@@ -33,7 +33,7 @@ public class SensorBase extends DBObject {
     // static states
     protected int shieldid;
     protected int parentid;
-    protected boolean online = false;
+    //protected boolean online = false;
     protected String subaddress;
     protected String name;
     protected String description;
@@ -43,10 +43,10 @@ public class SensorBase extends DBObject {
     protected boolean enabled;
     protected String pin;
     protected List<SensorBase> childSensors = new ArrayList<SensorBase>();
-    protected boolean hasIntValue = false;
-    protected boolean hasDoubleValue = false;
-    protected double doubleValue, minDoubleValue, maxDoubleValue, stepDoubleValue;
-    protected int intValue;
+    //protected boolean hasIntValue = false;
+    //protected boolean hasDoubleValue = false;
+    //protected double doubleValue, minDoubleValue, maxDoubleValue, stepDoubleValue;
+    //protected int intValue;
 
     protected List<Status> statusList = new ArrayList<Status>();
     protected List<ActionCommand> actionCommandList = new ArrayList<ActionCommand>();
@@ -190,7 +190,7 @@ public class SensorBase extends DBObject {
         return false;
     }
 
-    public Boolean hasIntValue() {
+    /*public Boolean hasIntValue() {
         return hasIntValue;
     }
 
@@ -216,7 +216,7 @@ public class SensorBase extends DBObject {
 
     public int getIntValue() {
         return intValue;
-    }
+    }*/
 
     public interface SensorListener {
         //static public String SensorEvents = "sensor event";
@@ -235,18 +235,6 @@ public class SensorBase extends DBObject {
         listeners.remove(toRemove);
     }
 
-    /*public boolean receiveEvent(String eventtype) {
-        if (eventtype == SensorEvents)
-            return true;
-        return false;
-    }
-
-    public boolean sendEvent(String eventtype) {
-        if (eventtype == SensorEvents)
-            return true;
-        return false;
-    }*/
-
     public void init() {
 
     }
@@ -255,7 +243,7 @@ public class SensorBase extends DBObject {
 
     }
 
-    public boolean isUpdated() {
+    /*public boolean isUpdated() {
 
         Date currentDate = Core.getDate();
         if (lastUpdate == null || (currentDate.getTime() - lastUpdate.getTime()) > (60 * 1000)) {
@@ -264,7 +252,7 @@ public class SensorBase extends DBObject {
         } else {
             return true;
         }
-    }
+    }*/
 
     public Date getLastUpdate() {
         return lastUpdate;
@@ -317,16 +305,6 @@ public class SensorBase extends DBObject {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-
-    /*public void setStatus(String status) {
-        oldStatus = this.status;
-        this.status = status;
-
-        if (!status.equals(oldStatus)) {
-            for (SensorListener listener : listeners)
-                listener.onChangeStatus(status, oldStatus);
-        }
-    }*/
 
     public boolean setStatus(String status) {
         oldStatus = this.status;
@@ -381,29 +359,15 @@ public class SensorBase extends DBObject {
     public void updateFromJson(Date date, JSONObject json) {
 
         System.out.println("updateFromJson " + json.toString());
-
         try {
             lastUpdate = date;
-            online = true;
-
-
-            /*if (json.has("name"))
-                name = json.getString("name");*/
-            /*if (json.has("shieldid"))
-                shieldid = json.getInt("shieldid");*/
-            /*if (json.has("subaddress"))
-                subaddress = json.getString("subaddress");*/
-            /*if (json.has("pin"))
-                pin = json.getString("pin");*/
+            //online = true;
             if (json.has("enabled"))
                 enabled = json.getBoolean("enabled");
             if (json.has("status")) {
                 String status = json.getString("status");
                 setStatus(status);
             }
-            /*if (json.has("zonesensorstatus"))
-                status = json.getString("zonesensorstatus");*/
-
             if (json.has("children")) {
                 JSONArray jsonChildSensorArray = json.getJSONArray("children");
                 for (int k = 0; k < jsonChildSensorArray.length(); k++) {
@@ -416,9 +380,7 @@ public class SensorBase extends DBObject {
                     }
                 }
             }
-
             writeDataLog("updateFromJson");
-
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -428,7 +390,6 @@ public class SensorBase extends DBObject {
     }
 
     public void getJSONField(JSONObject json) {
-
     }
 
     public JSONObject toJson() {
@@ -438,7 +399,7 @@ public class SensorBase extends DBObject {
             json.put("id", id);
             json.put("shieldid", shieldid);
             json.put("parentid", parentid);
-            json.put("online", online);
+            //json.put("online", online);
             json.put("subaddress", subaddress);
             if (lastUpdate != null)
                 json.put("lastupdate", Core.getStrLastUpdate(lastUpdate));
@@ -455,30 +416,26 @@ public class SensorBase extends DBObject {
 
             json.put("statuslist", getStatusListJSONArray());
             json.put("actioncommandlist", getActionCommandListJSONArray());
-            if (hasIntValue)
+            /*if (hasIntValue)
                 json.put("intvalue", intValue);
             if (hasDoubleValue) {
                 json.put("doublevalue", doubleValue);
                 json.put("mindoublevalue", minDoubleValue);
                 json.put("maxdoublevalue", maxDoubleValue);
                 json.put("stepdoublevalue", stepDoubleValue);
-            }
-
+            }*/
             JSONArray children = new JSONArray();
             for (SensorBase sensor : childSensors) {
                 JSONObject child = sensor.toJson();
                 children.put(child);
             }
             json.put("childsensors", children);
-
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
         }
-
         // get custom json field
         getJSONField(json);
-
         return json;
     }
 

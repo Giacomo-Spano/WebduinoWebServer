@@ -106,6 +106,14 @@ public class ScenarioProgramTimeRange extends DBObject {
         }
     }
 
+    public Action getActionFromId(int id) {
+        for (Action action : actions) {
+            if (action.id == id)
+                return action;
+        }
+        return null;
+    }
+
     public String getActionStatus() {
         String status = "";
         boolean first = true;

@@ -71,6 +71,15 @@ public class WebduinoSystemScenario extends DBObject implements ScenarioTimeInte
         fromJson(json);
     }
 
+    public Action getActionFromId(int id) {
+        for (ScenarioProgram program : programs) {
+            Action action = program.getActionFromId(id);
+            if (action != null)
+                return action;
+        }
+        return null;
+    }
+
     public void start() {
 
         if (!enabled) {

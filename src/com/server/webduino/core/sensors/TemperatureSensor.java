@@ -19,11 +19,11 @@ public class TemperatureSensor extends SensorBase {
 
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = temperaturesensortype;
-        hasDoubleValue = true;
+        /*hasDoubleValue = true;
         doubleValue = .0;
         minDoubleValue = .0;
         maxDoubleValue = 30.0;
-        stepDoubleValue = .1;
+        stepDoubleValue = .1;*/
         datalog = new TemperatureSensorDataLog(id);
     }
 
@@ -68,7 +68,7 @@ public class TemperatureSensor extends SensorBase {
 
         double oldtemperature = this.temperature;
         this.temperature = temperature;
-        this.doubleValue = temperature;
+        //this.doubleValue = temperature;
 
         //TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
         datalog.writelog("updateFromJson", this);

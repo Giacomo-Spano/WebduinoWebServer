@@ -13,39 +13,70 @@ public class Devices {
 
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
-    private static ArrayList<Device> mDeviceList = new ArrayList<Device>();
+    //private static ArrayList<Device> mDeviceList = new ArrayList<Device>();
 
     public Devices() {
 
     }
 
-    public ArrayList<Device> getList() {
+    /*public ArrayList<Device> getList() {
 
         return mDeviceList;
-    }
+    }*/
 
     public Device getDeviceFromId(int id) {
 
-        for (Device device:mDeviceList) {
+        /*for (Device device:mDeviceList) {
             if (device.id == id)
                 return device;
         }
-        return null;
-    }
-
-    public Device getFromId(int id) {
-        Iterator<Device> iterator = mDeviceList.iterator();
-        while (iterator.hasNext()) {
-            Device device = iterator.next();
-            if (device.id == id)
-                return device;
-        }
-        return null;
-    }
-
-    public void read() {
+        return null;*/
 
         LOGGER.info(" readZoneSensors devices");
+        ArrayList<Device> devices = new ArrayList<Device>();
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM devices WHERE id="+id;
+            ResultSet rs = stmt.executeQuery(sql);
+            // Extract data from result set
+            if (rs.next()) {
+                Device device = deviceFromResultset(rs);
+                rs.close();
+                stmt.close();
+                conn.close();
+                return device;
+            }
+            // Clean-up environment
+            rs.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private Device deviceFromResultset(ResultSet rs) throws SQLException {
+        Device device = new Device();
+        device.id = rs.getInt("id");
+        device.tokenId = rs.getString("tokenid");
+        device.name = rs.getString("name");
+        device.date = rs.getDate("date");
+        return device;
+    }
+
+    public ArrayList<Device> get() {
+
+        LOGGER.info("get");
+        ArrayList<Device> devices = new ArrayList<Device>();
 
         try {
             // Register JDBC driver
@@ -59,17 +90,9 @@ public class Devices {
             ResultSet rs = stmt.executeQuery(sql);
 
             // Extract data from result set
-            mDeviceList.clear();
             while (rs.next()) {
-
-
-                Device device = new Device();
-                device.id = rs.getInt("id");
-                device.tokenId = rs.getString("tokenid");
-                device.name = rs.getString("name");
-                device.date = rs.getDate("date");
-
-                mDeviceList.add(device);
+                Device device = deviceFromResultset(rs);
+                devices.add(device);
             }
             // Clean-up environment
             rs.close();
@@ -79,11 +102,11 @@ public class Devices {
         } catch (SQLException se) {
             //Handle errors for JDBC
             se.printStackTrace();
-
         } catch (Exception e) {
             //Handle errors for Class.forName
             e.printStackTrace();
         }
+        return devices;
     }
 
     public int insert(Device device) {
@@ -95,17 +118,10 @@ public class Devices {
             // Open a connection
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             // Execute SQL query
-            //Statement stmt = conn.createStatement();
-
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
             String date = "NULL";
             date = "'" + df.format((device.date)) + "'";
-
-
-
             String sql;
-
             sql = "INSERT INTO devices (tokenid, date, name)" +
                     " VALUES (" + "\"" + device.tokenId + "\"," + date + ",\"" + device.name + "\") " +
                     "ON DUPLICATE KEY UPDATE tokenid=\"" + device.tokenId + "\", date=" + date + ", name=\"" + device.name + "\"";
@@ -137,9 +153,6 @@ public class Devices {
             e.printStackTrace();
             return 0;
         }
-
-        read(); // reload data
         return device.id;
     }
-
 }

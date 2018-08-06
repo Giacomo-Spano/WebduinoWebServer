@@ -4,6 +4,7 @@ import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.DoorSensor;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.servlet.SystemServlet;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,7 +36,7 @@ public class DataLog {
 
     public int writelog(String event, Object object) {
 
-        String sql;
+        String sql = "";
         int id = -1;
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -54,6 +55,7 @@ public class DataLog {
             conn.close();
         } catch (SQLException se) {
             //Handle errors for JDBC
+            System.out.print(sql);
             se.printStackTrace();
 
         } catch (Exception e) {

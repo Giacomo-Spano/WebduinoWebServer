@@ -1,7 +1,7 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
+import com.server.webduino.core.sensors.commands.IRActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,31 +26,21 @@ public class IRCommandDataLog extends CommandDataLog {
     int actionid;
 
     public IRCommandDataLog() {
-        super("heatercommanddatalog");
+        super("commanddatalog");
     }
 
     @Override
-    //public String getSQLInsert(String event, Command command) {
     public String getSQLInsert(String event, Object object) {
 
-        HeaterActuatorCommand heaterCommand = (HeaterActuatorCommand) object;
+        IRActuatorCommand heaterCommand = (IRActuatorCommand) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String sql;
-        sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate) VALUES ("
-                + "'" + df.format(heaterCommand.date) + "'"
+        sql = "INSERT INTO " + tableName + " (command, shieldid, actuatorid, uuid) VALUES ("
+                //+ "'" + df.format(heaterCommand.date) + "'"
                 + ",'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
                 + "," + heaterCommand.actuatorid
                 + ",'" + heaterCommand.uuid + "'"
-                + "," + heaterCommand.duration
-                + "," + heaterCommand.targetTemperature
-                + "," + heaterCommand.scenario
-                + "," + heaterCommand.zone
-                + "," + heaterCommand.temperature
-                + "," + heaterCommand.actionid
-                + ",'" + df.format(heaterCommand.enddate) + "'"
-                /*+ "," + heaterCommand.result.success
-                + ",'" + heaterCommand.result.result + "'"*/
                 + ");";
         return sql;
     }

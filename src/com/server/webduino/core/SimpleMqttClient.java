@@ -4,6 +4,7 @@ package com.server.webduino.core;
  * Created by giaco on 25/04/2017.
  */
 
+import com.quartz.QuartzListener;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
@@ -37,6 +38,7 @@ public class SimpleMqttClient implements MqttCallback {
     public interface SimpleMqttClientListener {
 
         void messageReceived(String topic, String message);
+        void connectionLost();
     }
 
     protected List<SimpleMqttClientListener> listeners = new ArrayList<>();
@@ -50,7 +52,16 @@ public class SimpleMqttClient implements MqttCallback {
     public void connectionLost(Throwable t) {
         System.out.println("Connection lost!");
         // code to reconnect to the broker would go here if desired
-        connect();
+
+        //connect();
+
+        //Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+        //core.init();
+
+        for (SimpleMqttClientListener listener : listeners) {
+            if (listener != null)
+                listener.connectionLost();
+        }
     }
 
     @Override
@@ -82,7 +93,7 @@ public class SimpleMqttClient implements MqttCallback {
 
     }
 
-    public void runClient() {
+    public boolean runClient() {
         // setup MQTT Client
         String clientID = clientId;//M2MIO_THING;
         connOpt = new MqttConnectOptions();
@@ -120,11 +131,12 @@ public class SimpleMqttClient implements MqttCallback {
             myClient.connect(connOpt);
         } catch (MqttException e) {
             e.printStackTrace();
-            System.exit(-1);
+            //System.exit(-1);
+            return false;
         }
 
         System.out.println("Connected to " + BROKER_URL);
-
+        return true;
 
     }
 

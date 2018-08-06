@@ -489,7 +489,7 @@ function setSensorElement(element, sensor) {
         testButton.text("sending" + command + " command...");
         var json = {
             'id': sensor.id,
-            'command': command,
+            'command': command
         };
         postShieldData(json, function (result, response) {
             testButton.text("command sent");

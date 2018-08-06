@@ -29,6 +29,11 @@ public class VirtualShield implements Runnable {
             public synchronized void messageReceived(String topic, String message) {
 
             }
+
+            @Override
+            public void connectionLost() {
+
+            }
         });
 
         loadSettings();

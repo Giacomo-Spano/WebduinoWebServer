@@ -41,6 +41,7 @@ public class FileUploadServlet extends HttpServlet {
         String version = request.getParameter("version");
         //String fileName = request.getParameter("fileName");
         String name = request.getParameter("name");
+        String type = request.getParameter("type");
 
         String tmpDir = "";
         if (Core.isProduction())
@@ -87,7 +88,7 @@ public class FileUploadServlet extends HttpServlet {
             part.save(uploadFilePath + File.separator + fileName);*/
         }
 
-        SWVersion swVersion = new SWVersion(0,name,version,uploadFilePath,fileName);
+        SWVersion swVersion = new SWVersion(0,name,version,uploadFilePath,fileName,type);
         swVersion.write();
 
         request.setAttribute("message", version + " File uploaded successfully!");

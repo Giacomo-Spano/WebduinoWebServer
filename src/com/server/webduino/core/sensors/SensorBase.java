@@ -185,6 +185,20 @@ public class SensorBase extends DBObject {
         return true;
     }
 
+    public Boolean sendCommand(JSONObject json) {
+        for (ActionCommand actionCommand : actionCommandList) {
+            String cmd = null;
+            try {
+                cmd = json.getString("command");
+                if (cmd.equals(actionCommand.command))
+                    actionCommand.commandMethod.execute(json);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
 
     public Boolean endCommand() {
         return false;

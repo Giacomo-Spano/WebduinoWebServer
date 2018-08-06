@@ -17,24 +17,30 @@ public class SWVersion {
     public String version;
     public String path;
     public String filename;
+    public String type;
 
 
-    public SWVersion(int id, String name, String version, String path, String filename) {
+    public SWVersion(int id, String name, String version, String path, String filename, String type) {
         this.id = id;
         this.name = name;
         this.version = version;
         this.path = path;
         this.filename = filename;
+        this.type = type;
     }
 
-    public static SWVersion getLatestVersion() {
+    public static SWVersion getLatestVersion(String type) {
+
+        if (type == null || type.equals(""))
+            type = "webduino";
+
         SWVersion swversion = null;
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             Statement stmt = conn.createStatement();
             String sql;
-            sql = "SELECT * FROM swversions ORDER BY version DESC LIMIT 1";
+            sql = "SELECT * FROM swversions WHERE type=" + type +" ORDER BY version DESC LIMIT 1";
             ResultSet swversionsResultSet = stmt.executeQuery(sql);
             if (swversionsResultSet.next()) {
                 int id = swversionsResultSet.getInt("id");
@@ -42,7 +48,7 @@ public class SWVersion {
                 String version = swversionsResultSet.getString("version");
                 String path = swversionsResultSet.getString("path");
                 String filename = swversionsResultSet.getString("filename");
-                swversion = new SWVersion(id, name, version, path, filename);
+                swversion = new SWVersion(id, name, version, path, filename,type);
             }
             swversionsResultSet.close();
             stmt.close();
@@ -61,17 +67,19 @@ public class SWVersion {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             Statement stmt = conn.createStatement();
-            String sql = "INSERT INTO swversions (id, name, version,path,filename)" +
+            String sql = "INSERT INTO swversions (id, name, version,path,type,filename)" +
                     " VALUES ("
                     + id + ","
                     + "\"" + name + "\","
                     + "\"" + version + "\","
                     + "\"" + path + "\","
+                    + "\"" + type + "\","
                     + "\"" + filename + "\" ) " +
                     "ON DUPLICATE KEY UPDATE "
                     + "name=\"" + name + "\","
                     + "version=\"" + version + "\","
                     + "path=\"" + path + "\","
+                    + "path=\"" + type + "\","
                     + "filename=\"" + filename + "\";";
             stmt.executeUpdate(sql);
             stmt.close();

@@ -49,6 +49,9 @@ public class TimeServlet extends HttpServlet {
             int tzOffsetSec = (cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET)) / (1000);
             jsonResponse.put("timesec", date.getTime() / 1000 + tzOffsetSec);
 
+            response.setStatus(HttpServletResponse.SC_OK);
+            out.print(jsonResponse.toString());
+
 
         } catch (JSONException e) {
             try {
@@ -57,8 +60,7 @@ public class TimeServlet extends HttpServlet {
                 e1.printStackTrace();
             }
         }
-        // finally output the json string
-        out.print(jsonResponse.toString());
+        //response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

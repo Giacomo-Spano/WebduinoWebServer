@@ -29,7 +29,7 @@ public class HornActuatorCommand extends Command {
         commandDataLog = new HornCommandDataLog();
     }
 
-    public HornActuatorCommand(JSONObject json) throws JSONException {
+    public HornActuatorCommand(JSONObject json) throws Exception {
         super(json);
         commandDataLog = new HornCommandDataLog();
     }

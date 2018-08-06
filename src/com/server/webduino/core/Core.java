@@ -365,10 +365,37 @@ public class Core {
 
         // inizializzazione code MQTT
         smc = new SimpleMqttClient("CoreClient");
-        smc.runClient();
+        if (smc.runClient()) {
+            smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+                @Override
+                public synchronized void messageReceived(String topic, String message) {
+                }
+
+                @Override
+                public void connectionLost() {
+                    reconnect();
+                }
+            });
         //smc.subscribe("toServer/#");
         //smc.subscribe("uuid/#");
         //smc.addListener(this);
+        }
+    }
+
+    public void reconnect() {
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("CIAO!");
+
+                if (smc.runClient()) {
+                    this.cancel();
+                    init();
+                }
+            }
+
+        }, 5000, 5000);
     }
 
     public void init() {
@@ -438,7 +465,8 @@ public class Core {
                 String version = swversionsResultSet.getString("version");
                 String path = swversionsResultSet.getString("path");
                 String filename = swversionsResultSet.getString("filename");
-                SWVersion swversion = new SWVersion(id, name, version, path, filename);
+                String type = swversionsResultSet.getString("type");
+                SWVersion swversion = new SWVersion(id, name, version, path, filename, type);
                 swversions.add(swversion);
             }
             swversionsResultSet.close();
@@ -996,6 +1024,14 @@ public class Core {
             e.printStackTrace();
         }
         return newDate;
+    }
+
+    public static long getTimeOffset() {
+
+        TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
+        long diff = tz.getOffset(new Date().getTime()) / 1000;
+
+        return diff;
     }
 
     public static LocalTime getTime() {

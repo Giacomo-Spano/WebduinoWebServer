@@ -24,7 +24,7 @@ public class RFIDSensorCommand extends Command {
         this.status = status;
     }
 
-    public RFIDSensorCommand(JSONObject json) throws JSONException {
+    public RFIDSensorCommand(JSONObject json) throws Exception {
         super(json);
     }
 

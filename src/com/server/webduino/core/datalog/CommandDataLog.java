@@ -9,8 +9,8 @@ public class CommandDataLog extends DataLog {
     public String result;
     public boolean success;
 
-    public CommandDataLog(String heatercommanddatalog) {
-        this.tableName = heatercommanddatalog;
+    public CommandDataLog(String commanddatalog) {
+        this.tableName = commanddatalog;
     }
     @Override
     public String getSQLInsert(String event, Object object) {

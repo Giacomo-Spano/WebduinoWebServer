@@ -27,6 +27,7 @@ public class QuartzListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent servletContext) {
 
         core = new Core();
+
         core.initMQTT();
 
         core.init();

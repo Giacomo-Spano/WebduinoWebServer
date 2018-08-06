@@ -41,12 +41,12 @@ public class Command {
         uuid = UUID.randomUUID().toString();
     }
 
-    public Command(JSONObject json) throws JSONException {
+    public Command(JSONObject json) throws Exception {
         fromJson(json);
         uuid = UUID.randomUUID().toString();
     }
 
-    public void fromJson(JSONObject json) throws JSONException {
+    public void fromJson(JSONObject json) throws Exception {
     }
 
     public JSONObject toJSON() {
@@ -56,7 +56,7 @@ public class Command {
     // spedisce un comando e attende la risposta per il tempo definito in timeout
     public boolean send() {
 
-        int timeout = 10000; // 10 secondi in millisecondi
+        int timeout = 15000; // 10 secondi in millisecondi
 
         commandThread = new CommandThread(this);
         Thread thread = new Thread(commandThread, "commandThread" + uuid);
@@ -110,6 +110,7 @@ public class Command {
         @Override
         public void run() {
 
+
             Shield shield = Core.getShieldFromId(command.shieldid);
             if (shield == null)
                 return;
@@ -118,7 +119,8 @@ public class Command {
             LOGGER.info("Thread started: " + t.getName());
 
             smc = new SimpleMqttClient(command.uuid);
-            smc.runClient();
+            if (!smc.runClient())
+                return;
             smc.subscribe(responseTopic);
             smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
                 @Override
@@ -128,6 +130,11 @@ public class Command {
                     commandSuccess = true;
                     commandResult = message;
                     execute = false; // ferma il thread di attesa
+                }
+
+                @Override
+                public void connectionLost() {
+
                 }
             });
 

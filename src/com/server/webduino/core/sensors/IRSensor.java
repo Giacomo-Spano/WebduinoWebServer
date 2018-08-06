@@ -39,14 +39,16 @@ public class IRSensor extends Actuator {
         cmd.addCommand(new ActionCommand.Command() {
             @Override
             public boolean execute(JSONObject json) {
-                /*try {
-                    setStatus(activeStatus.status);
+
+                boolean res = false;
+                try {
+                    IRActuatorCommand command = new IRActuatorCommand(json);
+                    res = command.send();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return false;
-                }*/
-                SensorCommand command = new SensorCommand("send", shieldid, id);
-                boolean res = command.send();
+                }
                 if (!res && !status.status.equals(STATUS_OFFLINE)) {
                     setStatus(STATUS_OFFLINE);
                     String description = "Sensor " + name + " offline";
@@ -61,7 +63,8 @@ public class IRSensor extends Actuator {
         });
         actionCommandList.add(cmd);
 
-        command = new IRActuatorCommand(shieldid,id);
+
+        //command = new IRActuatorCommand(shieldid,id);
         datalog = new IRSensorDataLog(id);
     }
 

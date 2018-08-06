@@ -17,7 +17,7 @@ public class ShieldCommand extends Command {
     private static final Logger LOGGER = Logger.getLogger(ShieldCommand.class.getName());
     public static final String Command_CheckHealth = "checkhealth";
 
-    public ShieldCommand(JSONObject json) throws JSONException {
+    public ShieldCommand(JSONObject json) throws Exception {
         super(json);
         commandDataLog = new CommandDataLog("commanddatalog");
     }

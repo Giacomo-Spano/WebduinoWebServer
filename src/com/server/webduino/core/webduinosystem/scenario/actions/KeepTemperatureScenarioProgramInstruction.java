@@ -221,6 +221,8 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
 
             } catch (JSONException e1) {
                 e1.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

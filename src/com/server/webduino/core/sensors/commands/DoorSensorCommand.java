@@ -24,7 +24,7 @@ public class DoorSensorCommand extends Command {
         this.status = status;
     }
 
-    public DoorSensorCommand(JSONObject json) throws JSONException {
+    public DoorSensorCommand(JSONObject json) throws Exception {
         super(json);
     }
 

@@ -68,13 +68,41 @@ public class SystemServlet extends HttpServlet {
             Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
             JSONObject json = new JSONObject(jb.toString());
-            if (data != null && data.equals("command")) {
+            if (data != null && data.equals("googleassistant")) {
                 try {
                     if (json.has("webduinosystemid")) {
                         int webduinosystemid = json.getInt("webduinosystemid");
                         WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
                         if (webduinoSystem != null) {
                             webduinoSystem.sendCommand(json);
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            return;
+                        }
+                    } else if (json.has("triggerid")) {
+                        return;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    out.print(e.toString());
+                    return;
+                }
+
+            } else if (data != null && data.equals("command")) {
+                try {
+                    if (json.has("webduinosystemid")) {
+                        int webduinosystemid = json.getInt("webduinosystemid");
+                        WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
+                        if (webduinoSystem != null) {
+                            webduinoSystem.sendCommand(json);
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            return;
+                        }
+                    } else if (json.has("actuatorid")) {
+                        int actuatorid = json.getInt("actuatorid");
+                        SensorBase sensor = core.getSensorFromId(actuatorid);
+                        if (sensor != null) {
+                            sensor.sendCommand(json);
                             response.setStatus(HttpServletResponse.SC_OK);
                             return;
                         }

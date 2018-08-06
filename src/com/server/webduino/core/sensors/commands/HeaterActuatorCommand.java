@@ -38,7 +38,7 @@ public class HeaterActuatorCommand extends Command {
 
     }
 
-    public HeaterActuatorCommand(JSONObject json) throws JSONException {
+    public HeaterActuatorCommand(JSONObject json) throws Exception {
         super(json);
         commandDataLog = new HeaterCommandDataLog();
     }

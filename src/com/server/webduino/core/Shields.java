@@ -12,6 +12,7 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.logging.Logger;
 
 import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
@@ -62,7 +63,9 @@ public class Shields {
 
         /*SimpleMqttClient*/
         smc = new SimpleMqttClient("ShieldClient");
-        smc.runClient();
+        if (!smc.runClient())
+            return;
+
         smc.subscribe("toServer/shield/#");
         //smc.subscribe("toServer/sensor");
         smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
@@ -85,6 +88,30 @@ public class Shields {
                         String description = "Shield " + shield.boardName + " restarted";
                         Core.sendPushNotification(SendPushMessages.notification_restarted, "Restart", description, "0", 0);
                     }
+
+                } else if (topic.equals("toServer/shield/time")) {  // chiamata all'inizio dalla schesa
+
+
+                    String MACAddress = message;
+                    JSONObject jsonResult = loadShieldSettings(MACAddress);
+                    if (smc != null) {
+                        Date date = Core.getDate();
+                        Calendar cal=Calendar.getInstance();
+                        cal.setTime(date);
+                        int timezone=cal.getTimeZone().SHORT;
+                        long time = date.getTime()/1000 + Core.getTimeOffset();
+                        ;
+                        smc.publish("fromServer/shield/" + MACAddress + "/time", "" + time);
+                    }
+                    // questo va cambiato. Dovrebbe chiamare un comando e dovrebbe essere messo tutto nell'if successivop
+
+                    //Shield shield = Core.getShieldFromMACAddress(MACAddress);
+
+                    /*if (shield != null) {
+                        shield.datalog.writelog("loadsettings",shield);
+                        String description = "Shield " + shield.boardName + " restarted";
+                        Core.sendPushNotification(SendPushMessages.notification_restarted, "Restart", description, "0", 0);
+                    }*/
 
                 } else if (topic.equals("toServer/shield/sensor/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
 
@@ -136,6 +163,11 @@ public class Shields {
                     }
 
                 }
+
+            }
+
+            @Override
+            public void connectionLost() {
 
             }
         });

@@ -18,7 +18,7 @@ public class SensorCommand extends Command {
     public static final String Command_RequestSensorStatusUpdate = "requestsensorstatus"; // "programoff";
     public static final String Command_Off = "off";
 
-    public SensorCommand(JSONObject json) throws JSONException {
+    public SensorCommand(JSONObject json) throws Exception {
         super(json);
         commandDataLog = new CommandDataLog("commanddatalog");
     }

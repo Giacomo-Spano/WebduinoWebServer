@@ -23,7 +23,7 @@ public class IRReceiveActuatorCommand extends Command {
         commandDataLog = new IRCommandDataLog();
     }
 
-    public IRReceiveActuatorCommand(JSONObject json) throws JSONException {
+    public IRReceiveActuatorCommand(JSONObject json) throws Exception {
         super(json);
         commandDataLog = new HornCommandDataLog();
     }

@@ -498,6 +498,8 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return "";
     }
@@ -527,6 +529,8 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
             cmd.send();
 
         } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -572,6 +576,8 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return "";
     }
@@ -592,6 +598,8 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         } catch (JSONException e) {
             e.printStackTrace();
             return false;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return true;
     }

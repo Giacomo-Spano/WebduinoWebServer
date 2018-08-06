@@ -60,44 +60,19 @@ public class LogServlet extends HttpServlet {
 
         try {
 
-            String log = "";
-            int id, packetnumber;
-            int start = text.indexOf(":");
-            if (start >= 0) {
-                text = text.substring(start + 1);
-                int end = text.indexOf(":");
-                if (end > 0) {
-                    packetnumber = Integer.valueOf(text.substring(0, end));
-                    text = text.substring(end + 1);
-                    //start = text.indexOf(":");
-                    end = text.indexOf(":");
-                    if (end > 0) {
-                        id = Integer.valueOf(text.substring(0, end));
-                        text = text.substring(end + 1);
+            String tempDir = getServletContext().getAttribute(ServletContext.TEMPDIR).toString();
+            String fileName = "NODE";
 
-                        String tempDir = getServletContext().getAttribute(ServletContext.TEMPDIR).toString();
-                        String fileName = "NODE" + id;
-
-                        writelog(fileName, text);
-                        try {
-                            jsonResponse.put("result", "success");
-                        } catch (JSONException e1) {
-                            e1.printStackTrace();
-                        }
-                    }
-                }
-            } else {
-                // put some value pairs into the JSON object .
-
-                try {
-                    jsonResponse.put("result", "error");
-                } catch (JSONException e1) {
-                    e1.printStackTrace();
-                }
+            writelog(fileName, text);
+            try {
+                jsonResponse.put("result", "success");
+            } catch (JSONException e1) {
+                e1.printStackTrace();
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } catch (JSONException e1) {
+            e1.printStackTrace();
         }
+
         // finally output the json string
         out.print(jsonResponse.toString());
 
@@ -117,7 +92,6 @@ public class LogServlet extends HttpServlet {
             f.renameTo(new File(newfilename));
             f = new File(file);
         }
-
 
 
         try (PrintWriter output = new PrintWriter(new FileWriter(f, true))) {

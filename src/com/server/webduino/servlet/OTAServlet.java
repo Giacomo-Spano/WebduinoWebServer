@@ -47,7 +47,15 @@ public class OTAServlet extends HttpServlet {
          */
         LOGGER.severe("OTA servlet - doGet");
 
-        SWVersion latestVersion = SWVersion.getLatestVersion();
+        String type = request.getParameter("type");
+        SWVersion latestVersion = SWVersion.getLatestVersion(type);
+        if (latestVersion == null) {
+            LOGGER.info("update not available");
+            response.setStatus(304);
+            return;
+        }
+
+
         LOGGER.severe("latestVersion:" + latestVersion.name);
         String swversion = request.getHeader("x-esp8266-version");
         LOGGER.severe("swversion:" + swversion);
@@ -68,7 +76,7 @@ public class OTAServlet extends HttpServlet {
         if ((Integer.parseInt(split2[0]) == Integer.parseInt(split1[0]) &&
                 Integer.parseInt(split2[1]) > Integer.parseInt(split1[1])) ||
 
-                (Integer.parseInt(split2[0]) > Integer.parseInt(split2[0]))) {
+                (Integer.parseInt(split2[0]) > Integer.parseInt(split1[0]))) {
 
 
             LOGGER.info("update software");

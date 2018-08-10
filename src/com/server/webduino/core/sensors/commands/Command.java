@@ -57,6 +57,9 @@ public class Command {
     public boolean send() {
 
         int timeout = 15000; // 10 secondi in millisecondi
+                        // questo valore n on serve a nulla. Vedi anche
+                        // il timeout della classe CommandThread. C'è un doppio timeout, questo dovrebbe esser più
+                        // grande e non scattare mai
 
         commandThread = new CommandThread(this);
         Thread thread = new Thread(commandThread, "commandThread" + uuid);
@@ -142,11 +145,14 @@ public class Command {
             smc.publish(topic,command.toJSON().toString());
             //Core.postCommand(command);
 
-            // il thread si mette in attesa di aggiornamento per 10 secondi e poi esce
+            // il thread si mette in loop infinito addormentandosi 500 millisec ad ogni giro
+            // in attesa di ricevere risposta
+            // Il loop finisce quando arriva la risposta (this.execute = false) oppure
+            // quanto finisce il timeout della trhead.join in Command.send()
             this.execute = true;
             while (this.execute) {
+                LOGGER.info("COMMAND SENT. Waiting for response: " + command.uuid);
                 try {
-                    LOGGER.info("COMMAND SENT. Waiting for response: " + command.uuid);
                     Thread.sleep((long) 1000);
                 } catch (InterruptedException e) {
                     this.execute = false;

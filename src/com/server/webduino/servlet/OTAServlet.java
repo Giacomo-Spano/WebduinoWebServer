@@ -48,6 +48,8 @@ public class OTAServlet extends HttpServlet {
         LOGGER.severe("OTA servlet - doGet");
 
         String type = request.getParameter("type");
+        if (type == null || type.equals(""))
+            type = "webduino";
         SWVersion latestVersion = SWVersion.getLatestVersion(type);
         if (latestVersion == null) {
             LOGGER.info("update not available");
@@ -58,6 +60,8 @@ public class OTAServlet extends HttpServlet {
 
         LOGGER.severe("latestVersion:" + latestVersion.name);
         String swversion = request.getHeader("x-esp8266-version");
+        if (swversion == null || swversion.equals(""))
+            swversion = "0.00";
         LOGGER.severe("swversion:" + swversion);
 
         String mac = request.getHeader("x-esp8266-sta-mac");

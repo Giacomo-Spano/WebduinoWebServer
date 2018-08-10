@@ -31,8 +31,7 @@ public class SWVersion {
 
     public static SWVersion getLatestVersion(String type) {
 
-        if (type == null || type.equals(""))
-            type = "webduino";
+
 
         SWVersion swversion = null;
         try {
@@ -40,7 +39,7 @@ public class SWVersion {
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             Statement stmt = conn.createStatement();
             String sql;
-            sql = "SELECT * FROM swversions WHERE type=" + type +" ORDER BY version DESC LIMIT 1";
+            sql = "SELECT * FROM swversions WHERE type='" + type + "' ORDER BY version DESC LIMIT 1";
             ResultSet swversionsResultSet = stmt.executeQuery(sql);
             if (swversionsResultSet.next()) {
                 int id = swversionsResultSet.getInt("id");
@@ -79,7 +78,7 @@ public class SWVersion {
                     + "name=\"" + name + "\","
                     + "version=\"" + version + "\","
                     + "path=\"" + path + "\","
-                    + "path=\"" + type + "\","
+                    + "type=\"" + type + "\","
                     + "filename=\"" + filename + "\";";
             stmt.executeUpdate(sql);
             stmt.close();

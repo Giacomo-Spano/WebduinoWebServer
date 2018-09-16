@@ -32,6 +32,7 @@ public class Command {
     public Command(int shieldid, int actuatorid) {
         this.shieldid = shieldid;
         this.actuatorid = actuatorid;
+        uuid = UUID.randomUUID().toString();
     }
 
     public Command(String command, int shieldid, int actuatorid) {
@@ -149,9 +150,17 @@ public class Command {
             // in attesa di ricevere risposta
             // Il loop finisce quando arriva la risposta (this.execute = false) oppure
             // quanto finisce il timeout della trhead.join in Command.send()
+
+            SensorBase sensor = Core.getSensorFromId(command.actuatorid);
+            String sensorStr = "";
+            if (sensor != null) {
+                sensorStr += "sensor" + sensor.getId() + ". " + sensor.getName();
+            }
+
+
             this.execute = true;
             while (this.execute) {
-                LOGGER.info("COMMAND SENT. Waiting for response: " + command.uuid);
+                LOGGER.info("COMMAND SENT shield:" + shield.id + " actuator: " + sensorStr + " command" + command.command + " Waiting for response: " + command.uuid);
                 try {
                     Thread.sleep((long) 1000);
                 } catch (InterruptedException e) {

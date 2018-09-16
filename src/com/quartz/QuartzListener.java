@@ -56,7 +56,7 @@ public class QuartzListener implements ServletContextListener {
                     .withIdentity("SensorTriggerName", "Group")
                     .startNow()
                     .withSchedule(simpleSchedule()
-                            .withIntervalInSeconds(60)   // interroga ogni 1 minuti
+                            .withIntervalInSeconds(5*60)   // interroga ogni 1 minuti
                             .repeatForever())
                     .build();
             // Setup the Job and WebduinoTrigger with Scheduler & schedule jobs

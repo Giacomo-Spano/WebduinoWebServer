@@ -194,6 +194,7 @@ public class SensorBase extends DBObject {
                     actionCommand.commandMethod.execute(json);
             } catch (JSONException e) {
                 e.printStackTrace();
+                return false;
             }
         }
         return true;

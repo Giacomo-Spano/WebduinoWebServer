@@ -64,428 +64,464 @@ public class SystemServlet extends HttpServlet {
             return;
         }
 
-        try {
-            Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
 
-            JSONObject json = new JSONObject(jb.toString());
-            if (data != null && data.equals("googleassistant")) {
-                try {
-                    if (json.has("webduinosystemid")) {
-                        int webduinosystemid = json.getInt("webduinosystemid");
-                        WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
-                        if (webduinoSystem != null) {
-                            webduinoSystem.sendCommand(json);
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            return;
-                        }
-                    } else if (json.has("triggerid")) {
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
+        Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
+
+
+        if (data != null && data.equals("googleassistant")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (json.has("device")) {
+                    String device = json.getString("device");
+                    String commandparam = json.getString("param");
+
+                    GoogleAssistantParser parser = new GoogleAssistantParser();
+                    parser.parseCommand(core, commandparam);
+
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print("");
+                } else if (json.has("zone")) {
+                    String zonename = json.getString("zone");
+                    GoogleAssistantParser parser = new GoogleAssistantParser();
+                    parser.parseZone(core, zonename);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print("");
+                } else if (json.has("triggerid")) {
                     return;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
 
-            } else if (data != null && data.equals("command")) {
-                try {
-                    if (json.has("webduinosystemid")) {
-                        int webduinosystemid = json.getInt("webduinosystemid");
-                        WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
-                        if (webduinoSystem != null) {
-                            webduinoSystem.sendCommand(json);
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            return;
-                        }
-                    } else if (json.has("actuatorid")) {
-                        int actuatorid = json.getInt("actuatorid");
-                        SensorBase sensor = core.getSensorFromId(actuatorid);
-                        if (sensor != null) {
-                            sensor.sendCommand(json);
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            return;
-                        }
-                    } else if (json.has("triggerid")) {
+        } else if (data != null && data.equals("dialogflow")) {
+
+            try {
+                JSONObject jsonrequest = new JSONObject(jb.toString());
+
+                Dialogflow dialogflow = new Dialogflow();
+                JSONObject jsonresult = dialogflow.webhook(jsonrequest);
+
+                response.setStatus(HttpServletResponse.SC_OK);
+                out.print(jsonresult);
+                return;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+
+        } else if (data != null && data.equals("command")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (json.has("webduinosystemid")) {
+                    int webduinosystemid = json.getInt("webduinosystemid");
+                    WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
+                    if (webduinoSystem != null) {
+                        webduinoSystem.sendCommand(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
+                } else if (json.has("actuatorid")) {
+                    int actuatorid = json.getInt("actuatorid");
+                    SensorBase sensor = core.getSensorFromId(actuatorid);
+                    if (sensor != null) {
+                        sensor.sendCommand(json);
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        return;
+                    }
+                } else if (json.has("triggerid")) {
                     return;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
 
-            } else if (data != null && data.equals("webduinosystemscenario")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        if (json.has("id")) {
-                            JSONArray jarray = core.removeScenario(json);
-                            if (jarray != null) {
-                                response.setStatus(HttpServletResponse.SC_OK);
-                                out.print(jarray.toString());
-                            }
+        } else if (data != null && data.equals("webduinosystemscenario")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    if (json.has("id")) {
+                        JSONArray jarray = core.removeScenario(json);
+                        if (jarray != null) {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            out.print(jarray.toString());
                         }
-                    } else {
-                        WebduinoSystemScenario scenario = core.saveScenario(json);
+                    }
+                } else {
+                    WebduinoSystemScenario scenario = core.saveScenario(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(scenario.toJson());
+                }
+                // questo server per aggiornare la lista di scenari nei webduinosystem
+                //core.readWebduinoSystems();
+                core.initScenarios();
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                //response.sendError(HttpServletResponse.SC_BAD_REQUEST,e.toString());
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("scenariotrigger")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    WebduinoSystemScenario scenario = core.removeScenarioTrigger(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(scenario.toJson());
+                    return;
+                } else {
+                    ScenarioTrigger trigger = core.saveScenarioTrigger(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(trigger.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("webduinosystemservice")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    WebduinoSystem webduinoSystem = core.removeWebduinoSystemService(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystem.toJson());
+                    return;
+                } else {
+                    WebduinoSystemService webduinoSystemService = core.saveWebduinoSystemService(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystemService.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("webduinosystemactuator")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    WebduinoSystem webduinoSystem = core.removeWebduinoSystemActuator(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystem.toJson());
+                    return;
+                } else {
+                    WebduinoSystemActuator webduinoSystemActuator = core.saveWebduinoSystemActuator(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystemActuator.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("webduinosystemzone")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    WebduinoSystem webduinoSystem = core.removeWebduinoSystemZone(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystem.toJson());
+                    return;
+                } else {
+                    WebduinoSystemZone webduinoSystemZone = core.saveWebduinoSystemZone(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystemZone.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("webduinosystem")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    WebduinoSystem webduinoSystem = core.removeWebduinoSystem(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystem.toJson());
+                    return;
+                } else {
+                    WebduinoSystem webduinoSystem = core.saveWebduinoSystem(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(webduinoSystem.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("triggers")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+
+                if (param != null && param.equals("delete")) {
+                    Triggers triggers = core.removeTriggers(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(triggers.toJson());
+                    return;
+                } else {
+                    Triggers triggers = core.saveTriggers(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(triggers.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("timeinterval")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    WebduinoSystemScenario scenario = core.removeScenarioTimeinterval(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(scenario.toJson());
+                    return;
+                } else {
+                    ScenarioTimeInterval timeInterval = core.saveScenarioTimeinterval(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(timeInterval.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("program")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    if (json.has("id")) {
+                        int programid = json.getInt("id");
+                        WebduinoSystemScenario scenario = core.removeScenarioProgram(programid);
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(scenario.toJson());
+                        return;
                     }
-                    // questo server per aggiornare la lista di scenari nei webduinosystem
-                    //core.readWebduinoSystems();
-                    core.initScenarios();
-                    return;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    //response.sendError(HttpServletResponse.SC_BAD_REQUEST,e.toString());
-                    out.print(e.toString());
+                } else {
+                    ScenarioProgram program = core.saveScenarioProgram(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(program.toJson());
                     return;
                 }
 
-            } else if (data != null && data.equals("scenariotrigger")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        WebduinoSystemScenario scenario = core.removeScenarioTrigger(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(scenario.toJson());
-                        return;
-                    } else {
-                        ScenarioTrigger trigger = core.saveScenarioTrigger(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(trigger.toJson());
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
 
-            } else if (data != null && data.equals("webduinosystemservice")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        WebduinoSystem webduinoSystem = core.removeWebduinoSystemService(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystem.toJson());
-                        return;
-                    } else {
-                        WebduinoSystemService webduinoSystemService = core.saveWebduinoSystemService(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystemService.toJson());
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
+        } else if (data != null && data.equals("timerange")) {
 
-            } else if (data != null && data.equals("webduinosystemactuator")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        WebduinoSystem webduinoSystem = core.removeWebduinoSystemActuator(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystem.toJson());
-                        return;
-                    } else {
-                        WebduinoSystemActuator webduinoSystemActuator = core.saveWebduinoSystemActuator(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystemActuator.toJson());
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-
-            } else if (data != null && data.equals("webduinosystemzone")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        WebduinoSystem webduinoSystem = core.removeWebduinoSystemZone(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystem.toJson());
-                        return;
-                    } else {
-                        WebduinoSystemZone webduinoSystemZone = core.saveWebduinoSystemZone(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystemZone.toJson());
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-
-            } else if (data != null && data.equals("webduinosystem")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        WebduinoSystem webduinoSystem = core.removeWebduinoSystem(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystem.toJson());
-                        return;
-                    } else {
-                        WebduinoSystem webduinoSystem = core.saveWebduinoSystem(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(webduinoSystem.toJson());
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-
-            } else if (data != null && data.equals("triggers")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        Triggers triggers = core.removeTriggers(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(triggers.toJson());
-                        return;
-                    } else {
-                        Triggers triggers = core.saveTriggers(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(triggers.toJson());
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-
-            } else if (data != null && data.equals("timeinterval")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        WebduinoSystemScenario scenario = core.removeScenarioTimeinterval(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(scenario.toJson());
-                        return;
-                    } else {
-                        ScenarioTimeInterval timeInterval = core.saveScenarioTimeinterval(json);
-                        response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(timeInterval.toJson());
-                        return;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-
-            } else if (data != null && data.equals("program")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        if (json.has("id")) {
-                            int programid = json.getInt("id");
-                            WebduinoSystemScenario scenario = core.removeScenarioProgram(programid);
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(scenario.toJson());
-                            return;
-                        }
-                    } else {
-                        ScenarioProgram program = core.saveScenarioProgram(json);
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    ScenarioProgram program = core.removeScenarioProgramTimeRange(json);
+                    if (program != null) {
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(program.toJson());
                         return;
                     }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
+                } else {
+                    ScenarioProgramTimeRange timerange = core.saveScenarioProgramTimeRange(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(timerange.toJson());
                     return;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+        } else if (data != null && data.equals("trigger")) { // questo è diverso da scenariotrigger
 
-            } else if (data != null && data.equals("timerange")) {
-
-                try {
-                    if (param != null && param.equals("delete")) {
-                        ScenarioProgram program = core.removeScenarioProgramTimeRange(json);
-                        if (program != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(program.toJson());
-                            return;
-                        }
-                    } else {
-                        ScenarioProgramTimeRange timerange = core.saveScenarioProgramTimeRange(json);
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                int id = json.getInt("id");
+                if (json.has("status")) {
+                    String status = json.getString("status");
+                    Trigger trigger = core.getTriggerFromId(id);
+                    if (trigger != null && trigger.setStatus(status)) {
                         response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(timerange.toJson());
+                        out.print("trigger " + status);
                         return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
                 }
-            } else if (data != null && data.equals("trigger")) { // questo è diverso da scenariotrigger
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("bad command");
+                return;
 
-                try {
-                    int id = json.getInt("id");
-                    if (json.has("status")) {
-                        String status = json.getString("status");
-                        Trigger trigger = core.getTriggerFromId(id);
-                        if (trigger != null && trigger.setStatus(status)) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print("trigger " + status);
-                            return;
-                        }
-                    }
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print("bad command");
-                    return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+        } else if (data != null && data.equals("condition")) {
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-            } else if (data != null && data.equals("condition")) {
-
-                try {
-                    if (param != null && param.equals("delete")) {
-                        Condition condition = core.removeCondition(json);
-                        if (condition != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(condition.toJson());
-                            return;
-                        }
-                    } else {
-                        Condition condition= core.saveCondition(json);
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    Condition condition = core.removeCondition(json);
+                    if (condition != null) {
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(condition.toJson());
                         return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
+                } else {
+                    Condition condition = core.saveCondition(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(condition.toJson());
                     return;
                 }
-            } else if (data != null && data.equals("action")) {
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+        } else if (data != null && data.equals("action")) {
 
-                try {
-                    if (param != null && param.equals("delete")) {
-                        Action action = core.removeAction(json);
-                        if (action != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(action.toJson());
-                            return;
-                        }
-                    } else if (param != null && param.equals("stop")) {
-                        int id = json.getInt("id");
-                        Action action = core.getActionFromId(id);
-                        if (action != null) {
-                            action.stop();
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            return;
-                        }
-                    } else { // save
-                        Action action = core.saveAction(json);
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    Action action = core.removeAction(json);
+                    if (action != null) {
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(action.toJson());
                         return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-            }else if (data != null && data.equals("zone")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-
-                        Zone zone = core.removeZone(json);
-                        if (zone != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(zone.toJson());
-                            return;
-                        }
-                    } else {
-                        Zone zone = core.saveZone(json);
-                        if (zone != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(zone.toJson());
-                            return;
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
-                    return;
-                }
-
-            } else if (data != null && data.equals("sensor")) {
-
-                try {
-                    if (param != null && param.equals("delete")) {
-                        Shield shield = removeSensor(json);
-                        if (shield != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(shield.toJson());
-                            return;
-                        }
-                    } else {
-                        SensorBase sensor = saveSensor(json);
+                } else if (param != null && param.equals("stop")) {
+                    int id = json.getInt("id");
+                    Action action = core.getActionFromId(id);
+                    if (action != null) {
+                        action.stop();
                         response.setStatus(HttpServletResponse.SC_OK);
-                        out.print(sensor.toJson());
                         return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
+                } else { // save
+                    Action action = core.saveAction(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(action.toJson());
                     return;
                 }
-            } else if (data != null && data.equals("shield")) {
-                try {
-                    if (param != null && param.equals("delete")) {
-                        Shield shield = removeShield(json);
-                        if (shield != null) {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            out.print(shield.toJson());
-                            return;
-                        }
-                    } else {
-                        Shield shield = saveShield(json);
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+        } else if (data != null && data.equals("zone")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+
+                    Zone zone = core.removeZone(json);
+                    if (zone != null) {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(zone.toJson());
+                        return;
+                    }
+                } else {
+                    Zone zone = core.saveZone(json);
+                    if (zone != null) {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(zone.toJson());
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
+
+        } else if (data != null && data.equals("sensor")) {
+
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    Shield shield = removeSensor(json);
+                    if (shield != null) {
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print(shield.toJson());
                         return;
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    out.print(e.toString());
+                } else {
+                    SensorBase sensor = saveSensor(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(sensor.toJson());
                     return;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
             }
-
-            boolean res = false;
-
-
-        } catch (
-                JSONException e)
-
-        {
-            e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            LOGGER.severe("BAD REQUEST");
-            return;
+        } else if (data != null && data.equals("shield")) {
+            try {
+                JSONObject json = new JSONObject(jb.toString());
+                if (param != null && param.equals("delete")) {
+                    Shield shield = removeShield(json);
+                    if (shield != null) {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(shield.toJson());
+                        return;
+                    }
+                } else {
+                    Shield shield = saveShield(json);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(shield.toJson());
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print(e.toString());
+                return;
+            }
         }
+
+        boolean res = false;
+
 
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         LOGGER.severe("BAD REQUEST");
@@ -544,6 +580,11 @@ public class SystemServlet extends HttpServlet {
                 JSONArray jarray = core.getWebduinoSystemJSONArray();
                 if (jarray != null) {
                     response.setStatus(HttpServletResponse.SC_OK);
+                    response.setHeader("Access-Control-Allow-Origin", "*");
+                    /*header("Access-Control-Allow-Origin:*");
+                    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT');
+                    header('Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization, X-Request-With, X-CLIENT-ID, X-CLIENT-SECRET');
+                    header('Access-Control-Allow-Credentials: true');*/
                     out.print(jarray.toString());
                     return;
                 }
@@ -557,6 +598,7 @@ public class SystemServlet extends HttpServlet {
             WebduinoSystem system = core.getWebduinoSystemFromId(webduinosystemid);
             if (system != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
+                response.setHeader("Access-Control-Allow-Origin", "*");
                 try {
                     out.print(system.toJson());
                 } catch (JSONException e) {
@@ -594,7 +636,7 @@ public class SystemServlet extends HttpServlet {
             if (service != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
                 //try {
-                    out.print(service.toJson());
+                out.print(service.toJson());
                 /*} catch (JSONException e) {
                     e.printStackTrace();
                 }*/
@@ -654,7 +696,7 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
-        } */else if (requestCommand != null && requestCommand.equals("triggers")) {
+        } */ else if (requestCommand != null && requestCommand.equals("triggers")) {
 
             JSONArray jarray = Core.getTriggersJSONArray();
             if (jarray != null) {

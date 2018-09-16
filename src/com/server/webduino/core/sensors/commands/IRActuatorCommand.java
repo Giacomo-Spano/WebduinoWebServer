@@ -1,10 +1,14 @@
 package com.server.webduino.core.sensors.commands;
 
+import com.server.webduino.core.IRCode;
+import com.server.webduino.core.IRCodeSequence;
 import com.server.webduino.core.datalog.HornCommandDataLog;
 import com.server.webduino.core.datalog.IRCommandDataLog;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -14,14 +18,21 @@ public class IRActuatorCommand extends Command {
 
     private static final Logger LOGGER = Logger.getLogger(IRActuatorCommand.class.getName());
     public String command;
+    JSONArray codes;
     private String codetype, code;
     int bit;
 
     public static final String Command_send = "send";
 
-    public IRActuatorCommand(int shieldid, int actuatorid) {
-        super(shieldid, actuatorid);
+    public IRActuatorCommand(String command, int shieldid, int actuatorid, IRCodeSequence sequence) {
+        super(command, shieldid, actuatorid);
         commandDataLog = new IRCommandDataLog();
+        this.command = command;
+        codes = new JSONArray();
+        for (int i = 0; i < sequence.sequence.size(); i++) {
+            codes.put(sequence.sequence.get(i).toJson());
+        }
+
     }
 
     public IRActuatorCommand(JSONObject json) throws Exception {
@@ -44,12 +55,10 @@ public class IRActuatorCommand extends Command {
             shieldid = json.getInt("shieldid");
         else
             throw new Exception("shieldid not found");
-        if (json.has("codetype"))
-            codetype = json.getString("codetype");
-        if (json.has("code"))
-            code = json.getString("code");
-        if (json.has("bit"))
-            bit = json.getInt("bit");
+        if (json.has("codes"))
+            codes = json.getJSONArray("codes");
+        else
+            throw new Exception("codes not found");
     }
 
     @Override
@@ -62,9 +71,7 @@ public class IRActuatorCommand extends Command {
             json.put("uuid", uuid);
             if (command.equals(IRActuatorCommand.Command_send)) {
                 json.put("command", IRActuatorCommand.Command_send);
-                json.put("codetype", codetype);
-                json.put("code", code);
-                json.put("bit", bit);
+                json.put("codes",codes);
             } /*else if (command.equals(IRActuatorCommand.Command_Off)) {
 
                 json.put("command", IRActuatorCommand.Command_Off);

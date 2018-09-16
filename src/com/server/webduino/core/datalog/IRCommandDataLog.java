@@ -36,8 +36,7 @@ public class IRCommandDataLog extends CommandDataLog {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String sql;
         sql = "INSERT INTO " + tableName + " (command, shieldid, actuatorid, uuid) VALUES ("
-                //+ "'" + df.format(heaterCommand.date) + "'"
-                + ",'" + heaterCommand.command + "'"
+                + "'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
                 + "," + heaterCommand.actuatorid
                 + ",'" + heaterCommand.uuid + "'"

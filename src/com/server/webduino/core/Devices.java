@@ -26,9 +26,9 @@ public class Devices {
 
     public Device getDeviceFromId(int id) {
 
-        /*for (Device device:mDeviceList) {
-            if (device.id == id)
-                return device;
+        /*for (Device deviceid:mDeviceList) {
+            if (deviceid.id == id)
+                return deviceid;
         }
         return null;*/
 

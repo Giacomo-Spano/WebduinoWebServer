@@ -75,7 +75,35 @@ public class Shields {
                 if (topic.equals("toServer/shield/loadsettings")) {  // chiamata all'inizio dalla schesa
 
 
-                    String MACAddress = message;
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("MACAddress")) {
+                            String MACAddress = json.getString("MACAddress");
+
+                            String rebootreason = "";
+                            if (json.has("rebootreason")) {
+                                rebootreason = json.getString("rebootreason");
+                            }
+                            if (smc != null) {
+                                JSONObject jsonResult = loadShieldSettings(MACAddress);
+                                smc.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
+                            }
+
+                            Shield shield = Core.getShieldFromMACAddress(MACAddress);
+                            if (shield != null) {
+                                shield.datalog.writelog("loadsettings - reason: " + rebootreason, shield);
+                                String description = "Shield " + shield.boardName + " restarted";
+                                Core.sendPushNotification(SendPushMessages.notification_restarted, "Restart", description + " " + rebootreason, "0", 0);
+                            }
+                        } else {
+                            return;
+                        }
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    /*String MACAddress = message;
                     JSONObject jsonResult = loadShieldSettings(MACAddress);
                     if (smc != null)
                         smc.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
@@ -84,10 +112,10 @@ public class Shields {
                     Shield shield = Core.getShieldFromMACAddress(MACAddress);
 
                     if (shield != null) {
-                        shield.datalog.writelog("loadsettings",shield);
+                        shield.datalog.writelog("loadsettings", shield);
                         String description = "Shield " + shield.boardName + " restarted";
                         Core.sendPushNotification(SendPushMessages.notification_restarted, "Restart", description, "0", 0);
-                    }
+                    }*/
 
                 } else if (topic.equals("toServer/shield/time")) {  // chiamata all'inizio dalla schesa
 
@@ -96,10 +124,10 @@ public class Shields {
                     JSONObject jsonResult = loadShieldSettings(MACAddress);
                     if (smc != null) {
                         Date date = Core.getDate();
-                        Calendar cal=Calendar.getInstance();
+                        Calendar cal = Calendar.getInstance();
                         cal.setTime(date);
-                        int timezone=cal.getTimeZone().SHORT;
-                        long time = date.getTime()/1000 + Core.getTimeOffset();
+                        int timezone = cal.getTimeZone().SHORT;
+                        long time = date.getTime() / 1000 + Core.getTimeOffset();
                         ;
                         smc.publish("fromServer/shield/" + MACAddress + "/time", "" + time);
                     }
@@ -283,7 +311,7 @@ public class Shields {
                 String description = "Shield " + shield.boardName + " offline";
                 Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
             }
-            shield.requestAsyncAllSensorStatusUpdate();
+            //shield.requestAsyncAllSensorStatusUpdate();
         }
     }
 

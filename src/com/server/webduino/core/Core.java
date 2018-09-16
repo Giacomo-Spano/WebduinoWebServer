@@ -85,6 +85,21 @@ public class Core {
 
     }
 
+
+
+    public static Zone getZoneFromName(String name) {
+        for (Zone zone: zones) {
+            String zonename = zone.getName().toUpperCase();
+            if (zonename.equals(name.toUpperCase()))
+                return zone;
+        }
+        return null;
+    }
+
+    public List<Zone> getZones() {
+        return zones;
+    }
+
     public Action getActionFromId(int id) {
         for (WebduinoSystem webduinoSystem : webduinoSystems) {
             Action action = webduinoSystem.getActionFromId(id);
@@ -404,6 +419,8 @@ public class Core {
 
         // versione sw
         readSoftwareVersions();
+
+
 
         // inizializzazione schede.
         // Le schede ed isensori devono essere caricati prima degli scenari e zone altrimenti non funzionano i listener

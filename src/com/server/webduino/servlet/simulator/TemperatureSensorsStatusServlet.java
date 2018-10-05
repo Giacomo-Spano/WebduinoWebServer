@@ -87,11 +87,11 @@ public class TemperatureSensorsStatusServlet extends HttpServlet {
 
             } else if (json.has("command")) {
 
-                if (!json.has("actuatorid")) {
+                if (!json.has("sensorid")) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     return;
                 }
-                int actuatorId = json.getInt("actuatorid");
+                int actuatorId = json.getInt("sensorid");
                 Actuator actuator = (Actuator) Core.getSensorFromId(actuatorId);
                 ActuatorCommand cmd = actuator.getCommandFromJson(json);
                 if (cmd == null) {

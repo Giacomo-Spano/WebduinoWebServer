@@ -32,8 +32,8 @@ public class SensorCommand extends Command {
     @Override
     public void fromJson(JSONObject json) throws JSONException {
 
-            if (json.has("actuatorid"))
-                actuatorid = json.getInt("actuatorid");
+            if (json.has("sensorid"))
+                actuatorid = json.getInt("sensorid");
             if (json.has("shieldid"))
                 shieldid = json.getInt("shieldid");
             if (json.has("command"))
@@ -47,7 +47,7 @@ public class SensorCommand extends Command {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("actuatorid", actuatorid);
+            json.put("sensorid", actuatorid);
             json.put("uuid",uuid);
             json.put("command",command);
 

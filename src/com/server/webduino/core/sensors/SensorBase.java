@@ -584,7 +584,7 @@ public class SensorBase extends DBObject {
         public void run() {
             /*boolean res = command.send();
             if (!res) {
-                SensorBase sensor = Core.getSensorFromId(command.actuatorid);
+                SensorBase sensor = Core.getSensorFromId(command.sensorid);
                 if (sensor != null && !sensor.status.status.equals(STATUS_OFFLINE)) {
                     sensor.setStatus(STATUS_OFFLINE);
                     String description = "Sensor " + sensor.name + " offline";

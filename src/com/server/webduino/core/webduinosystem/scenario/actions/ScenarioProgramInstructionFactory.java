@@ -27,25 +27,25 @@ public class ScenarioProgramInstructionFactory {
     public ScenarioProgramInstruction createProgramAction(int id, int programtimerangeid, String name, String description, int priority, boolean enabled) throws Exception {
         ScenarioProgramInstruction programActions = null;
         /*if (type.equals(DELAYALARM)) {
-            programActions = new DelayAlarmScenarioProgramActions(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new DelayAlarmScenarioProgramActions(id, programtimerangeid, name, description, priority, sensorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(VOIPCALL)) {
-            programActions = new VoIPCallScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new VoIPCallScenarioProgramInstruction(id, programtimerangeid, name, description, priority, sensorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(TRIGGERSTATUS)) {
-            programActions = new TriggerStatusScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new TriggerStatusScenarioProgramInstruction(id, programtimerangeid, name, description, priority, sensorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(KEEPTEMPERATURE)) {
-            programActions = new KeepTemperatureScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new KeepTemperatureScenarioProgramInstruction(id, programtimerangeid, name, description, priority, sensorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         } else if (type.equals(KEEPOFF)) {
-            programActions = new KeepOffScenarioProgramInstruction(id, programtimerangeid, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new KeepOffScenarioProgramInstruction(id, programtimerangeid, name, description, priority, sensorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);*/
         /*} else if (type.equals("immediatealarm") || type.equals("perimetrale") || type.equals("path") || type.equals("24hours")) {
-            programActions = new ScenarioProgramInstruction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new ScenarioProgramInstruction(id, programtimerangeid, type, name, description, priority, sensorid, targevalue, thresholdvalue,
             zoneId, seconds, enabled);
         } else if (type.equals("instruction")) { // istruzione generica vuota per inserimento nuoiva
-            programActions = new ScenarioProgramInstruction(id, programtimerangeid, type, name, description, priority, actuatorid, targevalue, thresholdvalue,
+            programActions = new ScenarioProgramInstruction(id, programtimerangeid, type, name, description, priority, sensorid, targevalue, thresholdvalue,
                     zoneId, seconds, enabled);
         *//*} else {*/
             //throw new Exception("type:" + type + "does not exist");
@@ -138,7 +138,7 @@ public class ScenarioProgramInstructionFactory {
             if (json.has("name")) name = json.getString("name");
             if (json.has("description")) description = json.getString("description");
             if (json.has("priority")) priority = json.getInt("priority");
-            /*if (json.has("actuatorid")) actuatorid = json.getInt("actuatorid");
+            /*if (json.has("sensorid")) sensorid = json.getInt("sensorid");
             if (json.has("targetvalue")) targetvalue = json.getDouble("targetvalue");
             if (json.has("thresholdvalue")) thresholdvalue = json.getDouble("thresholdvalue");
             if (json.has("zoneid")) zoneId = json.getInt("zoneid");*/

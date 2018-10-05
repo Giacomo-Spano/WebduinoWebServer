@@ -39,7 +39,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
         super.start();
         requestZoneStatusUpdate();
 
-        /*SensorBase sensor = Core.getSensorFromId(actuatorid);
+        /*SensorBase sensor = Core.getSensorFromId(sensorid);
         if (sensor != null) {
             if (sensor instanceof HeaterActuator) {
                 HeaterActuator heater = (HeaterActuator) sensor;
@@ -68,7 +68,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
             zone.removeListener(this);
         }
 
-        SensorBase sensor = Core.getSensorFromId(actuatorid);
+        SensorBase sensor = Core.getSensorFromId(sensorid);
         if (sensor != null) {
             sensor.removeListener(heaterListener);
         }*/
@@ -86,7 +86,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
 
         // se la action ha lo stesso actuator aggiunge il conflitto
         //DA RIFARE
-        if (newconflict.action.actuatorid == this.actuatorid) {
+        if (newconflict.action.sensorid == this.sensorid) {
             if (newconflict.action instanceof KeepTemperatureScenarioProgramInstruction || newconflict.action instanceof KeepOffScenarioProgramInstruction) {
                 conflictList.add(newconflict);
             }
@@ -129,7 +129,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
         }*/
 
         /*status += " - Actuator: ";
-        SensorBase sensor = Core.getSensorFromId(actuatorid);
+        SensorBase sensor = Core.getSensorFromId(sensorid);
         if (sensor != null && sensor instanceof HeaterActuator) {
 
             status += sensor.getId() + "." + sensor.getName();
@@ -141,7 +141,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
             else
                 status += "spento";
         } else {
-            status += actuatorid + " not found";
+            status += sensorid + " not found";
         }*/
 
         if (lastSent != null) {
@@ -182,9 +182,9 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
             try {
                 //Command.CommandResult result;
                 JSONObject json = new JSONObject();
-                //json.put("actuatorid", actuatorid);
+                //json.put("sensorid", sensorid);
 
-                //SensorBase sensor = Core.getSensorFromId(actuatorid);
+                //SensorBase sensor = Core.getSensorFromId(sensorid);
                 /*if (sensor != null)
                     json.put("shieldid", sensor.getShieldId());*/
                 json.put("command", HeaterActuatorCommand.Command_KeepTemperature);
@@ -201,7 +201,7 @@ public class KeepTemperatureScenarioProgramInstruction extends ScenarioProgramIn
                 HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
                 cmd.send();
 
-                /*SensorBase s = Core.getSensorFromId(cmd.actuatorid);
+                /*SensorBase s = Core.getSensorFromId(cmd.sensorid);
                 if (res && sensor != null) {
                     System.out.println(s.toJson().toString());
 

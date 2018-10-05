@@ -85,7 +85,7 @@ public class ReleActuatorCommand extends ActuatorCommand {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("actuatorid", actuatorId);
+            json.put("sensorid", actuatorId);
             json.put("addr", subaddress);
             if (command.equals(ReleActuatorCommand.Command_Program_ReleOn)) {
 

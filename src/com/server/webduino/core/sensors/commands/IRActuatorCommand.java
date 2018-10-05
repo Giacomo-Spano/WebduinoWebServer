@@ -47,10 +47,10 @@ public class IRActuatorCommand extends Command {
             command = json.getString("command");
         else
             throw new Exception("command not found");
-        if (json.has("actuatorid"))
-            actuatorid = json.getInt("actuatorid");
+        if (json.has("sensorid"))
+            actuatorid = json.getInt("sensorid");
         else
-            throw new Exception("actuatorid not found");
+            throw new Exception("sensorid not found");
         if (json.has("shieldid"))
             shieldid = json.getInt("shieldid");
         else
@@ -67,7 +67,7 @@ public class IRActuatorCommand extends Command {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("actuatorid", actuatorid);
+            json.put("sensorid", actuatorid);
             json.put("uuid", uuid);
             if (command.equals(IRActuatorCommand.Command_send)) {
                 json.put("command", IRActuatorCommand.Command_send);

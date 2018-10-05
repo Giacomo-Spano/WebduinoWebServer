@@ -14,7 +14,7 @@ public class KeyFactory {
         if (type.equals("securitykey")) {
             key = new SecurityKey(id,type,actuatorid,name);
         } /*else if (type.equals("actuator")) {
-            key = new HeaterExit(id,type,actuatorid,name);
+            key = new HeaterExit(id,type,sensorid,name);
         }*/
         if (key != null) {
             key.init();

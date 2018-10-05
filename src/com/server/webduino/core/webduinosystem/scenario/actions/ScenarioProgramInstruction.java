@@ -24,7 +24,7 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
     public String name = "";
     public String description = "";
     public int priority = 0;
-    //public int actuatorid = 0;
+    //public int sensorid = 0;
     public boolean enabled = true;
     public Date endDate = null;
     public Date startDate = null;

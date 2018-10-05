@@ -23,7 +23,7 @@ public class KeepOffScenarioProgramInstruction extends ScenarioProgramInstructio
 
         // se la action ha lo stesso actuator aggiunge il conflitto
         // DA RIFARE
-        if (newconflict.action.actuatorid == this.actuatorid) {
+        if (newconflict.action.sensorid == this.sensorid) {
             if (newconflict.action instanceof KeepTemperatureScenarioProgramInstruction || newconflict.action instanceof KeepOffScenarioProgramInstruction) {
                 conflictList.add(newconflict);
             }

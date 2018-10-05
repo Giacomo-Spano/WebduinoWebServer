@@ -127,8 +127,8 @@ public class SystemServlet extends HttpServlet {
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
-                } else if (json.has("actuatorid")) {
-                    int actuatorid = json.getInt("actuatorid");
+                } else if (json.has("sensorid")) {
+                    int actuatorid = json.getInt("sensorid");
                     SensorBase sensor = core.getSensorFromId(actuatorid);
                     if (sensor != null) {
                         sensor.sendCommand(json);

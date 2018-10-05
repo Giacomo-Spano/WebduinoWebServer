@@ -31,8 +31,8 @@ public class RFIDSensorCommand extends Command {
     @Override
     public void fromJson(JSONObject json) throws JSONException {
 
-        if (json.has("actuatorid"))
-            actuatorid = json.getInt("actuatorid");
+        if (json.has("sensorid"))
+            actuatorid = json.getInt("sensorid");
         if (json.has("shieldid"))
             shieldid = json.getInt("shieldid");
         if (json.has("command"))
@@ -48,7 +48,7 @@ public class RFIDSensorCommand extends Command {
 
         try {
             json.put("uuid", uuid);
-            json.put("actuatorid", actuatorid);
+            json.put("sensorid", actuatorid);
             json.put("command", command);
             /*if (command.equals(DoorSensorCommand.Command_Test)) {
 

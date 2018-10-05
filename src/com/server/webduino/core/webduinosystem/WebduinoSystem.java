@@ -208,7 +208,8 @@ public class WebduinoSystem extends DBObject {
         while (rs.next()) {
             int id = rs.getInt("id");
             int actuatorid = rs.getInt("sensorid");
-            WebduinoSystemActuator webduinosystemactuator = new WebduinoSystemActuator(id, actuatorid, webduinosystemid);
+            String name = rs.getString("name");
+            WebduinoSystemActuator webduinosystemactuator = new WebduinoSystemActuator(id, actuatorid, webduinosystemid, name);
             actuators.add(webduinosystemactuator);
         }
         rs.close();

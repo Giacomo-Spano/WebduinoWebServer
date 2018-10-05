@@ -246,7 +246,7 @@ public class Core {
     public WebduinoSystemActuator getWebduinoSystemActuatorFromId(int id) {
         for (WebduinoSystem system : webduinoSystems) {
             for (WebduinoSystemActuator webduinoSystemActuator: system.actuators) {
-                if (webduinoSystemActuator.actuatorid == id)
+                if (webduinoSystemActuator.sensorid == id)
                     return webduinoSystemActuator;
             }
         }
@@ -871,7 +871,7 @@ public class Core {
     public WebduinoSystem removeWebduinoSystemActuator(JSONObject json) throws Exception {
 
         WebduinoSystemActuator webduinoSystemActuator = new WebduinoSystemActuator(json);
-        int actuatorid = webduinoSystemActuator.actuatorid;
+        //int actuatorid = webduinoSystemActuator.sensorid;
         webduinoSystemActuator.remove();
         initScenarios();
         WebduinoSystem webduinoSystem = getWebduinoSystemFromId(webduinoSystemActuator.webduinosystemid);

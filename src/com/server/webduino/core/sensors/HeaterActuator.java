@@ -486,7 +486,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     public String sendTemperature(double temperature) {
         JSONObject json = new JSONObject();
         try {
-            json.put("actuatorid", id);
+            json.put("sensorid", id);
             json.put("shieldid", shieldid);
             json.put("command", HeaterActuatorCommand.Command_SendTemperature);
             SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -515,7 +515,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
         JSONObject json = new JSONObject();
         try {
-            json.put("actuatorid", id);
+            json.put("sensorid", id);
             json.put("shieldid", shieldid);
             json.put("command", HeaterActuatorCommand.Command_KeepTemperature);
             json.put("duration", this.duration);
@@ -561,7 +561,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
         JSONObject json = new JSONObject();
         try {
-            json.put("actuatorid", id);
+            json.put("sensorid", id);
             json.put("shieldid", shieldid);
             json.put("command", HeaterActuatorCommand.Command_KeepTemperature);
             json.put("duration", this.duration);
@@ -586,7 +586,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
         JSONObject json = new JSONObject();
         try {
-            json.put("actuatorid", id);
+            json.put("sensorid", id);
             json.put("shieldid", shieldid);
             json.put("command", HeaterActuatorCommand.Command_Off);
             SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");

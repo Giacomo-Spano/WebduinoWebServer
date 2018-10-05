@@ -37,8 +37,8 @@ public class HornActuatorCommand extends Command {
     @Override
     public void fromJson(JSONObject json) throws JSONException {
 
-            if (json.has("actuatorid"))
-                actuatorid = json.getInt("actuatorid");
+            if (json.has("sensorid"))
+                actuatorid = json.getInt("sensorid");
     }
 
     @Override
@@ -47,7 +47,7 @@ public class HornActuatorCommand extends Command {
         JSONObject json = new JSONObject();
 
         try {
-            json.put("actuatorid", actuatorid);
+            json.put("sensorid", actuatorid);
             json.put("uuid",uuid);
             if (command.equals(HornActuatorCommand.Command_On)) {
 

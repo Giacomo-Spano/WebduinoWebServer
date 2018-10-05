@@ -307,7 +307,7 @@ public class Scenarios {
     public NextTimeRangeAction getNextActuatorProgramTimeRangeAction(int actuatorid) {
         for (NextTimeRangeAction timeRangeAction : nextTimeRangeActions) {
             //DA RIFARE
-            /*if (timeRangeAction.action.actuatorid == actuatorid)
+            /*if (timeRangeAction.action.sensorid == sensorid)
                 return timeRangeAction;*/
         }
         return null;
@@ -317,7 +317,7 @@ public class Scenarios {
         List<NextTimeRangeAction> list = new ArrayList<>();
         for (NextTimeRangeAction timeRangeAction : nextTimeRangeActions) {
             //DA RIFARE
-            /*if (timeRangeAction.action.actuatorid == actuatorid)
+            /*if (timeRangeAction.action.sensorid == sensorid)
                 list.add(timeRangeAction);*/
         }
         return list;

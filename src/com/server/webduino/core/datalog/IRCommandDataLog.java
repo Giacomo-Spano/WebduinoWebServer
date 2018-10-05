@@ -35,7 +35,7 @@ public class IRCommandDataLog extends CommandDataLog {
         IRActuatorCommand heaterCommand = (IRActuatorCommand) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String sql;
-        sql = "INSERT INTO " + tableName + " (command, shieldid, actuatorid, uuid) VALUES ("
+        sql = "INSERT INTO " + tableName + " (command, shieldid, sensorid, uuid) VALUES ("
                 + "'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
                 + "," + heaterCommand.actuatorid
@@ -80,7 +80,7 @@ public class IRCommandDataLog extends CommandDataLog {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.date = df.parse(String.valueOf(datalogResultSet.getTimestamp("date")));
         this.shieldid = datalogResultSet.getInt("shieldid");
-        this.actuatorid = datalogResultSet.getInt("actuatorid");
+        this.actuatorid = datalogResultSet.getInt("sensorid");
         this.duration = datalogResultSet.getInt("duration");
         this.target = datalogResultSet.getDouble("target");
         this.temperature = datalogResultSet.getDouble("temperature");
@@ -99,7 +99,7 @@ public class IRCommandDataLog extends CommandDataLog {
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             json.put("date", df.format(date));
             json.put("shieldid", shieldid);
-            json.put("actuatorid", actuatorid);
+            json.put("sensorid", actuatorid);
             json.put("duration", duration);
             json.put("target", target);
             json.put("temperature", temperature);

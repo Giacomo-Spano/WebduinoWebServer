@@ -36,7 +36,7 @@ public class HornCommandDataLog extends CommandDataLog {
         HeaterActuatorCommand heaterCommand = (HeaterActuatorCommand) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String sql;
-        sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate) VALUES ("
+        sql = "INSERT INTO " + tableName + " (date, command, shieldid, sensorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate) VALUES ("
                 + "'" + df.format(heaterCommand.date) + "'"
                 + ",'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
@@ -91,7 +91,7 @@ public class HornCommandDataLog extends CommandDataLog {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.date = df.parse(String.valueOf(datalogResultSet.getTimestamp("date")));
         this.shieldid = datalogResultSet.getInt("shieldid");
-        this.actuatorid = datalogResultSet.getInt("actuatorid");
+        this.actuatorid = datalogResultSet.getInt("sensorid");
         this.duration = datalogResultSet.getInt("duration");
         this.target = datalogResultSet.getDouble("target");
         this.temperature = datalogResultSet.getDouble("temperature");
@@ -110,7 +110,7 @@ public class HornCommandDataLog extends CommandDataLog {
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             json.put("date", df.format(date));
             json.put("shieldid", shieldid);
-            json.put("actuatorid", actuatorid);
+            json.put("sensorid", actuatorid);
             json.put("duration", duration);
             json.put("target", target);
             json.put("temperature", temperature);

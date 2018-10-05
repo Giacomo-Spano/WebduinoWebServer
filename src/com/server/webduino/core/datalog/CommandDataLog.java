@@ -16,7 +16,7 @@ public class CommandDataLog extends DataLog {
     public String getSQLInsert(String event, Object object) {
     //public String getSQLInsert(String event, Command command) {
         Command command = (Command) object;
-        String sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, success, result) VALUES ("
+        String sql = "INSERT INTO " + tableName + " (date, command, shieldid, sensorid, uuid, success, result) VALUES ("
                 + getStrDate()
                 + ",'" + command.command + "'"
                 + "," + command.shieldid

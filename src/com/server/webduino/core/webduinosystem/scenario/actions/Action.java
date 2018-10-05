@@ -108,7 +108,7 @@ public class Action {
 
         // DA RIFARE in base al tipo di action decide se aggiungere un conflito
         // se la action ha lo stesso actuator aggiunge il conflitto
-        //if (newconflict.action.actuatorid == this.actuatorid) {
+        //if (newconflict.action.sensorid == this.sensorid) {
 
         conflictList.add(newconflict);
             /*if ((newconflict.action instanceof KeepTemperatureScenarioProgramInstruction || newconflict.action instanceof KeepOffScenarioProgramInstruction) &&
@@ -270,7 +270,7 @@ public class Action {
         targetvalue = resultSet.getDouble("targetvalue");
         seconds = resultSet.getInt("seconds");
         serviceid = resultSet.getInt("serviceid");
-        actuatorid = resultSet.getInt("actuatorid");
+        actuatorid = resultSet.getInt("sensorid");
         zoneid = resultSet.getInt("zoneid");
         zonesensorid = resultSet.getInt("zonesensorid");
         param = resultSet.getString("param");
@@ -287,7 +287,7 @@ public class Action {
         if (json.has("targetvalue")) targetvalue = json.getDouble("targetvalue");
         if (json.has("seconds")) seconds = json.getInt("seconds");
         if (json.has("serviceid")) serviceid = json.getInt("serviceid");
-        if (json.has("actuatorid")) actuatorid = json.getInt("actuatorid");
+        if (json.has("sensorid")) actuatorid = json.getInt("sensorid");
         if (json.has("zoneid")) zoneid = json.getInt("zoneid");
         if (json.has("zonesensorid")) zonesensorid = json.getInt("zonesensorid");
         if (json.has("param")) param = json.getString("param");
@@ -306,7 +306,7 @@ public class Action {
             json.put("targetvalue", targetvalue);
             json.put("seconds", seconds);
             json.put("serviceid", serviceid);
-            json.put("actuatorid", actuatorid);
+            json.put("sensorid", actuatorid);
             json.put("zoneid", zoneid);
             json.put("zonesensorid", zonesensorid);
             json.put("param", param);

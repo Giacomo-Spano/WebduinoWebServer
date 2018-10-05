@@ -162,8 +162,8 @@ public class ShieldServlet extends HttpServlet {
                     }
                 } else if (json.getString("command").equals("manual") || json.getString("command").equals("off")) {
 
-                    if (json.has("actuatorid")) {
-                        int id = json.getInt("actuatorid");
+                    if (json.has("sensorid")) {
+                        int id = json.getInt("sensorid");
                         SensorBase actuator = Core.getSensorFromId(id);
                         if (actuator instanceof HeaterActuator) {
                             try {
@@ -238,7 +238,7 @@ public class ShieldServlet extends HttpServlet {
                                 }
 
                                 boolean res = cmd.send();
-                                //SensorBase sensor = Core.getSensorFromId(cmd.actuatorid);
+                                //SensorBase sensor = Core.getSensorFromId(cmd.sensorid);
                                 if (res) {
                                     //out.print(sensor.toJson().toString());
                                     // aggiorna lòo stato del sensore in base alla risposta al comando
@@ -266,7 +266,7 @@ public class ShieldServlet extends HttpServlet {
                         }
                     } else {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                        out.print("Invalid actuatorid");
+                        out.print("Invalid sensorid");
                         return;
                     }
 

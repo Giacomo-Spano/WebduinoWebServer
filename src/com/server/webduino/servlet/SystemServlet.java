@@ -744,12 +744,17 @@ public class SystemServlet extends HttpServlet {
                 if (zone != null) {
                     ZoneSensor zoneSensor = zone.zoneSensorFromId(zonesensorid);
                     if (zoneSensor != null) {
-                        SensorBase sensor = Core.getSensorFromId(zoneSensor.getSensorId());
+
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(zoneSensor.toJson());
+                        return;
+
+                        /*SensorBase sensor = Core.getSensorFromId(zoneSensor.getSensorId());
                         if (sensor != null) {
                             response.setStatus(HttpServletResponse.SC_OK);
                             out.print(sensor.toJson());
                             return;
-                        }
+                        }*/
                     }
                 }
             }
@@ -817,6 +822,7 @@ public class SystemServlet extends HttpServlet {
             WebduinoSystemScenario scenario = Scenarios.getScenarioFromId(scenarioid);
             if (scenario != null) {
                 response.setStatus(HttpServletResponse.SC_OK);
+                response.setHeader("Access-Control-Allow-Origin", "*");
                 out.print(scenario.toJson());
                 return;
             }

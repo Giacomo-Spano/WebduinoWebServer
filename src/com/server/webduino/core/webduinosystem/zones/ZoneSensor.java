@@ -1,5 +1,11 @@
 package com.server.webduino.core.webduinosystem.zones;
 
+import com.server.webduino.core.Core;
+import com.server.webduino.core.sensors.SensorBase;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Date;
 
 /**
@@ -7,7 +13,7 @@ import java.util.Date;
  */
 public class ZoneSensor {
     public int id;
-    private int sensorId;
+    private int sensorid;
     public String name;
 
 
@@ -20,10 +26,26 @@ public class ZoneSensor {
     }
 
     public int getSensorId() {
-        return sensorId;
+        return sensorid;
     }
 
     public void setSensorId(int id) {
-        this.sensorId = id;
+        this.sensorid = id;
     }
+
+    public JSONObject toJson() {
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("id", id);
+            json.put("sensorid", sensorid);
+            json.put("name", name);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return json;
+    }
+
 }

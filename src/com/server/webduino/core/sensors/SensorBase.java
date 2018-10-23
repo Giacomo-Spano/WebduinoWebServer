@@ -426,6 +426,9 @@ public class SensorBase extends DBObject {
             json.put("addr", subaddress);
             json.put("testmode", testMode);
 
+            json.put("value", 0);
+            json.put("valuetext", "");
+
             json.put("status", getStatus().status);
             json.put("statusdetails", getStatus().description);
 

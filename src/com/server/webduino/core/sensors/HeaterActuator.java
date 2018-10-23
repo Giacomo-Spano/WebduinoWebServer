@@ -108,7 +108,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         actionCommandList.add(cmd);
 
         cmd = new ActionCommand("switchon", "Accendi");
-        cmd.addTarget("Temperatura", 0, 30);
+        //cmd.addTarget("Temperatura", 0, 30);
         cmd.addCommand(new ActionCommand.Command() {
             @Override
             public boolean execute(JSONObject json) {

@@ -136,16 +136,22 @@ public class ScenarioProgramInstruction /*implements Zone.WebduinoZoneListener*/
             listener.onStop(this);
         }*/
 
-        for (Condition condition:conditions) {
+        for (Condition condition: conditions) {
             condition.stop();
             condition.deleteListener(conditionListener);
+        }
+        for (Action action: actions) {
+            action.stop();
         }
     }
 
     public void checkConditions() {
 
-        boolean active = true;
+        boolean active = true; // se non ci sono condition allora le condition soino considerate true
 
+
+        // le condition nìsono valutate in and tra di loro.
+        // se non ce ne son allora di default active
         for (Condition condition:conditions) {
             if (!condition.isActive()) {
                 active = false;

@@ -29,6 +29,7 @@ public class Action {
     public final String ACTION_WEBDUINOSYSTEM = "webduinosystem";
 
     public int id = 0;
+    public String description = "";
     public int timerangeid = 0;
     public String type = "";
     public String actioncommand = "";
@@ -224,7 +225,7 @@ public class Action {
     public String getStatus() {
 
         String statustext = "";
-        if (type.equals(ACTION_ACTUATOR)) {
+        /*if (type.equals(ACTION_ACTUATOR)) {
             SensorBase sensor = Core.getSensorFromId(actuatorid);
             if (sensor != null) {
                 statustext += "Attuatore:" + sensor.getName();
@@ -254,7 +255,7 @@ public class Action {
                 statustext += "System:" + webduinoSystem.getName();
                 statustext += " actioncommand:" + actioncommand;
             }
-        }
+        }*/
 
         if (active)
             return statustext += "Status: active";
@@ -264,6 +265,7 @@ public class Action {
 
     public void fromResultSet(Connection conn, ResultSet resultSet) throws Exception {
         id = resultSet.getInt("id");
+        description = resultSet.getString("description");
         timerangeid = resultSet.getInt("timerangeid");
         type = resultSet.getString("type");
         actioncommand = resultSet.getString("actioncommand");
@@ -281,6 +283,7 @@ public class Action {
 
     public void fromJson(JSONObject json) throws Exception {
         if (json.has("id")) id = json.getInt("id");
+        if (json.has("description")) description = json.getString("description");
         if (json.has("timerangeid")) timerangeid = json.getInt("timerangeid");
         if (json.has("type")) type = json.getString("type");
         if (json.has("actioncommand")) actioncommand = json.getString("actioncommand");
@@ -300,6 +303,7 @@ public class Action {
         JSONObject json = new JSONObject();
         try {
             json.put("id", id);
+            json.put("description", description);
             json.put("timerangeid", timerangeid);
             json.put("type", type);
             json.put("actioncommand", actioncommand);
@@ -406,9 +410,10 @@ public class Action {
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_actions (id, timerangeid, type, actioncommand, targetvalue, seconds, actuatorid, serviceid, zoneid,zonesensorid, triggerid, deviceid, webduinosystemid, param)" +
+        sql = "INSERT INTO scenarios_actions (id, description, timerangeid, type, actioncommand, targetvalue, seconds, sensorid, serviceid, zoneid,zonesensorid, triggerid, deviceid, webduinosystemid, param)" +
                 " VALUES ("
                 + id + ","
+                + "\"" + description + "\","
                 + timerangeid + ","
                 + "\"" + type + "\","
                 + "\"" + actioncommand + "\","
@@ -425,12 +430,13 @@ public class Action {
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "id=" + id + ","
+                + "description=\"" + description + "\","
                 + "timerangeid=" + timerangeid + ","
                 + "type=\"" + type + "\","
                 + "actioncommand=\"" + actioncommand + "\","
                 + "targetvalue=" + targetvalue + ","
                 + "seconds=" + seconds + ","
-                + "actuatorid=" + actuatoridstr + ","
+                + "sensorid=" + actuatoridstr + ","
                 + "serviceid=" + serviceidstr + ","
                 + "zoneid=" + zoneidstr + ","
                 + "zonesensorid=" + zonesensoridstr + ","

@@ -570,6 +570,7 @@ public class ScenarioProgram extends DBObject {
         }
 
         for (ScenarioProgramTimeRange timeRange : timeRanges) {
+            timeRange.programid = id;
             timeRange.write(conn);
         }
         stmt.close();

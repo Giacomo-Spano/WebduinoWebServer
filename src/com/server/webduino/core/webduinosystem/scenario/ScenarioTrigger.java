@@ -24,6 +24,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
     public int scenarioid;
     public int triggerid;
     public String name = "";
+    public String description = "";
     public String status = "";
     public boolean enabled = false;
 
@@ -45,7 +46,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
     public boolean isActive() {
         Trigger trigger = Core.getTriggerFromId(triggerid);
         if (trigger != null) {
-            if (status.equals(trigger.status)) {
+            if (status.equals(trigger.status.status)) {
                 return true;
             }
         }
@@ -88,6 +89,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         Trigger trigger = Core.getTriggerFromId(triggerid);
         if (trigger != null)
             json.put("name", trigger.name);
+        json.put("description", description);
         json.put("enabled", enabled);
         json.put("activestatus", status); // stato considerato attivo per il trigger
         if (trigger != null)
@@ -101,8 +103,8 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         if (json.has("id")) id = json.getInt("id");
         if (json.has("scenarioid")) scenarioid = json.getInt("scenarioid");
         if (json.has("triggerid")) triggerid = json.getInt("triggerid");
-        if (json.has("name")) name = json.getString("name");
-        if (json.has("status")) status = json.getString("status");
+        if (json.has("description")) description = json.getString("description");
+        if (json.has("activestatus")) status = json.getString("activestatus");
         if (json.has("enabled")) enabled = json.getBoolean("enabled");
     }
 
@@ -147,19 +149,19 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
 
     public void write(Connection conn) throws SQLException {
 
-        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, triggerid, name, status, enabled)" +
+        String sql = "INSERT INTO scenarios_triggers (id, scenarioid, triggerid, description, status, enabled)" +
                 " VALUES ("
                 + id + ","
                 + scenarioid + ","
                 + triggerid + ","
-                + "\"" + name + "\","
+                + "\"" + description + "\","
                 + "\"" + status + "\","
                 + enabled
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "scenarioid=" + scenarioid + ","
                 + "triggerid=" + triggerid + ","
-                + "name=\"" + name + "\","
+                + "description=\"" + description + "\","
                 + "status=\"" + status + "\","
                 + "enabled=" + enabled + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -175,27 +177,6 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         stmt.executeUpdate(sql);
     }
 
-    /*public static JSONArray getTriggerTypesJSONArray() {
-        JSONArray jsonArray = new JSONArray();
-        JSONObject json;
-        try {
-            json = new JSONObject();
-            json.put("name", "athome");
-            json.put("description", "In casa");
-            //json.put("values", "In casa");
-            jsonArray.put(json);
-
-            json = new JSONObject();
-            json.put("name", "season");
-            json.put("description", "Stagione");
-            jsonArray.put(json);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return jsonArray;
-    }*/
-
     private void fromResultSet(ResultSet timeintervalsResultSet) throws SQLException {
         id = timeintervalsResultSet.getInt("id");
         scenarioid = timeintervalsResultSet.getInt("scenarioid");
@@ -203,7 +184,7 @@ public class ScenarioTrigger implements Trigger.TriggerListener {
         Trigger trigger = Core.triggerFromId(triggerid);
         if (trigger != null)
             trigger.addListener(this);
-        name = timeintervalsResultSet.getString("name");
+        description = timeintervalsResultSet.getString("description");
         status = timeintervalsResultSet.getString("status");
         enabled = timeintervalsResultSet.getBoolean("enabled");
     }

@@ -19,6 +19,7 @@ public class AndroidNotificationService extends Service {
         super(id, name, type, param);
         ActionCommand cmd = new ActionCommand("androidnotification","Notifica Android");
         cmd.addDevice(0,"Device");
+        cmd.addParam("Notification description", 50);
         cmd.addCommand(new ActionCommand.Command() {
             @Override
             public boolean execute(JSONObject json) {

@@ -516,8 +516,9 @@ public class Core {
                 //ZoneFactory factory = new ZoneFactory();
                 int id = zonesResultSet.getInt("id");
                 String name = zonesResultSet.getString("name");
+                String description = zonesResultSet.getString("description");
                 //Zone zone = factory.createWebduinoZone(id, name);
-                Zone zone = new Zone(id,name);
+                Zone zone = new Zone(id,name,description);
                 if (zone != null)
                     zones.add(zone);
             }

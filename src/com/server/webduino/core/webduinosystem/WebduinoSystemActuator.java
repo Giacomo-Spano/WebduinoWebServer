@@ -43,10 +43,11 @@ public class WebduinoSystemActuator extends DBObject {
         json.put("webduinosystemid", webduinosystemid);
         json.put("sensorid", sensorid);
         json.put("actuatorid", sensorid); // da cancellare. mantenuto per compatibilità
-        json.put("name", name);
+        //json.put("name", name);
         SensorBase sensor = Core.getSensorFromId(sensorid);
         if (sensor != null) {
-            json.put("status", sensor.getStatus());
+            json.put("status", sensor.getStatus().toJson());
+            json.put("name", sensor.getName());
         }
         return json;
     }

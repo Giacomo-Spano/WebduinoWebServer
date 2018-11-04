@@ -82,6 +82,9 @@ public class ScenarioProgramTimeRange extends DBObject {
             condition.stop();
             condition.deleteListener(conditionListener);
         }
+        for (Action action: actions) {
+            action.stop();
+        }
     }
 
     public void checkConditions() {
@@ -179,12 +182,19 @@ public class ScenarioProgramTimeRange extends DBObject {
                 json.put("actions", jarrayactions);
             }
 
+            json.put("status", getStatus());
             json.put("actionstatus", getActionStatus());
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
+    }
+
+    public String getStatus() {
+        if (active)
+            return "active";
+        return "not active";
     }
 
     public void fromJson(JSONObject json) throws Exception {

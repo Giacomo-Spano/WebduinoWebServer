@@ -35,7 +35,7 @@ public class IRCommandDataLog extends CommandDataLog {
         IRActuatorCommand heaterCommand = (IRActuatorCommand) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String sql;
-        sql = "INSERT INTO " + tableName + " (command, shieldid, sensorid, uuid) VALUES ("
+        sql = "INSERT INTO " + tableName + " (command, shieldid, actuatorid, uuid) VALUES ("
                 + "'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
                 + "," + heaterCommand.actuatorid

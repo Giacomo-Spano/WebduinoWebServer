@@ -12,13 +12,16 @@ public class TemperatureSensor extends SensorBase {
     private static Logger LOGGER = Logger.getLogger(TemperatureSensor.class.getName());
 
     public static String temperaturesensortype = "temperaturesensor";
-    private double temperature;
+    //private double temperature;
     private double avTemperature;
 
     public TemperatureSensor(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
 
         super(id, name, description, subaddress, shieldid, pin, enabled);
         type = temperaturesensortype;
+        hasvalue = true;
+        valuetype = "Temperatura";
+        valueunit = "°C";
         /*hasDoubleValue = true;
         doubleValue = .0;
         minDoubleValue = .0;
@@ -59,15 +62,15 @@ public class TemperatureSensor extends SensorBase {
     }
 
     public double getTemperature() {
-        return temperature;
+        return value;
     }
 
     public void setTemperature(double temperature) {
 
         LOGGER.info("setTemperature");
 
-        double oldtemperature = this.temperature;
-        this.temperature = temperature;
+        //double oldtemperature = this.value;
+        this.value = temperature;
         //this.doubleValue = temperature;
 
         //TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
@@ -105,8 +108,8 @@ public class TemperatureSensor extends SensorBase {
         try {
             json.put("temperature", getTemperature());
             json.put("avtemperature", getAvTemperature());
-            json.put("value", getTemperature());
-            json.put("valuetext", getTemperature() + "°C");
+            //json.put("value", getTemperature());
+            //json.put("valuetext", getTemperature() + "°C");
 
         } catch (JSONException e) {
             e.printStackTrace();

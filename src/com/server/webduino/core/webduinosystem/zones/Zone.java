@@ -58,13 +58,15 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
 
     public int id;
     private String name;
+    private String description;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
-    private double temperature = 0.0;
-    public Date lastTemperatureUpdate = null;
+    //private double temperature = 0.0;
+    //public Date lastTemperatureUpdate = null;
 
-    public Zone(int id, String name) {
+    public Zone(int id, String name, String description) {
         this.id = id;
         this.name = name;
+        this.description = description;
         readZoneSensors(id);
     }
 
@@ -79,6 +81,8 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
             id = json.getInt("id");
         if (json.has("name"))
             name = json.getString("name");
+        if (json.has("description"))
+            description = json.getString("description");
         if (json.has("zonesensors")) {
             JSONArray sensors = json.getJSONArray("zonesensors");
             for (int i = 0; i < sensors.length(); i++) {
@@ -86,8 +90,6 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
                 ZoneSensor zoneSensor = new ZoneSensor();
                 if (jsonObject.has("id"))
                     zoneSensor.id = jsonObject.getInt("id");
-                if (jsonObject.has("name"))
-                    zoneSensor.name = jsonObject.getString("name");
                 if (jsonObject.has("sensorid"))
                     zoneSensor.setSensorId(jsonObject.getInt("sensorid"));
                 zoneSensors.add(zoneSensor);
@@ -148,12 +150,12 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
 
         for (ZoneSensor sensor : zoneSensors) {
             stmt = conn.createStatement();
-            sql = "INSERT INTO zonesensors (id, sensorid, zoneid, name)" +
+            sql = "INSERT INTO zonesensors (id, sensorid, /*zoneid, name*/)" +
                     " VALUES ("
                     + sensor.id + ","
                     + sensor.getSensorId() + ","
-                    + id + "," //zoneid
-                    + "\"" + sensor.name + "\" ) " +
+                    + id + "," + id +") " +
+                    //+ "\"" + sensor.name + "\" */") " +
                     "ON DUPLICATE KEY UPDATE "
                     + "sensorid=" + sensor.id + ","
                     + "zoneid=" + id + ","
@@ -214,9 +216,9 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
         this.temperature = temperature;
     }*/
 
-    public double getTemperature() {
+    /*public double getTemperature() {
         return temperature;
-    }
+    }*/
 
     @Override
     public void onChangeStatus(SensorBase sensor, Status status, Status oldstatus) {
@@ -250,7 +252,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
                 ZoneSensor zoneSensor = new ZoneSensor();
                 zoneSensor.setId(zoneSensorResultSet.getInt("id"));
                 zoneSensor.setSensorId(zoneSensorResultSet.getInt("sensorid"));
-                zoneSensor.name = zoneSensorResultSet.getString("name");
+                //zoneSensor.name = zoneSensorResultSet.getString("name");
                 zoneSensors.add(zoneSensor);
             }
             zoneSensorResultSet.close();
@@ -276,26 +278,23 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
         try {
             json.put("id", id);
             json.put("name", name);
-
-            if (lastTemperatureUpdate != null) {
-                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                json.put("lasttemperatureupdate", df.format(lastTemperatureUpdate));
-                json.put("temperature", temperature);
-            }
+            json.put("description", description);
 
             JSONArray jsonArray = new JSONArray();
             String sensorstatus = "";
             for (ZoneSensor zonesensor : zoneSensors) {
-                JSONObject jsonObject = new JSONObject();
-                SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
+                //JSONObject jsonObject = new JSONObject();
+                /*SensorBase sensor = Core.getSensorFromId(zonesensor.getSensorId());
                 if (sensor != null) {
                     jsonObject.put("id", zonesensor.getId());
-                    jsonObject.put("name", sensor.getName());
+                    jsonObject.put("sensorname", sensor.getName());
                     jsonObject.put("sensorid", sensor.getId());
                     jsonObject.put("type", sensor.getType());
                     jsonArray.put(jsonObject);
                     sensorstatus += sensor.getStatus() + "; ";
-                }
+                }*/
+                sensorstatus += zonesensor.getStatus() + "; ";
+                jsonArray.put(zonesensor.toJson());
             }
             json.put("zonesensors", jsonArray);
             json.put("status", getStatus() + " sensori: " + sensorstatus);

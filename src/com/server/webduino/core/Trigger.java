@@ -3,6 +3,7 @@ package com.server.webduino.core;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.SensorBase;
+import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
@@ -24,10 +25,11 @@ import java.util.List;
 public class Trigger extends DBObject {
 
     private List<ActionCommand> actionCommandList = new ArrayList<>();
-    protected List<String> statusList = new ArrayList<String>();
+    protected List<Status> statusList = new ArrayList<>();
     public int id = 0;
     public String name = "";
-    public String status;
+    public Status status;
+    public Status oldStatus;
     public java.util.Date date;
 
     public Boolean endCommand() {
@@ -58,9 +60,11 @@ public class Trigger extends DBObject {
 
     protected void createStatusList() {
 
-        statusList.add("disabled");
-        statusList.add("enabled");
-        status = statusList.get(0);
+        Status status = new Status(Status.STATUS_DISABLED,Status.STATUS_DESCRIPTION_DISABLED);
+        statusList.add(status);
+        status = new Status(Status.STATUS_ENABLED,Status.STATUS_DESCRIPTION_ENABLED);
+        statusList.add(status);
+        this.status = statusList.get(0);
     }
 
     public Trigger(int id, String name/*, String status, */,java.util.Date date) {
@@ -82,7 +86,7 @@ public class Trigger extends DBObject {
         fromJson(json);
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
@@ -90,7 +94,7 @@ public class Trigger extends DBObject {
         JSONObject json = new JSONObject();
         json.put("id", id);
         json.put("name", name);
-        json.put("status", status);
+        json.put("status", status.toJson());
         SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         if (date != null)
             json.put("nextjobdate", df.format(date));
@@ -102,8 +106,8 @@ public class Trigger extends DBObject {
 
     public JSONArray getStatusListJSONArray() {
         JSONArray jsonArray = new JSONArray();
-        for (String status: statusList) {
-            jsonArray.put(status);
+        for (Status status: statusList) {
+            jsonArray.put(status.toJson());
         }
         return jsonArray;
     }
@@ -123,8 +127,10 @@ public class Trigger extends DBObject {
             id = json.getInt("id");
         if (json.has("name"))
             name = json.getString("name");
-        if (json.has("status"))
+        /*if (json.has("status")) {
+            string str =
             status = json.getString("status");
+        }*/
     }
 
     @Override
@@ -161,15 +167,15 @@ public class Trigger extends DBObject {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         date = Core.getDate();
 
-        sql = "INSERT INTO triggers (id, name, status, lastupdate)" +
+        sql = "INSERT INTO triggers (id, name, /*status,*/lastupdate)" +
                 " VALUES ("
                 + id + ","
                 + "\"" + name + "\","
-                + "\"" + status + "\","
+                //+ "\"" + status + "\","
                 + "'" + df.format(date) + "' "
                 + ") ON DUPLICATE KEY UPDATE "
                 + "name=\"" + name + "\","
-                + "status=\"" + status + "\","
+                //+ "status=\"" + status + "\","
                 + "lastupdate='" + df.format(date) + "' "
                 + ";";
         Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -180,10 +186,16 @@ public class Trigger extends DBObject {
         }
     }
 
-    public boolean setStatus(String status) throws Exception {
-        for (String triggerstatus: statusList) {
-            if (triggerstatus.equals(status)) {
-                this.status = status;
+
+    public boolean setStatus(String status) {
+        oldStatus = this.status;
+        for (Status triggerstatus: statusList) {
+            if (triggerstatus.status.equals(status)) {
+                this.status = triggerstatus;
+                if (!status.equals(oldStatus.status)) {
+                    for (TriggerListener listener : listeners)
+                        listener.onChangeStatus(this.status.status.equals(Status.STATUS_ENABLED));
+                }
                 return true;
             }
         }

@@ -36,7 +36,7 @@ public class HornCommandDataLog extends CommandDataLog {
         HeaterActuatorCommand heaterCommand = (HeaterActuatorCommand) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String sql;
-        sql = "INSERT INTO " + tableName + " (date, command, shieldid, sensorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate) VALUES ("
+        sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate) VALUES ("
                 + "'" + df.format(heaterCommand.date) + "'"
                 + ",'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
@@ -45,7 +45,7 @@ public class HornCommandDataLog extends CommandDataLog {
                 + "," + heaterCommand.duration
                 + "," + heaterCommand.targetTemperature
                 + "," + heaterCommand.scenario
-                + "," + heaterCommand.zone
+                + "," + heaterCommand.zoneid
                 + "," + heaterCommand.temperature
                 + "," + heaterCommand.actionid
                 + ",'" + df.format(heaterCommand.enddate) + "'"

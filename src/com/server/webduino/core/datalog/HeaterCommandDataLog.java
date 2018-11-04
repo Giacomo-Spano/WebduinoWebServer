@@ -47,7 +47,7 @@ public class HeaterCommandDataLog extends CommandDataLog {
                 + "," + heaterCommand.duration
                 + "," + heaterCommand.targetTemperature
                 + "," + heaterCommand.scenario
-                + "," + heaterCommand.zone
+                + "," + heaterCommand.zoneid
                 + "," + heaterCommand.temperature
                 + "," + heaterCommand.actionid
                 + ",'" + df.format(heaterCommand.enddate) + "'"

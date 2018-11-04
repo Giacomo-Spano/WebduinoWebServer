@@ -30,6 +30,8 @@ public class SensorBase extends DBObject {
     private static Logger LOGGER = Logger.getLogger(SensorBase.class.getName());
     public DataLog datalog = null;
 
+    //public static final String Command_Statusupdate = "statusupdate"; // "programoff";
+
     // static states
     protected int shieldid;
     protected int parentid;
@@ -37,6 +39,11 @@ public class SensorBase extends DBObject {
     protected String subaddress;
     protected String name;
     protected String description;
+    protected boolean hasvalue;
+    protected double value;
+    protected String valuetype;
+    protected String valueunit;
+    protected String valuetext;
     protected Date lastUpdate;
     protected String type;
     protected int id;
@@ -60,6 +67,22 @@ public class SensorBase extends DBObject {
 
     protected List<SensorListener> listeners = new ArrayList<>();
 
+    protected void initCommandList() {
+        ActionCommand cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_STATUSUPDATE, ActionCommand.ACTIONCOMMAND_STATUSUPDATE_DESCRIPTION);
+        cmd.addStatus("Stato");
+        cmd.addCommand(new ActionCommand.Command() {
+            @Override
+            public boolean execute(JSONObject json) {
+                boolean res = requestStatusUpdate();
+                return res;
+            }
+            @Override
+            public void end() {
+
+            }
+        });
+        actionCommandList.add(cmd);
+    }
 
     public SensorBase(int id, String name, String description, String subaddress, int shieldid, String pin, boolean enabled) {
 
@@ -71,8 +94,12 @@ public class SensorBase extends DBObject {
         this.pin = pin;
         this.enabled = enabled;
         datalog = new DataLog();
+        valuetype = "generic";
+        valueunit = "unit";
+        hasvalue = false;
 
         createStatusList();
+        initCommandList();
 
     }
 
@@ -190,8 +217,9 @@ public class SensorBase extends DBObject {
             String cmd = null;
             try {
                 cmd = json.getString("command");
-                if (cmd.equals(actionCommand.command))
-                    actionCommand.commandMethod.execute(json);
+                if (cmd.equals(actionCommand.command)) {
+                    return actionCommand.commandMethod.execute(json);
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
                 return false;
@@ -307,6 +335,18 @@ public class SensorBase extends DBObject {
 
     public String getType() {
         return type;
+    }
+
+    public double getValue() {
+        return value;
+    }
+
+    public String getValueUnit() {
+        return valueunit;
+    }
+
+    public String getValueType() {
+        return valuetype;
     }
 
     public void setType(String type) {
@@ -426,11 +466,14 @@ public class SensorBase extends DBObject {
             json.put("addr", subaddress);
             json.put("testmode", testMode);
 
-            json.put("value", 0);
-            json.put("valuetext", "");
+            json.put("hasvalue", hasvalue);
+            json.put("value", value);
+            json.put("valuetext", valuetext);
+            json.put("valueunit", valueunit);
+            json.put("valuetype", valuetype);
 
-            json.put("status", getStatus().status);
-            json.put("statusdetails", getStatus().description);
+            json.put("status", getStatus().toJson());
+            //json.put("statusdetails", getStatus().description);
 
             json.put("statuslist", getStatusListJSONArray());
             json.put("actioncommandlist", getActionCommandListJSONArray());

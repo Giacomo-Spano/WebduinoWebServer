@@ -223,13 +223,13 @@ public class ShieldServlet extends HttpServlet {
                                     }
 
 
-                                    Zone zone = Core.getZoneFromId(cmd.zone);
+                                    Zone zone = Core.getZoneFromId(cmd.zoneid);
                                     if (zone != null) {
-                                        cmd.temperature = zone.getTemperature();
+                                        //cmd.temperature = zone.getTemperature();
 
                                     } else {
                                         //response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                                        out.print("Invalid zone " + cmd.zone);
+                                        out.print("Invalid zone " + cmd.zoneid);
                                         //response.send
                                         response.sendError(HttpServletResponse.SC_BAD_REQUEST, "custom message");
                                         //response.se(HttpServletResponse.SC_BAD_REQUEST, "custom message");

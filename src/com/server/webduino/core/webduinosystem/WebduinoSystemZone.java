@@ -25,11 +25,13 @@ public class WebduinoSystemZone extends DBObject {
     private int id;
     public int zoneid;
     public int webduinosystemid;
+    //public String name;
 
-    public WebduinoSystemZone(int id,int zoneid, int webduinosystemid) {
+    public WebduinoSystemZone(int id,int zoneid, int webduinosystemid/*, String name*/) {
         this.id = id;
         this.zoneid = zoneid;
         this.webduinosystemid = webduinosystemid;
+        //this.name = name;
      }
 
     public WebduinoSystemZone(JSONObject json) throws JSONException {
@@ -41,9 +43,10 @@ public class WebduinoSystemZone extends DBObject {
         JSONObject json = new JSONObject();
         json.put("id", id);
         json.put("webduinosystemid", webduinosystemid);
+        //json.put("name", name);
         Zone zone = Core.getZoneFromId(zoneid);
         if (zone != null) {
-            json.put("name", zone.getName());
+            json.put("zonename", zone.getName());
             json.put("status", zone.getStatus());
         }
         json.put("zoneid", zone.id);
@@ -54,6 +57,7 @@ public class WebduinoSystemZone extends DBObject {
         if (json.has("id")) id = json.getInt("id");
         if (json.has("zoneid")) zoneid = json.getInt("zoneid");
         if (json.has("webduinosystemid")) webduinosystemid = json.getInt("webduinosystemid");
+        //if (json.has("name")) name = json.getString("name");
     }
 
     @Override
@@ -66,13 +70,15 @@ public class WebduinoSystemZone extends DBObject {
     public void write(Connection conn) throws SQLException {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String sql = "INSERT INTO webduino_system_zones (id, zoneid, webduinosystemid)" +
+        String sql = "INSERT INTO webduino_system_zones (id, zoneid, name, webduinosystemid)" +
                 " VALUES ("
                 + id + ","
                 + zoneid + ","
+                //+ "'" + name + "',"
                 + webduinosystemid + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "zoneid=" + zoneid + ","
+                //+ "name='" + name + "'',"
                 + "webduinosystemid=" + webduinosystemid + ";";
         Statement stmt = conn.createStatement();
         Integer affectedRows = stmt.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);

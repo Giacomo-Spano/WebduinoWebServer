@@ -9,7 +9,7 @@ import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
-import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
+//import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
 import com.server.webduino.core.webduinosystem.services.Service;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
@@ -131,7 +131,9 @@ public class SystemServlet extends HttpServlet {
                     int actuatorid = json.getInt("sensorid");
                     SensorBase sensor = core.getSensorFromId(actuatorid);
                     if (sensor != null) {
-                        sensor.sendCommand(json);
+                        boolean res = sensor.sendCommand(json);
+                        if (res)
+                            out.print(sensor.toJson());
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
@@ -651,7 +653,7 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
-        } else if (requestCommand != null && requestCommand.equals("instructiontypes")) {
+        } else /*if (requestCommand != null && requestCommand.equals("instructiontypes")) {
 
             JSONArray jarray = ScenarioProgramInstructionFactory.getProgramIntructionTypesJSONArray();
             if (jarray != null) {
@@ -660,7 +662,7 @@ public class SystemServlet extends HttpServlet {
                 return;
             }
 
-        } else if (requestCommand != null && requestCommand.equals("webduinosystemtypes")) {
+        } else */if (requestCommand != null && requestCommand.equals("webduinosystemtypes")) {
 
             JSONArray jarray = WebduinoSystemFactory.getWebduinoSystemTypesJSONArray();
             if (jarray != null) {

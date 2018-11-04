@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static com.server.webduino.core.webduinosystem.Status.*;
+
+//import static com.server.webduino.core.webduinosystem.Status.STATUS_OFFLINE;
+
 /**
  * Created by giaco on 12/05/2017.
  */
@@ -23,9 +27,10 @@ public class WebduinoSystem extends DBObject {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     private List<SecurityKey> keys = new ArrayList<>();
-    private List<ActionCommand> actionCommandList = new ArrayList<>();
+    protected List<ActionCommand> actionCommandList = new ArrayList<>();
     protected List<Status> statusList = new ArrayList<>();
     public Status status;
+    Status status_enabled , status_disabled;
 
     public int id;
     private String name;
@@ -40,14 +45,14 @@ public class WebduinoSystem extends DBObject {
         return false;
     }
 
-    private class Status {
+    /*private class Status {
         String status;
         String description;
         public Status(String status, String description) {
             this.status = status;
             this.description = description;
         }
-    }
+    }*/
 
     public WebduinoSystem(int id, String name, String type, boolean enabled) {
         this.id = id;
@@ -55,11 +60,22 @@ public class WebduinoSystem extends DBObject {
         this.type = type;
         this.enabled = enabled;
         initCommandList();
+        createStatusList();
     }
 
     public WebduinoSystem(JSONObject json) throws Exception {
         fromJson(json);
         initCommandList();
+        createStatusList();
+    }
+
+    protected void createStatusList() {
+        status_enabled = new Status(STATUS_ENABLED,STATUS_DESCRIPTION_ENABLED);
+        statusList.add(status_enabled);
+        status_disabled = new Status(STATUS_DISABLED,STATUS_DESCRIPTION_DISABLED);
+        statusList.add(status_disabled);
+
+        this.status = status_enabled;
     }
 
     public Action getActionFromId(int id) {
@@ -87,15 +103,8 @@ public class WebduinoSystem extends DBObject {
         return jsonArray;
     }
 
-    private void initCommandList() {
-
-        Status status_enabled = new Status("enabled", "Abilitato");
-        statusList.add(status_enabled);
-        Status status_disabled = new Status("disabled", "Disabilitato");
-        statusList.add(status_enabled);
-        status = status_enabled;
-
-        ActionCommand cmd = new ActionCommand("enable", "Abilita");
+    protected void initCommandList() {
+        ActionCommand cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_ENABLE, ActionCommand.ACTIONCOMMAND_ENABLE_DESCRIPTION);
         cmd.addStatus("Stato");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
@@ -115,7 +124,7 @@ public class WebduinoSystem extends DBObject {
         });
         actionCommandList.add(cmd);
 
-        cmd = new ActionCommand("disable", "Disabilita");
+        cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_DISABLE, ActionCommand.ACTIONCOMMAND_DISABLE_DESCRIPTION);
         cmd.addStatus("Stato");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
@@ -135,7 +144,7 @@ public class WebduinoSystem extends DBObject {
         });
         actionCommandList.add(cmd);
 
-        cmd = new ActionCommand("pause", "Metti in pausa");
+        cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_PAUSE, ActionCommand.ACTIONCOMMAND_PAUSE_DESCRIPTION);
         cmd.addStatus("Stato");
         cmd.addCommand(new ActionCommand.Command() {
             @Override
@@ -190,7 +199,8 @@ public class WebduinoSystem extends DBObject {
         while (rs.next()) {
             int id = rs.getInt("id");
             int zoneid = rs.getInt("zoneid");
-            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id, zoneid, webduinosystemid);
+            //String name = rs.getString("name");
+            WebduinoSystemZone webduinosystemzone = new WebduinoSystemZone(id, zoneid, webduinosystemid/*, name*/);
             zones.add(webduinosystemzone);
         }
         rs.close();
@@ -295,7 +305,7 @@ public class WebduinoSystem extends DBObject {
         json.put("actioncommandlist", getActionCommandListJSONArray());
         json.put("statuslist", getStatusListJSONArray());
 
-        json.put("status", status.status);
+        json.put("status", status.toJson());
 
         return json;
     }
@@ -410,7 +420,7 @@ public class WebduinoSystem extends DBObject {
 
     public boolean setStatus(Status status) throws Exception {
         for (Status webduinosystemstatus: statusList) {
-            if (webduinosystemstatus.status.equals(status)) {
+            if (webduinosystemstatus.status.equals(status.status)) {
                 this.status = status;
                 return true;
             }

@@ -2,12 +2,10 @@ package com.server.webduino.core.webduinosystem.services;
 
 import com.server.webduino.core.httpClientResult;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
-import com.server.webduino.core.webduinosystem.scenario.actions.VoIPCallScenarioProgramInstruction;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.*;

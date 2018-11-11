@@ -52,7 +52,7 @@ public class DataLog {
             stmt.close();
             conn.close();
 
-            conn.close();
+            //conn.close();
         } catch (SQLException se) {
             //Handle errors for JDBC
             System.out.print(sql);

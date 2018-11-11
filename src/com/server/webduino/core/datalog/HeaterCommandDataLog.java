@@ -32,14 +32,22 @@ public class HeaterCommandDataLog extends CommandDataLog {
     }
 
     @Override
-    //public String getSQLInsert(String event, Command command) {
     public String getSQLInsert(String event, Object object) {
 
         HeaterActuatorCommand heaterCommand = (HeaterActuatorCommand) object;
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        String strdate = "null";
+        if (heaterCommand.date != null)
+            strdate = "'" + df.format(heaterCommand.date) + "'";
+        String strenddate = "null";
+        if (heaterCommand.enddate != null)
+            strenddate = "'" + df.format(heaterCommand.enddate) + "'";
+
+
         String sql;
-        sql = "INSERT INTO " + tableName + " (date, command, shieldid, sensorid, uuid, duration, target, scenario, zone, temperature, actionid, enddate) VALUES ("
-                + "'" + df.format(heaterCommand.date) + "'"
+        sql = "INSERT INTO " + tableName + " (date, command, shieldid, actuatorid, uuid, duration, target, scenario, zone, zonesensor, temperature, actionid, enddate, success, result) VALUES ("
+                + strdate
                 + ",'" + heaterCommand.command + "'"
                 + "," + heaterCommand.shieldid
                 + "," + heaterCommand.actuatorid
@@ -48,11 +56,12 @@ public class HeaterCommandDataLog extends CommandDataLog {
                 + "," + heaterCommand.targetTemperature
                 + "," + heaterCommand.scenario
                 + "," + heaterCommand.zoneid
+                + "," + heaterCommand.zonesensorid
                 + "," + heaterCommand.temperature
                 + "," + heaterCommand.actionid
-                + ",'" + df.format(heaterCommand.enddate) + "'"
-                /*+ "," + heaterCommand.result.success
-                + ",'" + heaterCommand.result.result + "'"*/
+                + "," + strenddate
+                + "," + heaterCommand.success
+                + ",'" + heaterCommand.result + "'"
                 + ");";
         return sql;
     }
@@ -60,7 +69,6 @@ public class HeaterCommandDataLog extends CommandDataLog {
     @Override
     public List<DataLog> getDataLog(int id,Date startDate,Date endDate) {
         try {
-            //Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             conn.setAutoCommit(false);
             Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -88,7 +96,6 @@ public class HeaterCommandDataLog extends CommandDataLog {
     }
 
     private void fromResulSet(Connection conn, ResultSet datalogResultSet) throws Exception {
-        //WebduinoSystemScenario scenario = new WebduinoSystemScenario();
         this.id = datalogResultSet.getInt("id");
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.date = df.parse(String.valueOf(datalogResultSet.getTimestamp("date")));

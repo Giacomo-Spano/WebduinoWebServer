@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +65,7 @@ public class Condition extends SensorListenerClass {
         listeners.remove(toRemove);
     }
 
-    public void start() {
+    public void start(LocalTime startTime, LocalTime endTime) {
         setActive(false);
 
         if (type.equals("zonesensorvalue")) {

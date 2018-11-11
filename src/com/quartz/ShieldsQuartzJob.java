@@ -43,7 +43,7 @@ public class ShieldsQuartzJob implements Job {
         LOGGER.info("ShieldsQuartzJob:update  start");
 
         //core.mShields.requestSensorsStatusUpdate();
-        /*MyThread commandThread = new MyThread();
+        /*CommandThread commandThread = new CommandThread();
         Thread thread = new Thread(commandThread, "commandThread");
         thread.start();*/
 

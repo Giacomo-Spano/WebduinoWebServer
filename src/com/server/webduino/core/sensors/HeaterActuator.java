@@ -1,6 +1,6 @@
 package com.server.webduino.core.sensors;
 
-import com.quartz.ShieldsQuartzJob;
+import com.quartz.KeepTemperatureQuartzJob;
 import com.server.webduino.core.*;
 import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
@@ -14,11 +14,12 @@ import org.json.JSONObject;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.logging.Logger;
 
 import static com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand.*;
@@ -37,6 +38,9 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     public static final String STATUS_DESCRIPTION_OFF = "Off";
 
     private static final Logger LOGGER = Logger.getLogger(HeaterActuator.class.getName());
+
+    private volatile boolean stopCommand = false; // variabile di sincronizzazione
+    private List<Thread> commandThreadList = new ArrayList<>();
 
     protected boolean releStatus;
     protected double temperature;
@@ -63,7 +67,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         @Override
         public void onChangeValue(SensorBase sensor, double value) {
             //if (value != temperature)
-                sendTemperature(value);
+            sendTemperature(value);
             temperature = value;
         }
     };
@@ -81,43 +85,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         ActionCommand cmd = new ActionCommand(ACTIONCOMMAND_KEEPTEMPERATURE, ActionCommand.ACTIONCOMMAND_KEEPTEMPERATURE_DESCRIPTION);
         cmd.addTarget("Temperatura", 0, 30, "°C");
         cmd.addZone("Zona", TemperatureSensor.temperaturesensortype);
-        cmd.addCommand(new ActionCommand.Command() {
-            @Override
-            public boolean execute(JSONObject json) {
-                try {
-                    int duration = 0;
-                    if (json.has("duration"))
-                        duration = json.getInt("duration");
-                    double targetvalue = 0;
-                    if (json.has("targetvalue"))
-                        targetvalue = json.getDouble("targetvalue");
-                    int zoneid = 0;
-                    if (json.has("zoneid")) {
-                        zoneid = json.getInt("zoneid");
-                        Zone zone = Core.getZoneFromId(zoneid);
-                        if (zone != null) {
-                            if (json.has("zonesensorid")) {
-                                int zonesensorid = json.getInt("zonesensorid");
-                                ZoneSensor zoneSensor = zone.zoneSensorFromId(zonesensorid);
-                                if (zoneSensor != null) {
-                                    int remotesensorid = zoneSensor.getSensorId();
-                                    sendKeepTemperature(targetvalue, duration, remotesensorid);
-                                }
-                            }
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-                return  true;
-            }
-
-            @Override
-            public void end() {
-                sendSwitchOff();
-            }
-        });
+        cmd.addCommand(new KeepTemperatureCommand());
         actionCommandList.add(cmd);
 
         cmd = new ActionCommand(ACTIONCOMMAND_STOP_KEEPTEMPERATURE, ActionCommand.ACTIONCOMMAND_STOP_KEEPTEMPERATURE_DESCRIPTION);
@@ -140,6 +108,10 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         cmd.addCommand(new ActionCommand.Command() {
             @Override
             public boolean execute(JSONObject json) {
+
+                // rimuovi eventuali comandi pending
+                removeActiveCommandThreads();
+
                 try {
                     int seconds = 1800;
                     /*if (json.has("seconds"))
@@ -147,7 +119,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
                     double targetvalue = 0;
                     if (json.has("targetvalue"))
                         targetvalue = json.getDouble("targetvalue");
-                    sendSwitchOn(targetvalue,seconds);
+                    sendSwitchOn(targetvalue, seconds);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     return false;
@@ -157,6 +129,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
             @Override
             public void end() {
+
                 sendSwitchOff();
             }
         });
@@ -167,8 +140,12 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         cmd.addCommand(new ActionCommand.Command() {
             @Override
             public boolean execute(JSONObject json) {
+
+                // rimuovi eventuali comandi pending
+                removeActiveCommandThreads();
                 return sendSwitchOff();
             }
+
             @Override
             public void end() {
                 sendSwitchOff();
@@ -176,6 +153,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         });
         actionCommandList.add(cmd);
     }
+
 
     public void init() {
         startPrograms();
@@ -185,11 +163,11 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     protected void createStatusList() {
         super.createStatusList();
 
-        Status status = new Status(STATUS_MANUAL,STATUS_DESCRIPTION_MANUAL);
+        Status status = new Status(STATUS_MANUAL, STATUS_DESCRIPTION_MANUAL);
         statusList.add(status);
-        status = new Status(STATUS_KEEPTEMPERATURE,STATUS_DESCRIPTION_KEEPTEMPERATURE);
+        status = new Status(STATUS_KEEPTEMPERATURE, STATUS_DESCRIPTION_KEEPTEMPERATURE);
         statusList.add(status);
-        status = new Status(STATUS_OFF,STATUS_DESCRIPTION_OFF);
+        status = new Status(STATUS_OFF, STATUS_DESCRIPTION_OFF);
         statusList.add(status);
     }
 
@@ -236,6 +214,7 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
         SensorBase remotesensor = Core.getSensorFromId(remotesensorId);
         if (remotesensor != null) {
+            temperature = remotesensor.getValue();
             remotesensor.removeListener(remoteSensorListener);
             this.remoteSensorId = remotesensorId;
             remotesensor.addListener(remoteSensorListener);
@@ -311,8 +290,10 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
     public Boolean sendCommand(String cmd, JSONObject json) {
 
         for (ActionCommand actionCommand : actionCommandList) {
-            if (cmd.equals(actionCommand.command))
+            if (cmd.equals(actionCommand.command)) {
                 actionCommand.commandMethod.execute(json);
+                break;
+            }
         }
         return true;
     }
@@ -323,7 +304,6 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         sendSwitchOff();
         return true;
     }
-
 
 
     @Override
@@ -469,9 +449,6 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
 
             this.status.description = STATUS_DESCRIPTION_KEEPTEMPERATURE + " " + targetTemperature;
 
-            // imposta quartz timer per terminare comando
-            //startQuartzJob();
-
             Zone zone = Core.getZoneFromId(zoneId);
             if (zone != null)
                 this.status.description += " Zona: [" + zone.id + "]." + zone.getName();
@@ -484,7 +461,11 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
             this.status.description += " Ultimo comando ricevuto: " + lastCommandDate;
             this.status.description += " Data fine: " + endDate;
         } else {
-            removeRemoteSensor();
+
+            if (oldStatus.status.equals(STATUS_KEEPTEMPERATURE)) {
+                //stopQuartzJob();
+                removeRemoteSensor();
+            }
         }
 
 
@@ -509,7 +490,6 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
             json.put("date", df.format(Core.getDate()));
             json.put("temperature", temperature);
             HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
-            //Core.postCommand(cmd);
             boolean res = cmd.send();
 
         } catch (JSONException e) {
@@ -520,19 +500,37 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         return "";
     }
 
-    Scheduler scheduler = null;
-    public void startQuartzJob() {
+
+
+    /*public void stopQuartzJob() {
+        if (sensorJob != null && scheduler != null) {
+            try {
+                scheduler.deleteJob(sensorJob.getKey());
+                sensorJob = null;
+            } catch (SchedulerException e) {
+                e.printStackTrace();
+            }
+        }
+    }*/
+
+    //Scheduler scheduler = null;
+    //JobDetail sensorJob;
+
+    /*
+    public void startQuartzJob(Method method) {
+
+        if (sensorJob != null)
+            return;
+        //stopQuartzJob();
 
         try {
             scheduler = new StdSchedulerFactory().getScheduler();
             scheduler.start();
 
             JobDataMap jobDataMap = new JobDataMap();
-            jobDataMap.put("heater", this);
+            jobDataMap.put("method", method);
 
-            // Job di interrogazione periodica
-            // define the job and tie it to our job's class
-            JobDetail sensorJob = newJob(ShieldsQuartzJob.class).withIdentity(
+            sensorJob = newJob(KeepTemperatureQuartzJob.class).withIdentity(
                     "CronkeeptemperatureQuartzJob", "Group")
                     .usingJobData(jobDataMap)
                     .build();
@@ -547,31 +545,12 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
             // Setup the Job and WebduinoTrigger with Scheduler & schedule jobs
             scheduler.scheduleJob(sensorJob, keeptemperatureTrigger);
 
-            // Job di controllo periodico del programma attivo
-            // questo job non parte subito ma 10 secondi dopo quello di interrogazione
-            // per avere tempo di ricevere la risposta
-            // Setup the Job class and the Job group
-            /*JobDetail programJob = newJob(ProgramQuartzJob.class).withIdentity(
-                    "CronProgramQuartzJob", "Group")
-                    .usingJobData(jobDataMap)
-                    .build();
-            // WebduinoTrigger the job to run now, and then every 40 seconds
-            WebduinoTrigger trigger = newTrigger()
-                    .withIdentity("ProgramTriggerName", "Group")
-                    //.startNow()
-                    .startAt(new Date(System.currentTimeMillis() + 15000))
-                    .withSchedule(simpleSchedule()
-                            .withIntervalInSeconds(60)
-                            .repeatForever())
-                    .build();*/
-
-
-        }
-        catch (SchedulerException e) {
+        } catch (SchedulerException e) {
             LOGGER.info("QuartzListener exception" + e.getStackTrace());
             e.printStackTrace();
         }
     }
+    */
 
     protected boolean sendKeepTemperature(double target, int duration, int remoteSensorId) {
 
@@ -593,12 +572,13 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
             json.put("target", target);
             json.put("actionid", /*id*/0);
             json.put("date", df.format(Core.getDate()));
-            json.put("temperature", temperature);
+
             boolean res = setRemoteSensor(remoteSensorId);
+            json.put("temperature", temperature);
+
             if (res) {
                 HeaterActuatorCommand cmd = new HeaterActuatorCommand(json);
                 boolean commandresult = cmd.send();
-
                 return commandresult;
             }
         } catch (JSONException e) {
@@ -691,5 +671,113 @@ public class HeaterActuator extends Actuator /*implements /*SensorBase.SensorLis
         }
         return true;
     }
+
+    private class KeepTemperatureCommand implements Command {
+        //--
+        CommandThread commandThread;
+
+        @Override
+        public boolean execute(JSONObject json) {
+            try {
+
+                // rimuovi eventuali comandi pending
+                removeActiveCommandThreads();
+
+                int duration = 0;
+                if (json.has("duration"))
+                    duration = json.getInt("duration");
+                double targetvalue = 0;
+                if (json.has("targetvalue"))
+                    targetvalue = json.getDouble("targetvalue");
+                int zoneid = 0;
+                if (json.has("zoneid")) {
+                    zoneid = json.getInt("zoneid");
+                    Zone zone = Core.getZoneFromId(zoneid);
+                    if (zone != null) {
+                        if (json.has("zonesensorid")) {
+                            int zonesensorid = json.getInt("zonesensorid");
+                            ZoneSensor zoneSensor = zone.zoneSensorFromId(zonesensorid);
+                            if (zoneSensor != null) {
+                                int remotesensorid = zoneSensor.getSensorId();
+                                boolean res = sendKeepTemperature(targetvalue, duration, remotesensorid);
+                                if (res) {
+
+                                    int timeout = duration * 1000; // 1in millisecondi
+                                    /*CommandThread */commandThread = new CommandThread();
+                                    commandThread.start();
+                                    Thread thread = new Thread(commandThread, "keeptemperaturecommandThread");
+                                    thread.start();
+                                    commandThreadList.add(commandThread);
+                                    try {
+                                        thread.join(timeout); // timeout è il timeout di attesa fine thread in millisecondi
+                                    } catch (InterruptedException e) {
+
+                                        e.printStackTrace();
+                                        end();
+                                    }
+
+
+
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+
+        public void executeJob() {
+
+        }
+
+        @Override
+        public void end() {
+            sendSwitchOff();
+            //stopQuartzJob();
+            commandThread.interrupt();
+        }
+        //--
+    }
+
+    private void removeActiveCommandThreads() {
+        Iterator<Thread> it = commandThreadList.iterator();
+        while (it.hasNext()) {
+            Thread thread = it.next();
+            thread.interrupt();
+            listeners.remove(thread);
+        }
+    }
+
+    public class CommandThread extends Thread implements Runnable {
+
+        private volatile boolean execute; // variabile di sincronizzazione
+        //private Method methodx;
+
+        public CommandThread() {
+        }
+
+        public void method(Object object, String message) {
+            System.out.println(message);
+        }
+
+        @Override
+        public void run() {
+            Thread t = Thread.currentThread();
+            System.out.println("Thread started: " + t.getName());
+
+            new java.util.Timer().schedule(new TimerTask(){
+                @Override
+                public void run() {
+                    System.out.println("Executed...");
+                    //your code here
+                    //1000*5=5000 mlsec. i.e. 5 seconds. u can change accordngly
+                }
+            },1000*5,1000*60*5);
+        }
+    };
 
 }

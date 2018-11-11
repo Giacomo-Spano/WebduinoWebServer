@@ -66,7 +66,7 @@ public class HeaterActuatorCommand extends Command {
             zoneid = json.getInt("zoneid");
         if (json.has("zonesensorid"))
             zonesensorid = json.getInt("zonesensorid");
-        SimpleDateFormat df = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+        SimpleDateFormat df = new SimpleDateFormat("dd/mm/yyyy HH:mm");
         if (json.has("date")) {
             String str = json.getString("date");
             try {

@@ -165,7 +165,7 @@ public class SystemServlet extends HttpServlet {
                 }
                 // questo server per aggiornare la lista di scenari nei webduinosystem
                 //core.readWebduinoSystems();
-                core.initScenarios();
+                //core.initScenarios();
                 return;
             } catch (Exception e) {
                 e.printStackTrace();

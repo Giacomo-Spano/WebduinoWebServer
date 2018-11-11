@@ -15,6 +15,8 @@ import org.json.JSONObject;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +36,7 @@ public class Action {
     public String type = "";
     public String actioncommand = "";
     public double targetvalue = 0;
-    public int seconds = 0;
+    public long duration = 0;
     public int serviceid = 0;
     public int actuatorid = 0;
     public int zoneid = 0;
@@ -128,7 +130,7 @@ public class Action {
         }
     }
 
-    public void start() {
+    public void start(LocalTime startTime, LocalTime endTime) {
         active = true;
 
         //Core core = (Core) getServletContext().getAttribute(QuartzListener.CoreClass);
@@ -143,7 +145,8 @@ public class Action {
                 JSONObject json = new JSONObject();
                 try {
                     json.put("targetvalue", targetvalue);
-                    json.put("seconds", seconds);
+                    duration = Duration.between(startTime,endTime).getSeconds();
+                    json.put("duration", duration);
                     json.put("zoneid", zoneid);
                     json.put("zonesensorid", zonesensorid);
                     sensor.sendCommand(actioncommand, json);
@@ -270,7 +273,7 @@ public class Action {
         type = resultSet.getString("type");
         actioncommand = resultSet.getString("actioncommand");
         targetvalue = resultSet.getDouble("targetvalue");
-        seconds = resultSet.getInt("seconds");
+        duration = resultSet.getInt("duration");
         serviceid = resultSet.getInt("serviceid");
         actuatorid = resultSet.getInt("sensorid");
         zoneid = resultSet.getInt("zoneid");
@@ -288,7 +291,7 @@ public class Action {
         if (json.has("type")) type = json.getString("type");
         if (json.has("actioncommand")) actioncommand = json.getString("actioncommand");
         if (json.has("targetvalue")) targetvalue = json.getDouble("targetvalue");
-        if (json.has("seconds")) seconds = json.getInt("seconds");
+        if (json.has("duration")) duration = json.getInt("duration");
         if (json.has("serviceid")) serviceid = json.getInt("serviceid");
         if (json.has("sensorid")) actuatorid = json.getInt("sensorid");
         if (json.has("zoneid")) zoneid = json.getInt("zoneid");
@@ -308,7 +311,7 @@ public class Action {
             json.put("type", type);
             json.put("actioncommand", actioncommand);
             json.put("targetvalue", targetvalue);
-            json.put("seconds", seconds);
+            json.put("duration", duration);
             json.put("serviceid", serviceid);
             json.put("sensorid", actuatorid);
             json.put("zoneid", zoneid);
@@ -410,7 +413,7 @@ public class Action {
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_actions (id, description, timerangeid, type, actioncommand, targetvalue, seconds, sensorid, serviceid, zoneid,zonesensorid, triggerid, deviceid, webduinosystemid, param)" +
+        sql = "INSERT INTO scenarios_actions (id, description, timerangeid, type, actioncommand, targetvalue, duration, sensorid, serviceid, zoneid,zonesensorid, triggerid, deviceid, webduinosystemid, param)" +
                 " VALUES ("
                 + id + ","
                 + "\"" + description + "\","
@@ -418,7 +421,7 @@ public class Action {
                 + "\"" + type + "\","
                 + "\"" + actioncommand + "\","
                 + targetvalue + ","
-                + seconds + ","
+                + duration + ","
                 + actuatoridstr + ","
                 + serviceidstr + ","
                 + zoneidstr + ","
@@ -435,7 +438,7 @@ public class Action {
                 + "type=\"" + type + "\","
                 + "actioncommand=\"" + actioncommand + "\","
                 + "targetvalue=" + targetvalue + ","
-                + "seconds=" + seconds + ","
+                + "duration=" + duration + ","
                 + "sensorid=" + actuatoridstr + ","
                 + "serviceid=" + serviceidstr + ","
                 + "zoneid=" + zoneidstr + ","

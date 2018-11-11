@@ -40,7 +40,7 @@ public class ScenarioProgramTimeRange extends DBObject {
     private Condition.ConditionListener conditionListener = new Condition.ConditionListener() {
         @Override
         public void onActiveChange(boolean active) {
-            checkConditions();
+            checkConditionsandStartActions(Core.getTime(),endTime);
         }
     };
 
@@ -68,10 +68,10 @@ public class ScenarioProgramTimeRange extends DBObject {
     public void start() {
         active = true;
         for (Condition condition:conditions) {
-            condition.start();
+            condition.start(startTime,endTime);
             condition.addListener(conditionListener);
         }
-        checkConditions();
+        checkConditionsandStartActions(Core.getTime(),endTime);
     }
 
     public void stop() {
@@ -87,7 +87,7 @@ public class ScenarioProgramTimeRange extends DBObject {
         }
     }
 
-    public void checkConditions() {
+    public void checkConditionsandStartActions(LocalTime startTime, LocalTime endTime) {
 
         boolean active = true;
 
@@ -101,7 +101,7 @@ public class ScenarioProgramTimeRange extends DBObject {
             conditionsActive = active;
             for (Action action : actions) {
                 if (conditionsActive) {
-                    action.start();
+                    action.start(startTime,endTime);
                 } else {
                     action.stop();
                 }

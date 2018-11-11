@@ -38,10 +38,9 @@ public class HeaterDataLog extends DataLog {
         sql = "INSERT INTO heaterdatalog (date, sensorid, relestatus, status, temperature, targettemperature, actionid) " +
                 " VALUES (" +
                 getStrDate() + ",'" +
-                //heaterActuator.getId() + "'," +
                 sensorid + "'," +
                 heaterActuator.releStatus + ",'" +
-                heaterActuator.getStatus() + "'," +
+                heaterActuator.getStatus().status + "'," +
                 heaterActuator.getTemperature() + "," +
                 heaterActuator.targetTemperature + "," +
                 heaterActuator.actionId +

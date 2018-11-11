@@ -6,11 +6,14 @@ package com.quartz;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
+
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
 import javax.servlet.ServletContext;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
 public class KeepTemperatureQuartzJob implements Job {
@@ -21,48 +24,40 @@ public class KeepTemperatureQuartzJob implements Job {
             throws JobExecutionException {
 
         try {
-            LOGGER.info("ShieldsQuartzJob START");
+            LOGGER.info("KeepTemperatureQuartzJob START");
             update(context);
 
         } catch (Exception e) {
 
             LOGGER.info("--- Error in job!");
-            JobExecutionException e2 =
-                    new JobExecutionException(e);
+            JobExecutionException e2 = new JobExecutionException(e);
             // this job will refire immediately
             e2.refireImmediately();
             throw e2;
         }
-        LOGGER.info("ShieldsQuartzJob END");
+        LOGGER.info("KeepTemperatureQuartzJob END");
     }
 
     private volatile boolean flag_locked = false;
     private void update(JobExecutionContext context) {
 
-        HeaterActuator heater = (HeaterActuator) context.getMergedJobDataMap().get("heater");
-
-        //core.mShields.requestSensorsStatusUpdate();
-        /*MyThread commandThread = new MyThread();
-        Thread thread = new Thread(commandThread, "commandThread");
-        thread.start();*/
-
+        /*HeaterActuator heater = (HeaterActuator) context.getMergedJobDataMap().get("heater");
+        heater.executeJob();*/
+        Method method = (Method) context.getMergedJobDataMap().get("method");
+        Object object = new Object();
+        String message = "messgae";
+        Object[] parameters = new Object[1];
+        parameters[0] = message;
+        try {
+            method.invoke(object, parameters);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
 
         //core.mShields.requestSensorsStatusUpdate();
 
         LOGGER.info("ShieldsQuartzJob:update  end");
-    }
-
-
-    class MyThread implements Runnable {
-
-        private volatile boolean execute; // variabile di sincronizzazione
-        public MyThread() {
-        }
-
-        @Override
-        public void run() {
-            Thread t = Thread.currentThread();
-            System.out.println("Thread started: " + t.getName());
-        }
     }
 }

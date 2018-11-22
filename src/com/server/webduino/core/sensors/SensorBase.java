@@ -204,28 +204,31 @@ public class SensorBase extends DBObject {
     }
 
 
-    public Boolean sendCommand(String cmd, JSONObject json) {
+    public ActionCommand.Command sendCommand(String cmd, JSONObject json) {
         for (ActionCommand actionCommand : actionCommandList) {
-            if (cmd.equals(actionCommand.command))
+            if (cmd.equals(actionCommand.command)) {
                 actionCommand.commandMethod.execute(json);
+                return actionCommand.commandMethod;
+            }
         }
-        return true;
+        return null;
     }
 
-    public Boolean sendCommand(JSONObject json) {
+    public ActionCommand.Command sendCommand(JSONObject json) {
         for (ActionCommand actionCommand : actionCommandList) {
             String cmd = null;
             try {
                 cmd = json.getString("command");
                 if (cmd.equals(actionCommand.command)) {
-                    return actionCommand.commandMethod.execute(json);
+                    actionCommand.commandMethod.execute(json);
+                    return actionCommand.commandMethod;
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-                return false;
+                return null;
             }
         }
-        return true;
+        return null;
     }
 
 

@@ -18,7 +18,7 @@ public class AndroidNotificationService extends Service {
     public AndroidNotificationService(int id, String name, String type, String param) {
         super(id, name, type, param);
         ActionCommand cmd = new ActionCommand("androidnotification","Notifica Android");
-        cmd.addDevice(0,"Device");
+        cmd.addDevice("Device");
         cmd.addParam("Notification description", 50);
         cmd.addCommand(new ActionCommand.Command() {
             @Override

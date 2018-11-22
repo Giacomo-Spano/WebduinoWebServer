@@ -114,6 +114,11 @@ public class SimpleMqttClient implements MqttCallback {
                 tmpDir = System.getenv("tmp");
             else
                 tmpDir = System.getProperty("java.io.tmpdir");
+
+            String debugenv = System.getenv("debugenvironment");
+            if (debugenv != null && debugenv.equals("true"))
+                tmpDir = "c:\\scratch";
+
             //String tmpDir = System.getenv("tmp");
             //System.out.println("GIACOMO --xx-- tmpDir = " + tmpDir);
             MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);

@@ -46,6 +46,8 @@ public class Action {
     public String param = "";
     public int deviceid = 0;
 
+    private ActionCommand.Command actionCommand;
+
     private ActionDataLog dataLog = new ActionDataLog();
 
     private boolean active = false;
@@ -144,12 +146,13 @@ public class Action {
             if (sensor != null) {
                 JSONObject json = new JSONObject();
                 try {
+                    json.put("actionid", id);
                     json.put("targetvalue", targetvalue);
                     duration = Duration.between(startTime,endTime).getSeconds();
                     json.put("duration", duration);
                     json.put("zoneid", zoneid);
                     json.put("zonesensorid", zonesensorid);
-                    sensor.sendCommand(actioncommand, json);
+                    actionCommand = sensor.sendCommand(actioncommand, json);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -165,7 +168,7 @@ public class Action {
                     json.put("param", param);
                     json.put("date",Core.getDate().toString());
                     json.put("type", "alarm");
-                    service.sendCommand(actioncommand, json);
+                    actionCommand = service.sendCommand(actioncommand, json);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -175,7 +178,12 @@ public class Action {
             Trigger trigger = Core.getTriggerFromId(triggerid);
             if (trigger != null) {
                 JSONObject json = new JSONObject();
-                trigger.sendCommand(actioncommand, json);
+                try {
+                    json.put("actionid", id);
+                    actionCommand = trigger.sendCommand(actioncommand, json);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
 
         } else if (type.equals(ACTION_WEBDUINOSYSTEM)) {
@@ -184,7 +192,8 @@ public class Action {
                 JSONObject json = new JSONObject();
                 try {
                     json.put("command", actioncommand);
-                    webduinoSystem.sendCommand(json);
+                    json.put("actionid", id);
+                    actionCommand = webduinoSystem.sendCommand(json);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -198,6 +207,11 @@ public class Action {
 
         for (ActionListener listener : listeners) {
             listener.onStop(this);
+        }
+
+        if (actionCommand != null) {
+            actionCommand.end();
+            actionCommand = null;
         }
 
         if (type.equals(ACTION_ACTUATOR)) {

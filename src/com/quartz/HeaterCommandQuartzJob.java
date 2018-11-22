@@ -4,7 +4,6 @@
 package com.quartz;
 
 import com.server.webduino.core.Core;
-import org.json.JSONException;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -13,17 +12,17 @@ import javax.servlet.ServletContext;
 import java.util.Date;
 import java.util.logging.Logger;
 
-public class ProgramQuartzJob implements Job {
+public class HeaterCommandQuartzJob implements Job {
 
-    private static final Logger LOGGER = Logger.getLogger(ProgramQuartzJob.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(HeaterCommandQuartzJob.class.getName());
 
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
 
         try {
-            LOGGER.info("ProgramQuartzJob START");
+            LOGGER.info("HeaterCommandQuartzJob START");
             Date date = Core.getDate();
-            LOGGER.info("" + date.toString() + " ProgramQuartzJob");
+            LOGGER.info("" + date.toString() + " HeaterCommandQuartzJob");
 
             ServletContext servletContext = (ServletContext) context.getMergedJobDataMap().get("servletContext");
             Core core = (Core)servletContext.getAttribute(QuartzListener.CoreClass);
@@ -39,6 +38,6 @@ public class ProgramQuartzJob implements Job {
             e2.refireImmediately();
             throw e2;
         }
-        LOGGER.info("ProgramQuartzJob END");
+        LOGGER.info("HeaterCommandQuartzJob END");
     }
 }

@@ -19,7 +19,7 @@ public class AlarmNotificationService extends Service {
     public AlarmNotificationService(int id, String name, String type, String param) {
         super(id, name, type, param);
         ActionCommand cmd = new ActionCommand("alarmnotification","Notifica Allarme");
-        cmd.addDevice(0,"Device");
+        cmd.addDevice("Device");
         cmd.addParam("Alarm description", 50);
         cmd.addCommand(new ActionCommand.Command() {
             @Override

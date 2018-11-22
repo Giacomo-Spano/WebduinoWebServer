@@ -61,7 +61,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
     private String description;
     protected List<ZoneSensor> zoneSensors = new ArrayList<>();
     //private double temperature = 0.0;
-    //public Date lastTemperatureUpdate = null;
+    //public Date lastTemperatureUpdateReceived = null;
 
     public Zone(int id, String name, String description) {
         this.id = id;
@@ -209,7 +209,7 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
     /*@Override
     public void onUpdateTemperature(int sensorId, double temperature, double oldtemperature) {
 
-        lastTemperatureUpdate = Core.getDate();
+        lastTemperatureUpdateReceived = Core.getDate();
         for (WebduinoZoneListener listener : listeners) {
             listener.onUpdateTemperature(id, temperature, oldtemperature);
         }

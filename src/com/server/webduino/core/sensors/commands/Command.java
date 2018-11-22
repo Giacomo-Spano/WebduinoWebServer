@@ -80,9 +80,11 @@ public class Command {
         commandThread.diconnect();
         commandThread.execute = false;
 
+        this.success = commandThread.commandSuccess;
+        this.result = commandThread.commandResult;
+
         if (commandDataLog != null) {
-            commandDataLog.success = commandThread.commandSuccess;
-            commandDataLog.result = commandThread.commandResult;
+
             commandDataLog.writelog("send", this);
         }
         return commandThread.commandSuccess;

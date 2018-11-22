@@ -8,6 +8,7 @@ import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.*;
 import com.server.webduino.core.webduinosystem.scenario.*;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.scenario.actions.Condition;
 //import com.server.webduino.core.webduinosystem.scenario.actions.ScenarioProgramInstructionFactory;
 import com.server.webduino.core.webduinosystem.services.Service;
@@ -123,7 +124,7 @@ public class SystemServlet extends HttpServlet {
                     int webduinosystemid = json.getInt("webduinosystemid");
                     WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
                     if (webduinoSystem != null) {
-                        webduinoSystem.sendCommand(json);
+                        ActionCommand.Command actionCommand = webduinoSystem.sendCommand(json);
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
@@ -131,8 +132,8 @@ public class SystemServlet extends HttpServlet {
                     int actuatorid = json.getInt("sensorid");
                     SensorBase sensor = core.getSensorFromId(actuatorid);
                     if (sensor != null) {
-                        boolean res = sensor.sendCommand(json);
-                        if (res)
+                        ActionCommand.Command actioncommand = sensor.sendCommand(json);
+                        if (actioncommand != null)
                             out.print(sensor.toJson());
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;

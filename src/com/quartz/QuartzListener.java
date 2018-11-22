@@ -62,24 +62,6 @@ public class QuartzListener implements ServletContextListener {
             // Setup the Job and WebduinoTrigger with Scheduler & schedule jobs
             scheduler.scheduleJob(sensorJob, sensorTrigger);
 
-            // Job di controllo periodico del programma attivo
-            // questo job non parte subito ma 10 secondi dopo quello di interrogazione
-            // per avere tempo di ricevere la risposta
-            // Setup the Job class and the Job group
-            /*JobDetail programJob = newJob(ProgramQuartzJob.class).withIdentity(
-                    "CronProgramQuartzJob", "Group")
-                    .usingJobData(jobDataMap)
-                    .build();
-            // WebduinoTrigger the job to run now, and then every 40 seconds
-            WebduinoTrigger trigger = newTrigger()
-                    .withIdentity("ProgramTriggerName", "Group")
-                    //.startNow()
-                    .startAt(new Date(System.currentTimeMillis() + 15000))
-                    .withSchedule(simpleSchedule()
-                            .withIntervalInSeconds(60)
-                            .repeatForever())
-                    .build();*/
-
 
         }
         catch (SchedulerException e) {

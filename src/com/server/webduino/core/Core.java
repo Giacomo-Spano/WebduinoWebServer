@@ -426,7 +426,6 @@ public class Core {
         // Le schede ed isensori devono essere caricati prima degli scenari e zone altrimenti non funzionano i listener
         mShields = new Shields();
         mShields.init();
-        //mSchedule = new Schedule(); // DA ELIMINARE
 
         /*VirtualShield virtualshield = new VirtualShield();
         Thread thread = new Thread(virtualshield, "commandThread" + 1);
@@ -442,12 +441,7 @@ public class Core {
         readKeys();
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
         addZoneSensorListeners(); //
-
         initScenarios();
-        //mShields.addListener(this);
-
-        // inizializzazione client android remoti
-        //devices.read();
     }
 
 

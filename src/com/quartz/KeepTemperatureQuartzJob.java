@@ -14,7 +14,10 @@ import org.quartz.JobExecutionException;
 import javax.servlet.ServletContext;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.logging.Logger;
+
+import static com.server.webduino.core.sensors.HeaterActuator.STATUS_KEEPTEMPERATURE;
 
 public class KeepTemperatureQuartzJob implements Job {
 
@@ -41,23 +44,32 @@ public class KeepTemperatureQuartzJob implements Job {
     private volatile boolean flag_locked = false;
     private void update(JobExecutionContext context) {
 
-        /*HeaterActuator heater = (HeaterActuator) context.getMergedJobDataMap().get("heater");
-        heater.executeJob();*/
-        Method method = (Method) context.getMergedJobDataMap().get("method");
-        Object object = new Object();
-        String message = "messgae";
-        Object[] parameters = new Object[1];
-        parameters[0] = message;
-        try {
-            method.invoke(object, parameters);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        HeaterActuator heater = (HeaterActuator) context.getMergedJobDataMap().get("heater");
+        Date endtime = (Date) context.getMergedJobDataMap().get("endtime");
+        double target = (double)context.getMergedJobDataMap().get("target");
+        int commandremotesensorid = (int)context.getMergedJobDataMap().get("commandremotesensorid");
+
+        // il thread viene chiamato poeriodicamente (ogni minuto) e
+        // se lo statoo non è keeptemperature (per esempio perchè il sensore è ripartito)
+        // manda nuovamente il comando
+        System.out.println("CommandThread keeptemperature timer Executed... " + Core.getDate().toString());
+        //double remotetemp = getRemoteSensorTemperature();
+        if (heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE) && heater.getTemperature() <= 0) {
+            System.out.println("error: remote temperatur = " + heater.getTemperature());
+            boolean res = heater.sendStopKeepTemperature();
+            return;
         }
+        System.out.println("status = " + heater.getStatus().status);
+        if (!heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE)) {
 
-        //core.mShields.requestSensorsStatusUpdate();
-
+            long diffInMillies = Math.abs(endtime.getTime() - Core.getDate().getTime());
+            long duration = diffInMillies / 1000;
+            boolean res = heater.sendKeepTemperature(target, duration, commandremotesensorid);
+            if (res)
+                System.out.println("sendKeepTemperature sent");
+            else
+                System.out.println("sendKeepTemperature failed");
+        }
         LOGGER.info("ShieldsQuartzJob:update  end");
     }
 }

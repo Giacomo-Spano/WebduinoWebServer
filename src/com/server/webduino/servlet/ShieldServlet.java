@@ -10,6 +10,7 @@ import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.webduinosystem.scenario.NextTimeRangeAction;
 import com.server.webduino.core.webduinosystem.scenario.Scenarios;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -122,8 +123,8 @@ public class ShieldServlet extends HttpServlet {
                             try {
                                 jsonObject.put("command", json.getString("command"));
                                 jsonObject.put("code", "aa");
-                                boolean res = sensor.sendCommand(json.getString("command"), jsonObject);
-                                if (res) {
+                                ActionCommand.Command command = sensor.sendCommand(json.getString("command"), jsonObject);
+                                if (command != null) {
                                     out.print("command sent");
                                     response.setStatus(HttpServletResponse.SC_OK);
                                 } else {

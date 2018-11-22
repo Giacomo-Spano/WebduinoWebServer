@@ -63,8 +63,8 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
                 JSONObject commandjson = new JSONObject();
                 try {
                     commandjson.put("command", ACTIONCOMMAND_STOP_KEEPTEMPERATURE);
-                    boolean res = heaterActuator.sendCommand(commandjson);
-                    if (res) {
+                    ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
+                    if (actioncommand != null) {
                         setStatus(status_auto);
                         return true;
                     }
@@ -115,8 +115,8 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
                                     commandjson.put("targetvalue", targetvalue);
                                     commandjson.put("zoneid", zoneid);
                                     commandjson.put("zonesensorid", zonesensorid);
-                                    boolean res = heaterActuator.sendCommand(commandjson);
-                                    if (res) {
+                                    ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
+                                    if (actioncommand != null) {
                                         setStatus(status_manual);
                                         return true;
                                     }

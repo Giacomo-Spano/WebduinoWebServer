@@ -202,11 +202,13 @@ public class Trigger extends DBObject {
         return false;
     }
 
-    public Boolean sendCommand(String cmd, JSONObject json) {
+    public ActionCommand.Command sendCommand(String cmd, JSONObject json) {
         for (ActionCommand actionCommand : actionCommandList) {
-            if (cmd.equals(actionCommand.command))
+            if (cmd.equals(actionCommand.command)) {
                 actionCommand.commandMethod.execute(json);
+                return actionCommand.commandMethod;
+            }
         }
-        return true;
+        return null;
     }
 }

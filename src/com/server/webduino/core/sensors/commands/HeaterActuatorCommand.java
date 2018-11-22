@@ -19,6 +19,7 @@ public class HeaterActuatorCommand extends Command {
     public static final String Command_KeepTemperature = "keeptemperature"; // "programoff";
     public static final String Command_Stop_KeepTemperature = "stopkeeptemperature";
     public static final String Command_Off = "off";
+    public static final String Command_Idle = "idle";
     public static final String Command_SendTemperature = "sendtemperature"; // "sendtemperature";
     public static final String Command_Manual = "manual"; // "sendtemperature";
 
@@ -119,6 +120,18 @@ public class HeaterActuatorCommand extends Command {
             } else if (command.equals(HeaterActuatorCommand.Command_Off)) {
 
                 json.put("command", HeaterActuatorCommand.Command_Off);
+                json.put("duration", duration);
+                json.put("scenario", scenario);
+                json.put("timeinterval", timeInterval);
+                json.put("zoneid", zoneid);
+                json.put("zonesensorid", zonesensorid);
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                json.put("actionid", actionid);
+                json.put("date", df.format(date));
+
+            } else if (command.equals(HeaterActuatorCommand.Command_Idle)) {
+
+                json.put("command", HeaterActuatorCommand.Command_Idle);
                 json.put("duration", duration);
                 json.put("scenario", scenario);
                 json.put("timeinterval", timeInterval);

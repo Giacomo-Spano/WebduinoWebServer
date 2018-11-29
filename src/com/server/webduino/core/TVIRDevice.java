@@ -6,6 +6,7 @@ import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by giaco on 02/09/2018.
@@ -49,6 +50,11 @@ public class TVIRDevice extends IRDevice{
             @Override
             public void end() {
 
+            }
+
+            @Override
+            public JSONObject getResult() {
+                return null;
             }
         });
         actionCommandList.add(cmd);

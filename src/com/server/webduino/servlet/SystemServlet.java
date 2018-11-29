@@ -125,6 +125,7 @@ public class SystemServlet extends HttpServlet {
                     WebduinoSystem webduinoSystem = core.getWebduinoSystemFromId(webduinosystemid);
                     if (webduinoSystem != null) {
                         ActionCommand.Command actionCommand = webduinoSystem.sendCommand(json);
+                        out.print(actionCommand.getResult());
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;
                     }
@@ -376,20 +377,33 @@ public class SystemServlet extends HttpServlet {
 
             try {
                 JSONObject json = new JSONObject(jb.toString());
-                int id = json.getInt("id");
-                if (json.has("status")) {
-                    String status = json.getString("status");
+                if (param != null && param.equals("delete")) {
+                    Triggers triggers = core.removeTrigger(json);
+                    if (triggers != null) {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(triggers.toJson());
+                        return;
+                    }
+                } else if (param != null && param.equals("changestatus") && json.has("id") && json.has("status")) {
+                    int id = json.getInt("id");
                     Trigger trigger = core.getTriggerFromId(id);
+                    String status = json.getString("status");
                     if (trigger != null && trigger.setStatus(status)) {
                         response.setStatus(HttpServletResponse.SC_OK);
                         out.print("trigger " + status);
+                        return;
+                    }
+                } else if (param != null && param.equals("save")) {
+                    Trigger trigger = core.saveTrigger(json);
+                    if (trigger != null) {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        out.print(trigger.toJson());
                         return;
                     }
                 }
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.print("bad command");
                 return;
-
             } catch (Exception e) {
                 e.printStackTrace();
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

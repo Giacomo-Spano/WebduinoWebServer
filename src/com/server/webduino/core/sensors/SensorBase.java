@@ -80,6 +80,11 @@ public class SensorBase extends DBObject {
             public void end() {
 
             }
+
+            @Override
+            public JSONObject getResult() {
+                return null;
+            }
         });
         actionCommandList.add(cmd);
     }
@@ -128,8 +133,8 @@ public class SensorBase extends DBObject {
         boolean res = command.send();
         if (!res && !status.status.equals(STATUS_OFFLINE)) {
             setStatus(STATUS_OFFLINE);
-            String description = "Sensor " + name + " offline";
-            Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+            //String description = "Sensor " + name + " offline";
+            //Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
         }
         return res;
     }

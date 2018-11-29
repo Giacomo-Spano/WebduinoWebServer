@@ -55,13 +55,14 @@ public class PushNotificationThread extends Thread {
 
     public void run() {
 
-        LOGGER.info("PushNotificationThread type=" + type + "title=" + title + "value=" + value);
+        LOGGER.info("+PushNotificationThread type=" + type + " title=" + title + " value=" + value);
+        LOGGER.info("json=" + json.toString());
         SendNotification notification = new SendNotification();
         if (json != null)
             notification.send(json);
         else
             notification.send(title, description + " type=" + type + ",value=" + value, type, id, devices);
-        LOGGER.info("PushNotificationThread type=" + type + "title=" + title + "value=" + value);
+        LOGGER.info("-PushNotificationThread type=" + type + "title=" + title + "value=" + value);
     }
 }
 

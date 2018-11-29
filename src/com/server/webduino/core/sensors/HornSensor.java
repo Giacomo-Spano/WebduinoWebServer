@@ -50,6 +50,11 @@ public class HornSensor extends Actuator {
             public void end() {
 
             }
+
+            @Override
+            public JSONObject getResult() {
+                return null;
+            }
         });
         actionCommandList.add(cmd);
 
@@ -69,6 +74,11 @@ public class HornSensor extends Actuator {
             @Override
             public void end() {
 
+            }
+
+            @Override
+            public JSONObject getResult() {
+                return null;
             }
         });
         actionCommandList.add(cmd);

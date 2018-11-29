@@ -48,13 +48,18 @@ public class IRReceiverSensor extends Actuator {
                 if (!res && !status.status.equals(STATUS_OFFLINE)) {
                     setStatus(STATUS_OFFLINE);
                     String description = "Sensor " + name + " offline";
-                    Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+                    //Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
                 }
                 return res;
             }
             @Override
             public void end() {
 
+            }
+
+            @Override
+            public JSONObject getResult() {
+                return null;
             }
         });
         actionCommandList.add(cmd);

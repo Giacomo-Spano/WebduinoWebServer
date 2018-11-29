@@ -71,6 +71,11 @@ public class IRDevice {
             public void end() {
 
             }
+
+            @Override
+            public org.json.JSONObject getResult() {
+                return null;
+            }
         });
         actionCommandList.add(cmd);
     }

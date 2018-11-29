@@ -26,8 +26,8 @@ public class KeepTemperatureQuartzJob implements Job {
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
 
+        LOGGER.info("+KeepTemperatureQuartzJob");
         try {
-            LOGGER.info("KeepTemperatureQuartzJob START");
             update(context);
 
         } catch (Exception e) {
@@ -38,16 +38,18 @@ public class KeepTemperatureQuartzJob implements Job {
             e2.refireImmediately();
             throw e2;
         }
-        LOGGER.info("KeepTemperatureQuartzJob END");
+        LOGGER.info("-KeepTemperatureQuartzJob");
     }
 
     private volatile boolean flag_locked = false;
     private void update(JobExecutionContext context) {
 
+        LOGGER.info("+KeepTemperatureQuartzJob:update");
         HeaterActuator heater = (HeaterActuator) context.getMergedJobDataMap().get("heater");
         Date endtime = (Date) context.getMergedJobDataMap().get("endtime");
         double target = (double)context.getMergedJobDataMap().get("target");
         int commandremotesensorid = (int)context.getMergedJobDataMap().get("commandremotesensorid");
+        int actionid = (int)context.getMergedJobDataMap().get("actionid");
 
         // il thread viene chiamato poeriodicamente (ogni minuto) e
         // se lo statoo non è keeptemperature (per esempio perchè il sensore è ripartito)
@@ -64,12 +66,12 @@ public class KeepTemperatureQuartzJob implements Job {
 
             long diffInMillies = Math.abs(endtime.getTime() - Core.getDate().getTime());
             long duration = diffInMillies / 1000;
-            boolean res = heater.sendKeepTemperature(target, duration, commandremotesensorid);
+            boolean res = heater.sendKeepTemperature(target, duration, commandremotesensorid,actionid);
             if (res)
                 System.out.println("sendKeepTemperature sent");
             else
                 System.out.println("sendKeepTemperature failed");
         }
-        LOGGER.info("ShieldsQuartzJob:update  end");
+        LOGGER.info("-KeepTemperatureQuartzJob:update");
     }
 }

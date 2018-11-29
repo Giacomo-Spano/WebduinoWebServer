@@ -28,6 +28,7 @@ public class SendNotification extends httpClient {
                 int deviceid = json.getInt("deviceid");
                 Device device = Core.getDevicesFromId(deviceid);
                 devices.add(device);
+                LOGGER.info("device=" + device.name);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -43,8 +44,10 @@ public class SendNotification extends httpClient {
         String data = json.toString();
         String notificationType = "";
         if (json.has("type")) {
+
             try {
                 notificationType = json.getString("type");
+                LOGGER.info("type=" + notificationType);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -148,6 +151,8 @@ public class SendNotification extends httpClient {
 
     httpClientResult send(String title, String description, String notificationType, int id, List<Device> devices) {
 
+        LOGGER.info("title=" + title + " description=" + description + "notoficvationtype=" + notificationType);
+
         if (devices == null) {
             Devices _devices = new Devices();
             //_devices.read();
@@ -159,6 +164,7 @@ public class SendNotification extends httpClient {
 
         for (Device device : devices) {
             String to = device.tokenId;
+            LOGGER.info("device=" + device.name);
 
 
 

@@ -29,6 +29,8 @@ import java.util.*;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import static com.server.webduino.core.webduinosystem.Status.STATUS_DISABLED;
+
 /**
  * Created by Giacomo Span� on 08/11/2015.
  */
@@ -121,6 +123,7 @@ public class Core {
         scenarios.scenarioList.clear();
         scenarios.scenarioList = getWebduinoSystemScenarios();
         for (WebduinoSystemScenario scenario:scenarios.scenarioList) {
+
             scenario.setActionListener(new Action.ActionListener() {
                 @Override
                 public void onStart(Action action) {
@@ -276,6 +279,8 @@ public class Core {
     public List<WebduinoSystemScenario> getWebduinoSystemScenarios() {
         List<WebduinoSystemScenario> list = new ArrayList<>();
         for (WebduinoSystem system : webduinoSystems) {
+            if (system.status.status.equals(STATUS_DISABLED))
+                continue;
             for (WebduinoSystemScenario scenario: system.getScenarios()) {
                 list.add(scenario);
             }
@@ -763,13 +768,13 @@ public class Core {
         scenarios.initScenarios();
     }*/
 
-    public Trigger removeTrigger(JSONObject json) throws Exception {
+    public Triggers removeTrigger(JSONObject json) throws Exception {
 
         Trigger trigger = new Trigger(json);
         trigger.remove();
         Core.readTriggers();
         initScenarios();
-        return trigger;
+        return triggerClass;
     }
 
     public Triggers saveTriggers(JSONObject json) throws Exception {

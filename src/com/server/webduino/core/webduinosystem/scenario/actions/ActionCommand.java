@@ -11,6 +11,8 @@ public class ActionCommand {
     public String command;
     public String name;
 
+    public String result;
+
     public static final String ACTIONCOMMAND_STATUSUPDATE = "statusupdate";
     public static final String ACTIONCOMMAND_STATUSUPDATE_DESCRIPTION = "Aggiorna";
 
@@ -38,6 +40,7 @@ public class ActionCommand {
     {
         public boolean execute(JSONObject json);
         public void end();
+        JSONObject getResult();
     }
 
     public Command commandMethod;

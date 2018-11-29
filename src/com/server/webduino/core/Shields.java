@@ -308,8 +308,8 @@ public class Shields {
         for (Shield shield : getShields()) {
             boolean res = shield.checkHealth(); // questo andrebbe messo in un quartz separato
             if (!res) {
-                String description = "Shield " + shield.boardName + " offline";
-                Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+                //String description = "Shield " + shield.boardName + " offline";
+                //Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
             }
             //shield.requestAsyncAllSensorStatusUpdate();
         }

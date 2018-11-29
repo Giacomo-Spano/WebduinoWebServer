@@ -35,6 +35,11 @@ public class AlarmNotificationService extends Service {
             public void end() {
 
             }
+
+            @Override
+            public JSONObject getResult() {
+                return null;
+            }
         });
         actionCommandList.add(cmd);
     }

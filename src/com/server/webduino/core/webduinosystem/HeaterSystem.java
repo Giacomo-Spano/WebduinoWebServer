@@ -51,9 +51,41 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
     protected void initCommandList() {
         super.initCommandList();
         ActionCommand cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_AUTO, ActionCommand.ACTIONCOMMAND_AUTO_DESCRIPTION);
+        cmd.addCommand(new AutoCommand());
+        actionCommandList.add(cmd);
 
-        //cmd.addStatus("Stato");
-        cmd.addCommand(new ActionCommand.Command() {
+        cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_MANUAL, ActionCommand.ACTIONCOMMAND_MANUAL_DESCRIPTION);
+        cmd.addTarget("Temperatura", 0, 30, "°C");
+        cmd.addZone("Zona", TemperatureSensor.temperaturesensortype);
+        cmd.addDuration("Durata");
+        cmd.addCommand(new ManualCommand());
+        actionCommandList.add(cmd);
+    }
+
+    @Override
+    public void getJSONField(JSONObject json) {
+        try {
+            json.put("heatersensorid", getHeaterActuator().getId());
+            json.put("heaterrelestatus", getHeaterActuator().getReleStatus());
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public HeaterActuator getHeaterActuator() {
+        for (WebduinoSystemActuator actuator : actuators) {
+            SensorBase sensor = Core.getSensorFromId(actuator.sensorid);
+            if (sensor instanceof HeaterActuator) {
+                HeaterActuator heaterActuator = (HeaterActuator) sensor;
+                HeaterActuatorCommand command;
+                return heaterActuator;
+            }
+        }
+        return null;
+    }
+
+    public class AutoCommand implements ActionCommand.Command {
             @Override
             public boolean execute(JSONObject json) {
 
@@ -66,6 +98,7 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
                     ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
                     if (actioncommand != null) {
                         setStatus(status_auto);
+
                         return true;
                     }
                 } catch (Exception e) {
@@ -79,78 +112,69 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
             public void end() {
 
             }
-        });
-        actionCommandList.add(cmd);
 
-        cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_MANUAL, ActionCommand.ACTIONCOMMAND_MANUAL_DESCRIPTION);
-        cmd.addTarget("Temperatura", 0, 30, "°C");
-        cmd.addZone("Zona", TemperatureSensor.temperaturesensortype);
-        cmd.addDuration("Durata");
-        cmd.addCommand(new ActionCommand.Command() {
             @Override
-            public boolean execute(JSONObject json) {
-                try {
+            public JSONObject getResult() {
+                return null;
+            }
+    }
 
-                    HeaterActuator heaterActuator = getHeaterActuator();
-                    if (heaterActuator == null)
-                        return false;
-                    int duration = 0;
-                    if (json.has("duration"))
-                        duration = json.getInt("duration");
-                    double targetvalue = 0;
-                    if (json.has("targetvalue"))
-                        targetvalue = json.getDouble("targetvalue");
-                    int zoneid = 0;
-                    if (json.has("zoneid")) {
-                        zoneid = json.getInt("zoneid");
-                        Zone zone = Core.getZoneFromId(zoneid);
-                        if (zone != null) {
-                            if (json.has("zonesensorid")) {
-                                int zonesensorid = json.getInt("zonesensorid");
-                                ZoneSensor zoneSensor = zone.zoneSensorFromId(zonesensorid);
-                                JSONObject commandjson = new JSONObject();
-                                try {
-                                    commandjson.put("command", ACTIONCOMMAND_KEEPTEMPERATURE);
-                                    commandjson.put("duration", duration);
-                                    commandjson.put("targetvalue", targetvalue);
-                                    commandjson.put("zoneid", zoneid);
-                                    commandjson.put("zonesensorid", zonesensorid);
-                                    ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
-                                    if (actioncommand != null) {
-                                        setStatus(status_manual);
-                                        return true;
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
+    private class ManualCommand implements ActionCommand.Command {
+        JSONObject result;
+        @Override
+        public boolean execute(JSONObject json) {
+            try {
+                HeaterActuator heaterActuator = getHeaterActuator();
+                if (heaterActuator == null)
+                    return false;
+                int duration = 0;
+                if (json.has("duration"))
+                    duration = json.getInt("duration");
+                double targetvalue = 0;
+                if (json.has("targetvalue"))
+                    targetvalue = json.getDouble("targetvalue");
+                int zoneid = 0;
+                if (json.has("zoneid")) {
+                    zoneid = json.getInt("zoneid");
+                    Zone zone = Core.getZoneFromId(zoneid);
+                    if (zone != null) {
+                        if (json.has("zonesensorid")) {
+                            int zonesensorid = json.getInt("zonesensorid");
+                            ZoneSensor zoneSensor = zone.zoneSensorFromId(zonesensorid);
+                            JSONObject commandjson = new JSONObject();
+                            try {
+                                commandjson.put("command", ACTIONCOMMAND_KEEPTEMPERATURE);
+                                commandjson.put("duration", duration);
+                                commandjson.put("targetvalue", targetvalue);
+                                commandjson.put("zoneid", zoneid);
+                                commandjson.put("zonesensorid", zonesensorid);
+                                ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
+                                if (actioncommand != null) {
+                                    setStatus(status_manual);
+                                    result = toJson();
+                                    return true;
                                 }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
                         }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
                 return false;
             }
-
-            @Override
-            public void end() {
-
-            }
-        });
-        actionCommandList.add(cmd);
-
-    }
-
-    public HeaterActuator getHeaterActuator() {
-        for (WebduinoSystemActuator actuator : actuators) {
-            SensorBase sensor = Core.getSensorFromId(actuator.sensorid);
-            if (sensor instanceof HeaterActuator) {
-                HeaterActuator heaterActuator = (HeaterActuator) sensor;
-                HeaterActuatorCommand command;
-                return heaterActuator;
-            }
+            return false;
         }
-        return null;
+
+        @Override
+        public void end() {
+
+        }
+
+        @Override
+        public JSONObject getResult() {
+            return result;
+        }
     }
 }

@@ -45,14 +45,6 @@ public class WebduinoSystem extends DBObject {
         return false;
     }
 
-    /*private class Status {
-        String status;
-        String description;
-        public Status(String status, String description) {
-            this.status = status;
-            this.description = description;
-        }
-    }*/
 
     public WebduinoSystem(int id, String name, String type, boolean enabled) {
         this.id = id;
@@ -106,62 +98,17 @@ public class WebduinoSystem extends DBObject {
     protected void initCommandList() {
         ActionCommand cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_ENABLE, ActionCommand.ACTIONCOMMAND_ENABLE_DESCRIPTION);
         cmd.addStatus("Stato");
-        cmd.addCommand(new ActionCommand.Command() {
-            @Override
-            public boolean execute(JSONObject json) {
-                try {
-                    setStatus(status_enabled);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-                return true;
-            }
-            @Override
-            public void end() {
-
-            }
-        });
+        cmd.addCommand(new EnableActionCommand());
         actionCommandList.add(cmd);
 
         cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_DISABLE, ActionCommand.ACTIONCOMMAND_DISABLE_DESCRIPTION);
         cmd.addStatus("Stato");
-        cmd.addCommand(new ActionCommand.Command() {
-            @Override
-            public boolean execute(JSONObject json) {
-                try {
-                    setStatus(status_disabled);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-                return true;
-            }
-            @Override
-            public void end() {
-
-            }
-        });
+        cmd.addCommand(new DisableActionCommand());
         actionCommandList.add(cmd);
 
         cmd = new ActionCommand(ActionCommand.ACTIONCOMMAND_PAUSE, ActionCommand.ACTIONCOMMAND_PAUSE_DESCRIPTION);
         cmd.addStatus("Stato");
-        cmd.addCommand(new ActionCommand.Command() {
-            @Override
-            public boolean execute(JSONObject json) {
-                try {
-                    //setStatus(status_disabled);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-                return true;
-            }
-            @Override
-            public void end() {
-
-            }
-        });
+        cmd.addCommand(new PauseActionCommand());
         actionCommandList.add(cmd);
     }
 
@@ -266,6 +213,9 @@ public class WebduinoSystem extends DBObject {
         }
     }
 
+    public void getJSONField(JSONObject json) {
+    }
+
     public JSONObject toJson() throws JSONException {
 
         JSONObject json = new JSONObject();
@@ -307,6 +257,8 @@ public class WebduinoSystem extends DBObject {
 
         json.put("status", status.toJson());
 
+        // get custom json field
+        getJSONField(json);
         return json;
     }
 
@@ -430,5 +382,66 @@ public class WebduinoSystem extends DBObject {
         return false;
     }
 
+    private class EnableActionCommand implements ActionCommand.Command {
+        @Override
+        public boolean execute(JSONObject json) {
+            try {
+                setStatus(status_enabled);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+        @Override
+        public void end() {
+
+        }
+
+        @Override
+        public JSONObject getResult() {
+            return null;
+        }
+    }
+    private class DisableActionCommand implements ActionCommand.Command {
+        @Override
+        public boolean execute(JSONObject json) {
+            try {
+                setStatus(status_disabled);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+        @Override
+        public void end() {
+
+        }
+        @Override
+        public JSONObject getResult() {
+            return null;
+        }
+    }
+    private class PauseActionCommand implements ActionCommand.Command {
+        @Override
+        public boolean execute(JSONObject json) {
+            try {
+                //setStatus(status_disabled);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
+        }
+        @Override
+        public void end() {
+
+        }
+        @Override
+        public JSONObject getResult() {
+            return null;
+        }
+    }
 
 }

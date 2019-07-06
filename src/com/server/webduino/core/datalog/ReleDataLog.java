@@ -2,7 +2,6 @@ package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
 import com.server.webduino.core.sensors.HeaterActuator;
-import com.server.webduino.core.sensors.SensorBase;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -72,8 +71,8 @@ public class ReleDataLog extends DataLog {
         return null;
     }
 
-    @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    /*@Override
+    public DataLog.DataLogValues getDataLogValue(int id, Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -119,7 +118,7 @@ public class ReleDataLog extends DataLog {
             e.printStackTrace();
         }
         return list;
-    }
+    }*/
 
     /*@Override
     DataLog getInterpolatedDataLog(Date t, DataLog dataA, DataLog dataB) {

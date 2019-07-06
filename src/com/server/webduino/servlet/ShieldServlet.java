@@ -3,6 +3,7 @@ package com.server.webduino.servlet;
 import com.quartz.QuartzListener;
 import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
+import com.server.webduino.core.datalog.TemperatureSensorDataLog;
 import com.server.webduino.core.sensors.HeaterActuator;
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.DoorSensorCommand;
@@ -391,18 +392,16 @@ public class ShieldServlet extends HttpServlet {
                 cal.setTime(enddate);
                 cal.add(Calendar.HOUR,-24);
                 Date startdate = cal.getTime();
-                //sensor.datalog.getDataLog(startdate,enddate);
+                //sensor.datalog.getDataLogValue(startdate,enddate);
 
-                List<DataLog> list = core.getSensorDataLogList(sensorid,startdate,enddate);
-                if (list != null) {
-                    for (DataLog logitem:list) {
-                        try {
-                            jarray.put(logitem.toJson());
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                DataLog.DataLogValues values = core.getSensorDataLogList(sensorid,startdate,enddate);
+                if (values != null) {
+
+                    try {
+                        out.print(values.toJson().toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                    out.print(jarray.toString());
                 }
             }
         }  else if (command != null && id != null) { // CHIAMTA CON ATTESA RITORNO

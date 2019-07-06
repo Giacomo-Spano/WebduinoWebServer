@@ -45,6 +45,11 @@ public class WebduinoSystem extends DBObject {
         return false;
     }
 
+    public String getType()
+    {
+        return type;
+    }
+
 
     public WebduinoSystem(int id, String name, String type, boolean enabled) {
         this.id = id;

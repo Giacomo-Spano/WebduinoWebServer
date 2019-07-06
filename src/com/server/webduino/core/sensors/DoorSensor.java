@@ -55,6 +55,9 @@ public class DoorSensor extends SensorBase {
                 else
                     setStatus(STATUS_CLOSED);
             }*/
+            String message = toJson().toString();
+            updateHomeAssistant("/door"+ id , message);
+            //updateHomeAssistant("", message);
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

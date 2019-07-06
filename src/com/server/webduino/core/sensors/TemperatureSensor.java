@@ -95,12 +95,16 @@ public class TemperatureSensor extends SensorBase {
             if (json.has("temp"))
                 setTemperature(json.getDouble("temp"));
 
+            String message = toJson().toString();
+            updateHomeAssistant("/temperature"+ id , message);
+
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             LOGGER.info("json error: " + e.toString());
             writeDataLog("updateFromJson error");
         }
+
     }
 
     @Override

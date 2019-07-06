@@ -94,6 +94,10 @@ public class SimpleMqttClient implements MqttCallback {
     }
 
     public boolean runClient() {
+        return runClient("localhost",1883);
+    }
+
+    public boolean runClient(String serveraddress, int serverport) {
         // setup MQTT Client
         String clientID = clientId;//M2MIO_THING;
         connOpt = new MqttConnectOptions();
@@ -129,7 +133,7 @@ public class SimpleMqttClient implements MqttCallback {
                 myClient = new MqttClient("tcp://localhost:1883", clientID, dataStore);
             else*/
             //myClient = new MqttClient("tcp://192.168.1.41:1883", clientID, dataStore);
-            myClient = new MqttClient("tcp://localhost:1883", clientID, dataStore);
+            myClient = new MqttClient(/*"tcp://localhost:1883"*/"tcp://" + serveraddress + ":" + serverport, clientID, dataStore);
             //myClient = new MqttClient(BROKER_URL, clientID, dataStore);
 
             myClient.setCallback(this);
@@ -156,7 +160,7 @@ public class SimpleMqttClient implements MqttCallback {
         message.setRetained(false);
 
         // Publish the message
-        System.out.println("Publishing to topic \"" + topic + "\" qos " + pubQoS + " message " + message);
+        System.out.println("Publishing to topic: \"" + topic + "\" qos: " + pubQoS + " message: \"" + message + "\"");
         MqttDeliveryToken token = null;
         try {
             // publish message to broker

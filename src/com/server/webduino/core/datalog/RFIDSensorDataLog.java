@@ -1,7 +1,6 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.sensors.DoorSensor;
 import com.server.webduino.core.sensors.RFIDSensor;
 
 import java.sql.*;
@@ -30,8 +29,8 @@ public class RFIDSensorDataLog extends DataLog {
         return sql;
     }
 
-    @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    /*@Override
+    public DataLog.DataLogValues getDataLogValue(int id, Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -71,5 +70,5 @@ public class RFIDSensorDataLog extends DataLog {
             e.printStackTrace();
         }
         return list;
-    }
+    }*/
 }

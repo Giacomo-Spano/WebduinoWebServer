@@ -45,6 +45,7 @@ public class Action {
     public int webduinosystemid = 0;
     public String param = "";
     public int deviceid = 0;
+    public int mediaplayerid = 0;
 
     private ActionCommand.Command actionCommand;
 
@@ -165,6 +166,7 @@ public class Action {
                     json.put("actionid", id);
                     json.put("webduinosystemid", webduinosystemid);
                     json.put("deviceid", deviceid);
+                    json.put("mediaplayerid", mediaplayerid);
                     json.put("param", param);
                     json.put("date",Core.getDate().toString());
                     json.put("type", "alarm");
@@ -294,6 +296,7 @@ public class Action {
         zonesensorid = resultSet.getInt("zonesensorid");
         param = resultSet.getString("param");
         deviceid = resultSet.getInt("deviceid");
+        mediaplayerid = resultSet.getInt("mediaplayerid");
         triggerid = resultSet.getInt("triggerid");
         webduinosystemid = resultSet.getInt("webduinosystemid");
     }
@@ -312,6 +315,7 @@ public class Action {
         if (json.has("zonesensorid")) zonesensorid = json.getInt("zonesensorid");
         if (json.has("param")) param = json.getString("param");
         if (json.has("deviceid")) deviceid = json.getInt("deviceid");
+        if (json.has("mediaplayerid")) mediaplayerid = json.getInt("mediaplayerid");
         if (json.has("triggerid")) triggerid = json.getInt("triggerid");
         if (json.has("webduinosystemid")) webduinosystemid = json.getInt("webduinosystemid");
     }
@@ -332,6 +336,7 @@ public class Action {
             json.put("zonesensorid", zonesensorid);
             json.put("param", param);
             json.put("deviceid", deviceid);
+            json.put("mediaplayerid", mediaplayerid);
             json.put("triggerid", triggerid);
             json.put("webduinosystemid", webduinosystemid);
 
@@ -424,10 +429,13 @@ public class Action {
         String deviceidstr = "null";
         if (deviceid > 0)
             deviceidstr = "" + deviceid;
+        String mediaplayeridstr = "null";
+        if (mediaplayerid > 0)
+            mediaplayeridstr = "" + mediaplayerid;
 
         String sql;
         DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        sql = "INSERT INTO scenarios_actions (id, description, timerangeid, type, actioncommand, targetvalue, duration, sensorid, serviceid, zoneid,zonesensorid, triggerid, deviceid, webduinosystemid, param)" +
+        sql = "INSERT INTO scenarios_actions (id, description, timerangeid, type, actioncommand, targetvalue, duration, sensorid, serviceid, zoneid,zonesensorid, triggerid, deviceid, mediaplayerid, webduinosystemid, param)" +
                 " VALUES ("
                 + id + ","
                 + "\"" + description + "\","
@@ -442,6 +450,7 @@ public class Action {
                 + zonesensoridstr + ","
                 + triggeridstr + ","
                 + deviceidstr + ","
+                + mediaplayeridstr + ","
                 + webduinosystemidstr + ","
                 + "\"" + param + "\""
                 + ") " +
@@ -459,6 +468,7 @@ public class Action {
                 + "zonesensorid=" + zonesensoridstr + ","
                 + "triggerid=" + triggeridstr + ","
                 + "deviceid=" + deviceidstr + ","
+                + "mediaplayerid=" + mediaplayeridstr + ","
                 + "webduinosystemid=" + webduinosystemidstr + ","
                 + "param=\"" + param + "\""
                 + ";";

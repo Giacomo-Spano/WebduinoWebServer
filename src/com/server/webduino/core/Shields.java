@@ -336,6 +336,10 @@ public class Shields {
                 json.put("shieldid", shieldid);
                 json.put("name", shieldRs.getString("name"));
                 json.put("enabled", shieldRs.getBoolean("enabled"));
+                json.put("loragateway", shieldRs.getBoolean("loragateway"));
+                json.put("oled", shieldRs.getBoolean("oled"));
+                json.put("loraaddress", shieldRs.getString("loraaddress"));
+                json.put("loraserver", shieldRs.getBoolean("loraserver"));
 
                 int parentId = 0;
                 JSONArray sensors = addChildSensors(conn, shieldid, parentId);
@@ -345,6 +349,10 @@ public class Shields {
                 int shieldid = addNewShield(conn, boardname, MACAddress);
                 json.put("shieldid", shieldid);
                 json.put("name", boardname);
+                json.put("loragateway", false);
+                json.put("oled", false);
+                json.put("loraaddress", "");
+                json.put("loraserver", false);
             }
             shieldRs.close();
             stmt.close();
@@ -487,6 +495,10 @@ public class Shields {
                 if (rs.getString("description") != null)
                     shield.description = rs.getString("description");
                 shield.enabled = rs.getBoolean("enabled");
+                shield.loragateway = rs.getBoolean("loragateway");
+                shield.oled = rs.getBoolean("oled");
+                shield.loraaddress = rs.getString("loraaddress");
+                shield.loraserver = rs.getBoolean("loraserver");
 
                 shield.sensors = SensorBase.readSensors(conn, shield.id, 0);
                 addShield(shield);

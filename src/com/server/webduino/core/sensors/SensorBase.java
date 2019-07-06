@@ -384,6 +384,40 @@ public class SensorBase extends DBObject {
         return false;
     }
 
+    public boolean updateHomeAssistant(String path, String message) {
+        LOGGER.info("SensorBase::updateHomeAssistant");
+
+        SimpleMqttClient smc;
+        smc = new SimpleMqttClient("homeassistantClient");
+        if (!smc.runClient("giacomocasa.duckdns.org",1883)) {
+            LOGGER.severe("cannot open MQTT client");
+            return false;
+        }
+        /*smc.subscribe("toServer/shield/#");
+        smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+            @Override
+            public void messageReceived(String topic, String message) {
+
+            }
+            @Override
+            public void connectionLost() {
+
+            }
+        });*/
+
+        /*String message;
+
+        //message = "{ \"temperature\":" + value + ", \"humidity\": 43.70 }";
+        message = toJson().toString();*/
+
+        smc.publish("homeassistant" + path/* + mediaplayer.name, message*/,message);
+
+
+        smc.disconnect();
+
+        return true;
+    }
+
     public Status getStatus() {
         return status;
     }

@@ -60,6 +60,7 @@ public class Core {
     private static List<SWVersion> swversions = new ArrayList<>();
 
     public static Devices devices = new Devices();
+    public static Mediaplayers mediaplayers = new Mediaplayers();
 
     static SimpleMqttClient smc;
 
@@ -75,13 +76,13 @@ public class Core {
         return scenarios.nextTimeRangeActions;
     }
 
-    public List<DataLog> getCommandDatalogs(int actuatorId, Date start, Date end) {
+    public DataLog.DataLogValues getCommandDatalogs(int actuatorId, Date start, Date end) {
         SensorBase sensor = getSensorFromId(actuatorId);
         if (sensor != null && sensor instanceof Actuator) {
 
             Actuator actuator = (Actuator) sensor;
             if (actuator.command.commandDataLog != null)
-                return actuator.command.commandDataLog.getDataLog(actuatorId, start, end);
+                return actuator.command.commandDataLog.getDataLogValue(actuatorId, start, end);
         }
         return null;
 
@@ -246,6 +247,16 @@ public class Core {
         return null;
     }
 
+    public static List<WebduinoSystem> getWebduinoSystemsFromType(String type) {
+        List<WebduinoSystem> list = new ArrayList<>();
+        for (WebduinoSystem system : webduinoSystems) {
+            if (system.getType().equalsIgnoreCase("heatersystem")) {
+                list.add(system);
+            }
+        }
+        return list;
+    }
+
     public WebduinoSystemActuator getWebduinoSystemActuatorFromId(int id) {
         for (WebduinoSystem system : webduinoSystems) {
             for (WebduinoSystemActuator webduinoSystemActuator: system.actuators) {
@@ -318,6 +329,19 @@ public class Core {
     public static Device getDevicesFromId(int id) {
         return devices.getDeviceFromId(id);
     }
+
+    public static JSONArray getMediaplayersJSONArray() throws JSONException {
+        JSONArray jsonArray = new JSONArray();
+        for (Mediaplayer mediaplayer : mediaplayers.get()) {
+            jsonArray.put(mediaplayer.toJson());
+        }
+        return jsonArray;
+    }
+
+    public static Mediaplayer getMediaplayersFromId(int id) {
+        return mediaplayers.getMediaplayerFromId(id);
+    }
+
 
     public static JSONArray getSensorsJSONArray(int shieldid, String type) {
         JSONArray jsonArray = new JSONArray();
@@ -936,11 +960,11 @@ public class Core {
         return scenarios.getNextActuatorProgramTimeRangeActionList(actuatorid);
     }
 
-    public List<DataLog> getSensorDataLogList(int actuatorid, Date startdate, Date enddate) {
+    public DataLog.DataLogValues getSensorDataLogList(int actuatorid, Date startdate, Date enddate) {
 
         SensorBase sensor = getSensorFromId(actuatorid);
         if (sensor == null) return null;
-        return sensor.datalog.getDataLog(actuatorid, startdate, enddate);
+        return sensor.datalog.getDataLogValue(actuatorid, startdate, enddate);
     }
 
     public static void sendPushNotification(String type, String title, String description, String value, int id) {

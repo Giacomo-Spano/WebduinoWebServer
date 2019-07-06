@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1">
 
-
-    <!--<filter>
+<!--
+    <filter>
         <filter-name>CorsFilter</filter-name>
         <filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
         <init-param>
@@ -33,8 +33,8 @@
 
     <listener>
         <listener-class>com.quartz.QuartzListener</listener-class>
-    </listener>-->
-
+    </listener>
+-->
 
     <!--<listener>
         <listener-class>

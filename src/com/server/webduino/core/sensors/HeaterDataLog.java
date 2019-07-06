@@ -48,7 +48,7 @@ public class HeaterDataLog extends DataLog {
         return sql;
     }
 
-    @Override
+    /*@Override
     public JSONObject toJson() {
         try {
             JSONObject json = new JSONObject();
@@ -69,10 +69,10 @@ public class HeaterDataLog extends DataLog {
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 
-    @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    /*@Override
+    public DataLog.DataLogValues getDataLogValue(int id, Date startDate, Date endDate) {
 
         ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
@@ -127,5 +127,5 @@ public class HeaterDataLog extends DataLog {
             e.printStackTrace();
         }
         return list;
-    }
+    }*/
 }

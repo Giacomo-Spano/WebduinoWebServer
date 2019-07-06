@@ -2,6 +2,8 @@ package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.commands.IRActuatorCommand;
+import com.server.webduino.core.webduinosystem.HeaterSystem;
+import com.server.webduino.core.webduinosystem.WebduinoSystem;
 import com.server.webduino.core.webduinosystem.zones.Zone;
 import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
 import org.json.JSONException;
@@ -29,6 +31,14 @@ public class GoogleAssistantParser {
                 e.printStackTrace();
                 return null;
             }
+        }
+        return null;
+    }
+
+    public HeaterSystem getHeater() {
+        List<WebduinoSystem> heaterSystems = Core.getWebduinoSystemsFromType("heatersystem");
+        if (heaterSystems != null && heaterSystems.size() > 0 && heaterSystems.get(0) instanceof HeaterSystem) {
+            return (HeaterSystem) heaterSystems.get(0);
         }
         return null;
     }

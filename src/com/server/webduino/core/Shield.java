@@ -32,6 +32,10 @@ public class Shield extends DBObject {
     protected boolean enabled = false;
     protected Date lastUpdate = new Date();
     protected List<SensorBase> sensors = new ArrayList<>();
+    protected boolean loragateway = false;
+    protected boolean oled = false;
+    protected String loraaddress = "";
+    protected boolean loraserver = false;
 
     public ShieldDataLog datalog;
 

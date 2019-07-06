@@ -44,8 +44,8 @@ public class IRCommandDataLog extends CommandDataLog {
         return sql;
     }
 
-    @Override
-    public List<DataLog> getDataLog(int id,Date startDate,Date endDate) {
+    /*@Override
+    public DataLog.DataLogValues getDataLogValue(int id, Date startDate, Date endDate) {
         try {
             //Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
@@ -72,7 +72,7 @@ public class IRCommandDataLog extends CommandDataLog {
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 
     private void fromResulSet(Connection conn, ResultSet datalogResultSet) throws Exception {
         //WebduinoSystemScenario scenario = new WebduinoSystemScenario();
@@ -90,7 +90,7 @@ public class IRCommandDataLog extends CommandDataLog {
         this.actionid = datalogResultSet.getInt("actionid");
     }
 
-    @Override
+    /*@Override
     public JSONObject toJson() throws JSONException {
 
         JSONObject json = new JSONObject();
@@ -112,5 +112,5 @@ public class IRCommandDataLog extends CommandDataLog {
             e.printStackTrace();
         }
         return json;
-    }
+    }*/
 }

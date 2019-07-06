@@ -34,10 +34,12 @@ public class HeaterActuator extends Actuator {
 
     public static final String STATUS_MANUAL = "manual";
     public static final String STATUS_KEEPTEMPERATURE = "keeptemperature";
+    public static final String STATUS_KEEPTEMPERATURE_RELEOFF = "keeptemperaturereleoff";
     public static final String STATUS_OFF = "off";
 
     public static final String STATUS_DESCRIPTION_MANUAL = "Manuale";
     public static final String STATUS_DESCRIPTION_KEEPTEMPERATURE = "Mantieni temperature";
+    public static final String STATUS_DESCRIPTION_KEEPTEMPERATURE_RELEOFF = "Mantieni temperatura relè spento";
     public static final String STATUS_DESCRIPTION_OFF = "Off";
 
     private static final Logger LOGGER = Logger.getLogger(HeaterActuator.class.getName());
@@ -158,12 +160,18 @@ public class HeaterActuator extends Actuator {
         statusList.add(status);
         status = new Status(STATUS_KEEPTEMPERATURE, STATUS_DESCRIPTION_KEEPTEMPERATURE);
         statusList.add(status);
+        status = new Status(STATUS_KEEPTEMPERATURE_RELEOFF, STATUS_DESCRIPTION_KEEPTEMPERATURE_RELEOFF);
+        statusList.add(status);
         status = new Status(STATUS_OFF, STATUS_DESCRIPTION_OFF);
         statusList.add(status);
     }
 
     public long getDuration() {
         return duration;
+    }
+
+    public Date getEndDate() {
+        return endDate;
     }
 
     protected void setDuration(int duration) {
@@ -347,6 +355,17 @@ public class HeaterActuator extends Actuator {
                 setTargetTemperature(json.getDouble("target"));
             if (json.has("actionid"))
                 setActionId(json.getInt("actionid"));
+
+            String message = "";
+            if (releStatus)
+                message = "on";
+            else
+                message = "off";
+            //updateHomeAssistant("/rele", message);
+            updateHomeAssistant("/heater"+ id + "/rele", message);
+
+            updateHomeAssistant("/heater"+ id + "/status", "online");
+
         } catch (JSONException e) {
             e.printStackTrace();
             LOGGER.info("json error: " + e.toString());
@@ -415,11 +434,14 @@ public class HeaterActuator extends Actuator {
         boolean res = super.setStatus(status);
 
         this.status.description = "";
-        if (this.status.status.equals(STATUS_KEEPTEMPERATURE)) {
+        if (this.status.status.equals(STATUS_KEEPTEMPERATURE) || this.status.status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
 
-            this.status.description = STATUS_DESCRIPTION_KEEPTEMPERATURE + " " + targetTemperature;
+            if (this.status.status.equals(STATUS_KEEPTEMPERATURE))
+                this.status.description = STATUS_DESCRIPTION_KEEPTEMPERATURE + " " + targetTemperature;
+            else if (this.status.status.equals(STATUS_KEEPTEMPERATURE_RELEOFF))
+                this.status.description = STATUS_DESCRIPTION_KEEPTEMPERATURE_RELEOFF + " " + targetTemperature;
 
-            Zone zone = Core.getZoneFromId(zoneId);
+                Zone zone = Core.getZoneFromId(zoneId);
             if (zone != null)
                 this.status.description += " Zona: [" + zone.id + "]." + zone.getName();
             SensorBase remotesensor = Core.getSensorFromId(remoteSensorId);

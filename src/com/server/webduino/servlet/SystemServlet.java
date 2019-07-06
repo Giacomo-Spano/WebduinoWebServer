@@ -17,6 +17,7 @@ import com.server.webduino.core.webduinosystem.zones.ZoneSensor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import sun.swing.BakedArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,8 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 //import com.server.webduino.core.SensorData;
@@ -646,6 +646,19 @@ public class SystemServlet extends HttpServlet {
                 e.printStackTrace();
             }
 
+        } else if (requestCommand != null && requestCommand.equals("mediaplayers")) {
+
+            JSONArray jarray = null;
+            try {
+                jarray = Core.getMediaplayersJSONArray();
+                if (jarray != null) {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    out.print(jarray.toString());
+                    return;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
         } else if (requestCommand != null && requestCommand.equals("service") && id != null) {
             int serviceid = Integer.parseInt(id);
@@ -879,27 +892,55 @@ public class SystemServlet extends HttpServlet {
                 out.print(jarray.toString());
                 return;
             }
-        } else if (requestCommand != null && requestCommand.equals("commandlog")) {
+        } else if (requestCommand != null && requestCommand.equals("sensordatalog")) {
             if (id != null) {
                 JSONArray jarray = new JSONArray();
-                int actuatorid = Integer.parseInt(id);
-                List<DataLog> list = core.getCommandDatalogs(actuatorid, null, null);
-                if (list != null) {
-                    for (DataLog dataLog : list) {
+                int sensorid = Integer.parseInt(id);
+                SensorBase sensor = core.getSensorFromId(sensorid);
+
+                Date enddate = Core.getDate();
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(enddate);
+                //cal.add(Calendar.HOUR,-2);
+                cal.add(Calendar.MINUTE,-10);
+                Date startdate = cal.getTime();
+                //sensor.datalog.getDataLogValue(startdate,enddate);
+
+                DataLog.DataLogValues value = core.getSensorDataLogList(sensorid,startdate,enddate);
+                if (value != null) {
+                    try {
+
+                        out.print(value.toJson().toString());
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        return;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else {
+            if (requestCommand != null && requestCommand.equals("commandlog")) {
+                if (id != null) {
+                    JSONArray jarray = new JSONArray();
+                    int actuatorid = Integer.parseInt(id);
+                    DataLog.DataLogValues values = core.getCommandDatalogs(actuatorid, null, null);
+                    if (values != null) {
+
+                        response.setStatus(HttpServletResponse.SC_OK);
                         try {
-                            jarray.put(dataLog.toJson());
+                            out.print(values.toJson().toString());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        return;
                     }
-                    response.setStatus(HttpServletResponse.SC_OK);
-                    out.print(jarray.toString());
-                    return;
                 }
             }
         }
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
+
+
 
     public SensorBase saveSensor(JSONObject json) throws Exception {
         SensorFactory factory = new SensorFactory();

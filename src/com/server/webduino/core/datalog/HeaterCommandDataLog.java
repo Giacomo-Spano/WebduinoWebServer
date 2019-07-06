@@ -1,8 +1,6 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.sensors.commands.Command;
-import com.server.webduino.core.datalog.DataLog;
 import com.server.webduino.core.sensors.commands.HeaterActuatorCommand;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -66,8 +64,8 @@ public class HeaterCommandDataLog extends CommandDataLog {
         return sql;
     }
 
-    @Override
-    public List<DataLog> getDataLog(int id,Date startDate,Date endDate) {
+    /*@Override
+    public DataLog.DataLogValues getDataLogValue(int id, Date startDate, Date endDate) {
         try {
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
             conn.setAutoCommit(false);
@@ -93,7 +91,7 @@ public class HeaterCommandDataLog extends CommandDataLog {
             e.printStackTrace();
         }
         return null;
-    }
+    }*/
 
     private void fromResulSet(Connection conn, ResultSet datalogResultSet) throws Exception {
         this.id = datalogResultSet.getInt("id");
@@ -110,7 +108,7 @@ public class HeaterCommandDataLog extends CommandDataLog {
         this.actionid = datalogResultSet.getInt("actionid");
     }
 
-    @Override
+    /*@Override
     public JSONObject toJson() throws JSONException {
 
         JSONObject json = new JSONObject();
@@ -132,5 +130,5 @@ public class HeaterCommandDataLog extends CommandDataLog {
             e.printStackTrace();
         }
         return json;
-    }
+    }*/
 }

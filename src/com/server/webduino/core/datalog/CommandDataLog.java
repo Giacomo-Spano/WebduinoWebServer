@@ -6,8 +6,8 @@ public class CommandDataLog extends DataLog {
 
     public String tableName = "commanddatalog";
     public CommandDataLog commandDataLog = null;
-    public String result;
-    public boolean success;
+    //public String result;
+    //public boolean success;
 
     public CommandDataLog(String commanddatalog) {
         this.tableName = commanddatalog;
@@ -22,8 +22,8 @@ public class CommandDataLog extends DataLog {
                 + "," + command.shieldid
                 + "," + command.actuatorid
                 + ",'" + command.uuid + "'"
-                + "," + success
-                + ",'" + result + "'"
+                + "," + command.success
+                + ",'" + command.result + "'"
                 + ");";
         return sql;
     }

@@ -1,8 +1,14 @@
 package com.server.webduino.core;
 
+import com.mysql.fabric.xmlrpc.base.Data;
+import com.server.webduino.core.sensors.HeaterActuator;
+import com.server.webduino.core.webduinosystem.HeaterSystem;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by giaco on 02/09/2018.
@@ -25,10 +31,22 @@ public class Dialogflow {
             JSONArray outputContextsJsonarray = null;
             String action = "";
             String languageCode;
+
+            JSONObject intent;
+            String intentDisplayname = "", intentName = "";
+
             if (jsonrequest.has("queryResult")) {
                 queryResultJson = jsonrequest.getJSONObject("queryResult");
-                if (queryResultJson.has("parameters")) {
+                if (queryResultJson.has("intent")) {
                     parametersJson = queryResultJson.getJSONObject("parameters");
+                }
+
+                if (queryResultJson.has("parameters")) {
+                    intent = queryResultJson.getJSONObject("intent");
+                    if (intent != null && intent.has("displayName"))
+                        intentDisplayname = intent.getString("displayName");
+                    if (intent != null && intent.has("name"))
+                        intentName = intent.getString("name");
                 }
                 if (queryResultJson.has("action")) {
                     action = queryResultJson.getString("action");
@@ -46,18 +64,25 @@ public class Dialogflow {
             //JSONObject followupEventInputJson = new JSONObject();
             //followupEventInputJson.put("name", "commandcompletedevent");
             //jsonresult.put("followupEventInput", followupEventInputJson);
-            if (action.equalsIgnoreCase("controldevice")) {
+            if (intentDisplayname.equalsIgnoreCase("riscaldamento")) {
+                return handleRiscaldamentoIntent(session, parametersJson, outputContextsJsonarray,action);
+                /*if (action.equalsIgnoreCase("status")) {
 
-                return handleControlDeviceIntent(session,parametersJson,outputContextsJsonarray);
+                }*/
 
-            } else if (action.equalsIgnoreCase("commandtelevisione")) {
+            } else {
+                if (action.equalsIgnoreCase("controldevice")) {
 
-                return handleCommandTelevisioneIntent(session,parametersJson,outputContextsJsonarray);
+                    return handleControlDeviceIntent(session, parametersJson, outputContextsJsonarray);
 
-            } else if (action.equalsIgnoreCase("commandariacondizionata")) {
+                } else if (action.equalsIgnoreCase("commandtelevisione")) {
 
-                return handleCommandAriaCondizionataIntent(session,parametersJson,outputContextsJsonarray);
+                    return handleCommandTelevisioneIntent(session, parametersJson, outputContextsJsonarray);
 
+                } else if (action.equalsIgnoreCase("commandariacondizionata")) {
+
+                    return handleCommandAriaCondizionataIntent(session, parametersJson, outputContextsJsonarray);
+                }
             }
 
 
@@ -70,6 +95,54 @@ public class Dialogflow {
         return null;
     }
 
+    JSONObject handleRiscaldamentoIntent(String session, JSONObject parametersJson, JSONArray outputContextsJsonarray, String action) throws JSONException {
+
+        GoogleAssistantParser parser = new GoogleAssistantParser();
+        HeaterSystem heatersystem = parser.getHeater();
+        HeaterActuator heater = heatersystem.getHeaterActuator();
+
+        if (action != null && action.equalsIgnoreCase("status")) {
+
+
+            parametersJson.put("temperature", heater.getTemperature());
+            parametersJson.put("target", heater.getTargetTemperature());
+            if (heater.getReleStatus())
+                parametersJson.put("relestatus", "Acceso");
+            else
+                parametersJson.put("relestatus", "Spento");
+
+            Date endDate = heater.getEndDate();
+            SimpleDateFormat df = new SimpleDateFormat(/*"yyyy-MM-dd HH:mm:ss"*/"HH:mm");
+            String endtime = df.format(endDate);
+            parametersJson.put("endtime", endtime);
+
+
+            JSONObject followupEventInputJson = new JSONObject();
+            followupEventInputJson.put("name", "riscaldamento-event");
+            followupEventInputJson.put("parameters", parametersJson);
+            JSONObject jsonresult = new JSONObject();
+            jsonresult.put("followupEventInput", followupEventInputJson);
+
+
+
+            JSONObject devicecontexJson = new JSONObject();
+            devicecontexJson.put("name", session + "/contexts/" + "riscaldamento-followup");
+            devicecontexJson.put("lifespanCount", 5);
+            devicecontexJson.put("parameters", parametersJson);
+            if (outputContextsJsonarray == null) {
+                outputContextsJsonarray = new JSONArray();
+            }
+            outputContextsJsonarray.put(devicecontexJson);
+            jsonresult.put("outputContexts", outputContextsJsonarray);
+            return jsonresult;
+        } else {
+            JSONObject jsonresult = new JSONObject();
+            jsonresult.put("fulfillmentText", "comando riuscaldamento non riconosciuto");
+            return jsonresult;
+        }
+        //return null;
+    }
+
     JSONObject handleControlDeviceIntent(String session, JSONObject parametersJson, JSONArray outputContextsJsonarray) throws JSONException {
 
         if (parametersJson != null && parametersJson.has("device")
@@ -78,7 +151,7 @@ public class Dialogflow {
             String device = parametersJson.getString("device");
             String location = parametersJson.getString("location");
             GoogleAssistantParser parser = new GoogleAssistantParser();
-            IRDevice irdevice = parser.IRDeviceFromNameAndZone(device,location);
+            IRDevice irdevice = parser.IRDeviceFromNameAndZone(device, location);
 
             if (irdevice != null) {
                 JSONObject followupEventInputJson = new JSONObject();
@@ -122,11 +195,10 @@ public class Dialogflow {
                 && televisioneContextParameter.has("location")) {
 
 
-
             String device = televisioneContextParameter.getString("device");
             String location = televisioneContextParameter.getString("location");
             GoogleAssistantParser parser = new GoogleAssistantParser();
-            IRDevice irdevice = parser.IRDeviceFromNameAndZone(device,location);
+            IRDevice irdevice = parser.IRDeviceFromNameAndZone(device, location);
             String channel = parametersJson.getString("channel");
             if (irdevice != null && !channel.equalsIgnoreCase("")) {
 

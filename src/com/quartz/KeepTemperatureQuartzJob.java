@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 import static com.server.webduino.core.sensors.HeaterActuator.STATUS_KEEPTEMPERATURE;
+import static com.server.webduino.core.sensors.HeaterActuator.STATUS_KEEPTEMPERATURE_RELEOFF;
 
 public class KeepTemperatureQuartzJob implements Job {
 
@@ -56,13 +57,15 @@ public class KeepTemperatureQuartzJob implements Job {
         // manda nuovamente il comando
         System.out.println("CommandThread keeptemperature timer Executed... " + Core.getDate().toString());
         //double remotetemp = getRemoteSensorTemperature();
-        if (heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE) && heater.getTemperature() <= 0) {
+        if ((heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE) || heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF))
+                && heater.getTemperature() <= 0) {
             System.out.println("error: remote temperatur = " + heater.getTemperature());
             boolean res = heater.sendStopKeepTemperature();
             return;
         }
         System.out.println("status = " + heater.getStatus().status);
-        if (!heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE)) {
+        if (!heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE) &&
+                !heater.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
 
             long diffInMillies = Math.abs(endtime.getTime() - Core.getDate().getTime());
             long duration = diffInMillies / 1000;

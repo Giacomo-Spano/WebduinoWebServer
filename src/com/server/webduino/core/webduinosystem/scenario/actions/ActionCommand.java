@@ -70,8 +70,11 @@ public class ActionCommand {
     String durationname = "Durata";
 
     boolean hasdevice = false;
-    //int  deviceid = 0;
     String devicename = "stato";
+
+    boolean hasmediaplayer = false;
+    String mediaplayername = "stato";
+
 
     public ActionCommand(String command, String name) {
         this.command = command;
@@ -117,7 +120,11 @@ public class ActionCommand {
     public void addDevice(String name) {
         hasdevice = true;
         devicename = name;
-        //deviceid = id;
+    }
+
+    public void addMediaplayer(String name) {
+        hasmediaplayer = true;
+        mediaplayername = name;
     }
 
     public void addStatus(String name) {
@@ -160,6 +167,11 @@ public class ActionCommand {
         if (hasdevice) {
             json.put("device",true);
             json.put("devicename",devicename);
+        }
+
+        if (hasmediaplayer) {
+            json.put("mediaplayer",true);
+            json.put("mediaplayername",mediaplayername);
         }
 
         if (hasstatus) {

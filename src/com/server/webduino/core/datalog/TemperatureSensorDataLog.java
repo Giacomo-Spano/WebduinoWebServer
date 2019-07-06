@@ -1,13 +1,15 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.sensors.TemperatureSensor;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class TemperatureSensorDataLog extends DataLog {
 
@@ -33,9 +35,9 @@ public class TemperatureSensorDataLog extends DataLog {
     }
 
     @Override
-    public ArrayList<DataLog> getDataLog(int id, Date startDate, Date endDate) {
+    public DataLogValues getDataLogValue(int id, Date startDate, Date endDate) {
 
-        ArrayList<DataLog> list = new ArrayList<DataLog>();
+        //ArrayList<DataLog> list = new ArrayList<DataLog>();
         try {
             // Register JDBC driver
             Class.forName("com.mysql.jdbc.Driver");
@@ -53,17 +55,23 @@ public class TemperatureSensorDataLog extends DataLog {
 
             ResultSet rs = stmt.executeQuery(sql);
 
+            DataLogValues datalogvalues = new DataLogValues();
+            datalogvalues.valueLabels.add("Temperatura");
+
+            List<Double> temperatures = new ArrayList<>();
             while (rs.next()) {
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-                date = df.parse(String.valueOf(rs.getTimestamp("date")));
+                Date date = df.parse(String.valueOf(rs.getTimestamp("date")));
+                datalogvalues.dates.add(date);
                 temperature = rs.getDouble("temperature");
-
-                list.add(this);
+                temperatures.add(temperature);
             }
+            datalogvalues.values.add(temperatures);
             // Clean-up environment
             rs.close();
             stmt.close();
             conn.close();
+            return datalogvalues;
 
         } catch (SQLException se) {
             //Handle errors for JDBC
@@ -73,6 +81,16 @@ public class TemperatureSensorDataLog extends DataLog {
             //Handle errors for Class.forName
             e.printStackTrace();
         }
-        return list;
+        return null;
+    }
+
+    public JSONObject toJson() throws JSONException {
+        return null;
+    }
+
+    public class DataLogValue {
+        String date;
+        //List<String> labels = new ArrayList<>();
+        List<Double> values = new ArrayList<>();
     }
 }

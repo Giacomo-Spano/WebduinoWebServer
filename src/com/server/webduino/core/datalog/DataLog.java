@@ -1,10 +1,8 @@
 package com.server.webduino.core.datalog;
 
 import com.server.webduino.core.Core;
-import com.server.webduino.core.sensors.DoorSensor;
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.commands.Command;
-import com.server.webduino.servlet.SystemServlet;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,11 +63,51 @@ public class DataLog {
         return id;
     }
 
-    public List<DataLog> getDataLog(int id,Date startDate, Date endDate) {
+    public DataLogValues getDataLogValue(int id, Date startDate, Date endDate) {
         return null;
     }
 
-    public JSONObject toJson() throws JSONException {
-        return null;
+
+
+    public class DataLogValues {
+        List<Date> dates = new ArrayList<>();
+        List<List<Double>> values = new ArrayList<>();
+        List<String> valueLabels = new ArrayList<>();
+        //List<String> statuses = new ArrayList<>();
+        //List<String> statusLabels = new ArrayList<>();
+        public JSONObject toJson() throws JSONException {
+            JSONObject json = new JSONObject();
+            JSONArray labeljarray = new JSONArray();
+            //labeljarray.put("Data");
+            for(String label:valueLabels) {
+                labeljarray.put(label);
+            }
+            json.put("labels",labeljarray);
+
+            JSONArray datejarray = new JSONArray();
+            for(Date date:dates) {
+                //SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy-MM-dd");
+                SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+                String strdate = df.format(date);
+                datejarray.put(strdate);
+            }
+            json.put("dates",datejarray);
+
+            JSONArray datajarray = new JSONArray();
+            for(int i = 0; i < values.size(); i++) {
+                JSONObject jsonObject = new JSONObject();
+                JSONArray valuejarray = new JSONArray();
+                for (Double value : values.get(i)) {
+                    valuejarray.put(value);
+                }
+                //jsonObject.put(/*valueLabels.get(i)*/"values",valuejarray);
+                //jsonObject.put(/*valueLabels.get(i)*/"values2",valuejarray);
+                datajarray.put(valuejarray);
+                //datajarray.put(valuejarray);
+            }
+
+            json.put("data",datajarray);
+            return json;
+        }
     }
 }

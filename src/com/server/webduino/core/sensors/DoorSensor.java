@@ -1,10 +1,12 @@
 package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.Core;
 import com.server.webduino.core.datalog.DoorSensorDataLog;
 import com.server.webduino.core.webduinosystem.Status;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -49,15 +51,33 @@ public class DoorSensor extends SensorBase {
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
 
-            /*if (json.has("open")) {
-                if (json.getBoolean("open"))
-                    setStatus(STATUS_OPEN);
-                else
-                    setStatus(STATUS_CLOSED);
-            }*/
-            String message = toJson().toString();
-            updateHomeAssistant("/door"+ id , message);
-            //updateHomeAssistant("", message);
+
+            JSONObject jsonstatus = new JSONObject();
+            try {
+                jsonstatus.put("sensorid", id);
+                jsonstatus.put("shieldid", shieldid);
+                jsonstatus.put("name", name);
+                jsonstatus.put("description", description);
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                jsonstatus.put("date", df.format(Core.getDate()));
+                jsonstatus.put("status", getStatus());
+                //jsonstatus.put("valuetextxx", valuetext);
+                //jsonstatus.put("valuetype", valuetype);
+                //jsonstatus.put("valueunit", valueunit);
+                jsonstatus.put("lastUpdate", lastUpdate);
+                jsonstatus.put("type", type);
+                //json.put("zoneid", zoneId);
+                //json.put("zonesensorid", remoteSensorId);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            String message = jsonstatus.toString();
+            updateHomeAssistant("homeassistant/sensor/"+ id , message);
+
+            updateHomeAssistant("homeassistant/sensor/"+ id , "/availability/online");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

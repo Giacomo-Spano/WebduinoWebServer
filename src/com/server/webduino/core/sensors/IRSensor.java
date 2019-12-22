@@ -49,7 +49,7 @@ public class IRSensor extends Actuator {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if (!res && !status.status.equals(STATUS_OFFLINE)) {
+                if (!res && !getStatus().status.equals(STATUS_OFFLINE)) {
                     setStatus(STATUS_OFFLINE);
                     String description = "Sensor " + name + " offline";
                     //Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);

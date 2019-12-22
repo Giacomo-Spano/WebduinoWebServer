@@ -185,37 +185,37 @@ public class Core {
     }
 
     public static String getUser() {
-        if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFT))
-            return "adminUp6Qw2f";
-        else if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFTTEST))
-            return "adminjNm7VUk";
-            //return "adminw8ZVVu2";
-        else
-            //return "adminzdVX5dl";// production
-            return "root";
+
+            return "giacomo";
+            //return "root";
     }
 
     public static String getPassword() {
-        if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFT))
-            return "rmIf9KYneg1C";
-        else if (appDNS_envVar != null && appDNS_envVar.equals(APP_DNS_OPENSHIFTTEST))
-            return "xX1MAIXQLLHq";
-            //return "MhbY-61ZlqU4";
-        else
-            //return "eEySMcJ6WCj4"; //production
             return "giacomo";
+            //return "";
     }
 
     public static String getDbUrl() {
+
+        return "jdbc:mysql://192.168.1.111:3306/webduino?useTimezone=true&serverTimezone=UTC";
+        //return "jdbc:mysql://127.0.0.1:3306/webduino?useTimezone=true&serverTimezone=UTC";
+
         //test
-        if (production_envVar != null && production_envVar.equals("0")) {
+        /*if (production_envVar != null && production_envVar.equals("0")) {
             //LOGGER.info("jdbc:mysql://127.0.0.1:3306/webduino_debug");
-            return "jdbc:mysql://127.0.0.1:3306/webduino_debug";
+            return "jdbc:mysql://127.0.0.1:3306/webduino_debug?useTimezone=true&serverTimezone=UTC";
         } else {
             //LOGGER.info("jdbc:mysql://127.0.0.1:3306/webduino");
-            return "jdbc:mysql://127.0.0.1:3306/webduino";
-        }
-        //return "jdbc:mysql://127.0.0.1:3307/jbossews"; // production
+            //return "jdbc:mysql://127.0.0.1:3306/webduino?useTimezone=true&serverTimezone=UTC";
+            return "jdbc:mysql://192.168.1.240:3306/webduino?useTimezone=true&serverTimezone=UTC";
+        }*/
+
+    }
+
+    public static String getMQTTUrl() {
+        return "192.168.1.111";
+        //return "localhost";
+        //return "giacomocasa.duckdns.org";
     }
 
     public static boolean isProduction() {
@@ -455,6 +455,7 @@ public class Core {
         // Le schede ed isensori devono essere caricati prima degli scenari e zone altrimenti non funzionano i listener
         mShields = new Shields();
         mShields.init();
+        mShields.initHomeAssistantCommandHandler();
 
         /*VirtualShield virtualshield = new VirtualShield();
         Thread thread = new Thread(virtualshield, "commandThread" + 1);

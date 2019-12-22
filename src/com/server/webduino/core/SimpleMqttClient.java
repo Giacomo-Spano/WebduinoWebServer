@@ -94,7 +94,7 @@ public class SimpleMqttClient implements MqttCallback {
     }
 
     public boolean runClient() {
-        return runClient("localhost",1883);
+        return runClient(Core.getMQTTUrl()/*"localhost"*/,1883);
     }
 
     public boolean runClient(String serveraddress, int serverport) {

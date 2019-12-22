@@ -9,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.sql.*;
+import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -312,17 +313,32 @@ public class ScenarioProgramTimeRange extends DBObject {
         String name = resultSet.getString("name");
         String description = resultSet.getString("description");
 
-        java.util.Date time = resultSet.getTimestamp("starttime");
-        Instant instant = Instant.ofEpochMilli(time.getTime());
-        LocalTime startTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        int offset = TimeZone.getTimeZone("Europe/Rome").getOffset(Instant.now().toEpochMilli());
+        offset = offset / 1000 / 60 / 60;
+
+        Timestamp ts = resultSet.getTimestamp("starttime");
+        LocalTime startTime = ts.toLocalDateTime().toLocalTime();
+        startTime = startTime.plusHours(-offset);
         startTime = startTime.withSecond(0);
 
-        time = resultSet.getTimestamp("endtime");
-        instant = Instant.ofEpochMilli(time.getTime());
-
-        LocalTime endTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        ts = resultSet.getTimestamp("endtime");
+        LocalTime endTime = ts.toLocalDateTime().toLocalTime();
+        endTime = endTime.plusHours(-offset);
         endTime = endTime.plusMinutes(-1);
         endTime = endTime.withSecond(59);
+
+
+        //java.util.Date time = resultSet.getTimestamp("starttime");
+        //Instant instant = Instant.ofEpochMilli(time.getTime());
+        //LocalTime startTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        //startTime = startTime.withSecond(0);
+
+        //time = resultSet.getTimestamp("endtime");
+        //instant = Instant.ofEpochMilli(time.getTime());
+
+        //LocalTime endTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        //endTime = endTime.plusMinutes(-1);
+        //endTime = endTime.withSecond(59);
 
         Boolean enabled = resultSet.getBoolean("enabled");
         int index = resultSet.getInt("index");

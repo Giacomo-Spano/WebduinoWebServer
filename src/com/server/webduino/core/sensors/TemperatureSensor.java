@@ -1,9 +1,11 @@
 package com.server.webduino.core.sensors;
 
+import com.server.webduino.core.Core;
 import com.server.webduino.core.datalog.TemperatureSensorDataLog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -62,7 +64,7 @@ public class TemperatureSensor extends SensorBase {
     }
 
     public double getTemperature() {
-        return value;
+        return getValue();
     }
 
     public void setTemperature(double temperature) {
@@ -70,7 +72,8 @@ public class TemperatureSensor extends SensorBase {
         LOGGER.info("setTemperature");
 
         //double oldtemperature = this.value;
-        this.value = temperature;
+        //this.value = temperature;
+        this.setValue(temperature);
         //this.doubleValue = temperature;
 
         //TemperatureSensorDataLog dl = new TemperatureSensorDataLog();
@@ -95,8 +98,45 @@ public class TemperatureSensor extends SensorBase {
             if (json.has("temp"))
                 setTemperature(json.getDouble("temp"));
 
-            String message = toJson().toString();
-            updateHomeAssistant("/temperature"+ id , message);
+
+            JSONObject jsonstatus = new JSONObject();
+            try {
+                jsonstatus.put("sensorid", id);
+                jsonstatus.put("shieldid", shieldid);
+                jsonstatus.put("name", name);
+                jsonstatus.put("description", description);
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                jsonstatus.put("date", df.format(Core.getDate()));
+                jsonstatus.put("value", getValue());
+                jsonstatus.put("valuetextxx", valuetext);
+                jsonstatus.put("valuetype", valuetype);
+                jsonstatus.put("valueunit", valueunit);
+                jsonstatus.put("lastUpdate", lastUpdate);
+                jsonstatus.put("type", type);
+                //json.put("zoneid", zoneId);
+                //json.put("zonesensorid", remoteSensorId);
+
+                String message = "";
+                message += jsonstatus.toString();
+                message = "{";
+                message += "\"value\":" + id;
+                message += ", \"value\":" + "\"" + name + "\"";
+                message += ", \"desciption\":" + "\"" + description + "\"";
+                message += ", \"date\":" + "\"" + df.format(Core.getDate()) + "\"";
+                message += ", \"lastUpdate\":" + "\"" + lastUpdate + "\"";
+                message += ", \"type\":" + "\"" + type + "\"";
+                message += ", \"value\":" + getValue();
+                message += "}";
+                updateHomeAssistant("homeassistant/sensor/"+ id , message);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            //updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "online");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

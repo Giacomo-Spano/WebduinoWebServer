@@ -40,7 +40,7 @@ public class SensorBase extends DBObject {
     protected String name;
     protected String description;
     protected boolean hasvalue;
-    protected double value;
+    private double value;
     protected String valuetype;
     protected String valueunit;
     protected String valuetext;
@@ -61,7 +61,7 @@ public class SensorBase extends DBObject {
     // dynamic state
     protected boolean testMode;
 
-    protected Status status;
+    private Status status;
     protected Status oldStatus = null;
     public boolean updating = false;
 
@@ -349,6 +349,10 @@ public class SensorBase extends DBObject {
         return value;
     }
 
+    public void setValue(double val) {
+        value = val;
+    }
+
     public String getValueUnit() {
         return valueunit;
     }
@@ -378,9 +382,15 @@ public class SensorBase extends DBObject {
                     for (SensorListener listener : listeners)
                         listener.onChangeStatus(this, this.status, oldStatus);
                 }
+
+                if (status.equals(STATUS_OFFLINE))
+                    updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "offline");
+                else
+                    updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "online");
                 return true;
             }
         }
+        updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "offline");
         return false;
     }
 
@@ -393,28 +403,9 @@ public class SensorBase extends DBObject {
             LOGGER.severe("cannot open MQTT client");
             return false;
         }
-        /*smc.subscribe("toServer/shield/#");
-        smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
-            @Override
-            public void messageReceived(String topic, String message) {
 
-            }
-            @Override
-            public void connectionLost() {
-
-            }
-        });*/
-
-        /*String message;
-
-        //message = "{ \"temperature\":" + value + ", \"humidity\": 43.70 }";
-        message = toJson().toString();*/
-
-        smc.publish("homeassistant" + path/* + mediaplayer.name, message*/,message);
-
-
+        smc.publish(/*"homeassistant" + */path/* + mediaplayer.name, message*/,message);
         smc.disconnect();
-
         return true;
     }
 

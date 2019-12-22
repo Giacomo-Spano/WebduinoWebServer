@@ -55,7 +55,7 @@ public class Shields {
     public Shields() {
     }
 
-    SimpleMqttClient smc;
+    SimpleMqttClient smc, homeassistantMQTTClient;
 
     public void init() {
 
@@ -204,6 +204,97 @@ public class Shields {
         requestSensorsStatusUpdate();
 
     }
+
+    public void initHomeAssistantCommandHandler() {
+
+        homeassistantMQTTClient = new SimpleMqttClient("homeassistantMQTTClient");
+        if (!homeassistantMQTTClient.runClient())
+            return;
+
+        homeassistantMQTTClient.subscribe("toServer/homeassistant/sensor/command/#");
+
+        homeassistantMQTTClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+            @Override
+            public synchronized void messageReceived(String topic, String message) {
+
+                //int index = topic.indexOf("toServer/homeassistant/sensor/command/");
+                String subTopic = topic.replace("toServer/homeassistant/sensor/command/","");
+                String command = subTopic.substring(0,subTopic.indexOf('/'));
+                String sensorStr = subTopic.substring(subTopic.indexOf('/')+1);;
+                //command = command.substring(0,index);
+
+                if (command.equals("temperature")) { // XXXXXXXX
+
+                    //try {
+                        //String sensorStr = topic.substring(topic.lastIndexOf('/'),topic.length());
+                        int sensorid = Integer.parseInt(sensorStr);
+                        SensorBase sensorBase = getSensorFromId(sensorid);
+                        if (sensorBase != null) {
+                            //JSONObject json = new JSONObject(message);
+                            //if (json.has("sensorid")) {
+                                //int sensorid = json.getInt("sensorid");
+                                //SensorBase sensorBase = getSensorFromId(sensorid);
+                                /*if (sensorBase != null) {
+                                    sensorBase.updateFromJson(Core.getDate(), json);
+                                }*/
+                            //}
+                            //sensorBase.updateFromJson(Core.getDate(), json);
+                        }
+
+
+                    /*} catch (JSONException e) {
+                        e.printStackTrace();
+                    }*/
+
+                } else if (topic.equals("toServer/shield/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
+                    // da eliminarte
+
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("MAC")) {
+                            String MACAddress = json.getString("MAC");
+                            //int sensorid = json.getInt("MAC");
+                            Shield shield = getShieldFromMACAddress(MACAddress);
+                            if (shield != null) {
+                                shield.updateShieldStatus(json);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                } else if (topic.equals("toServer/shield/log/#")) { // chiamata dalla scheda quando un sensore cambia qualcosa
+                    // da eliminarte
+
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("MAC")) {
+                            String MACAddress = json.getString("MAC");
+                            //int sensorid = json.getInt("MAC");
+                            Shield shield = getShieldFromMACAddress(MACAddress);
+                            if (shield != null) {
+                                shield.updateShieldStatus(json);
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void connectionLost() {
+
+            }
+        });
+
+
+        requestSensorsStatusUpdate();
+
+    }
+
 
     public List<SensorBase> getLastSensorData() {
 

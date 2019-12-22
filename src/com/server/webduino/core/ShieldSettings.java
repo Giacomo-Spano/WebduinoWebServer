@@ -1,6 +1,6 @@
 package com.server.webduino.core;
 
-import com.mysql.fabric.xmlrpc.base.Data;
+//import com.mysql.fabric.xmlrpc.base.Data;
 import com.server.webduino.core.sensors.TemperatureSensor;
 import org.json.JSONException;
 import org.json.JSONObject;

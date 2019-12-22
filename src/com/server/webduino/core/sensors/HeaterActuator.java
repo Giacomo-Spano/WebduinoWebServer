@@ -356,15 +356,73 @@ public class HeaterActuator extends Actuator {
             if (json.has("actionid"))
                 setActionId(json.getInt("actionid"));
 
-            String message = "";
-            if (releStatus)
+
+
+            JSONObject jsonstatus = new JSONObject();
+            try {
+                jsonstatus.put("sensorid", id);
+                jsonstatus.put("shieldid", shieldid);
+                jsonstatus.put("name", name);
+                jsonstatus.put("description", description);
+                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                jsonstatus.put("date", df.format(Core.getDate()));
+                jsonstatus.put("releStatus", releStatus);
+                jsonstatus.put("temperature", temperature);
+                jsonstatus.put("duration", duration);
+                jsonstatus.put("remaining", remaining);
+                df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                jsonstatus.put("lastTemperatureUpdateReceived", df.format(lastTemperatureUpdateReceived));
+                jsonstatus.put("lastCommandDate", df.format(lastCommandDate));
+                jsonstatus.put("endDate", df.format(endDate));
+                jsonstatus.put("actionId", actionId);
+                jsonstatus.put("timeRange", timeRange);
+                jsonstatus.put("zoneId", zoneId);
+                jsonstatus.put("remoteSensorId", remoteSensorId);
+                jsonstatus.put("lastTemperatureCommandUpdateSent", df.format(lastTemperatureCommandUpdateSent));
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Attributes
+            String message = "{\"Attributes\":" + json.toString() + "}";
+            updateHomeAssistant("homeassistant/sensor/"+ id + "/attributes", message);   //send
+
+            // current temperature and target
+            message = "{\"temperature\":" + temperature + ",\"target\":" + targetTemperature + "}";
+            updateHomeAssistant("homeassistant/sensor/"+ id + "/temperature", message);   //send
+
+
+
+            // mode
+            if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE) || this.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
+                updateHomeAssistant("homeassistant/sensor/"+ id + "/mode", "{\"mode\": \"auto\"}");   //send
+            } else {
+                updateHomeAssistant("homeassistant/sensor/"+ id + "/mode", "{\"mode\": \"off\"}");
+            }
+
+            // action
+            if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE)) {
+                updateHomeAssistant("homeassistant/sensor/"+ id + "/action", "{\"action\": \"heating\"}");   //send
+            }
+
+            if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
+                updateHomeAssistant("homeassistant/sensor/"+ id + "/action", "{\"action\": \"idle\"}");   //send
+            }
+
+            //String message = jsonstatus.toString();
+            /*if (releStatus)
                 message = "on";
             else
-                message = "off";
+                message = "off";*/
             //updateHomeAssistant("/rele", message);
-            updateHomeAssistant("/heater"+ id + "/rele", message);
+            //updateHomeAssistant("/heater"+ id + "/rele", message);
 
-            updateHomeAssistant("/heater"+ id + "/status", "online");
+            //updateHomeAssistant("/heater"+ id + "/status", "online");
+            //updateHomeAssistant("/sensor/"+ id + "/mode", message);
+            //updateHomeAssistant("/sensor/"+ id + "/temperature", "" + getTargetTemperature());
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -433,34 +491,34 @@ public class HeaterActuator extends Actuator {
 
         boolean res = super.setStatus(status);
 
-        this.status.description = "";
-        if (this.status.status.equals(STATUS_KEEPTEMPERATURE) || this.status.status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
+        this.getStatus().description = "";
+        if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE) || this.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
 
-            if (this.status.status.equals(STATUS_KEEPTEMPERATURE))
-                this.status.description = STATUS_DESCRIPTION_KEEPTEMPERATURE + " " + targetTemperature;
-            else if (this.status.status.equals(STATUS_KEEPTEMPERATURE_RELEOFF))
-                this.status.description = STATUS_DESCRIPTION_KEEPTEMPERATURE_RELEOFF + " " + targetTemperature;
+            if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE))
+                this.getStatus().description = STATUS_DESCRIPTION_KEEPTEMPERATURE + " " + targetTemperature;
+            else if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF))
+                this.getStatus().description = STATUS_DESCRIPTION_KEEPTEMPERATURE_RELEOFF + " " + targetTemperature;
 
                 Zone zone = Core.getZoneFromId(zoneId);
             if (zone != null)
-                this.status.description += " Zona: [" + zone.id + "]." + zone.getName();
+                this.getStatus().description += " Zona: [" + zone.id + "]." + zone.getName();
             SensorBase remotesensor = Core.getSensorFromId(remoteSensorId);
             if (remotesensor != null)
-                this.status.description += " Sensore attivo: [" + remotesensor.id + "]." + remotesensor.name + remotesensor.value + remotesensor.valueunit;
-            this.status.description += " Durata: " + duration;
-            this.status.description += " Tempo rimanente: " + remaining;
-            this.status.description += " Ultimo aggiornamento: " + lastTemperatureUpdateReceived;
-            this.status.description += " Ultimo comando ricevuto: " + lastCommandDate;
-            this.status.description += " Data fine: " + endDate;
+                this.getStatus().description += " Sensore attivo: [" + remotesensor.id + "]." + remotesensor.name + remotesensor.getValue() + remotesensor.valueunit;
+            this.getStatus().description += " Durata: " + duration;
+            this.getStatus().description += " Tempo rimanente: " + remaining;
+            this.getStatus().description += " Ultimo aggiornamento: " + lastTemperatureUpdateReceived;
+            this.getStatus().description += " Ultimo comando ricevuto: " + lastCommandDate;
+            this.getStatus().description += " Data fine: " + endDate;
         }
 
         if (res) {
 
-            this.status.description += " Rele ";
+            this.getStatus().description += " Rele ";
             if (releStatus)
-                this.status.description += " ACCESO";
+                this.getStatus().description += " ACCESO";
             else
-                this.status.description += " SPENTO";
+                this.getStatus().description += " SPENTO";
         }
         return res;
     }

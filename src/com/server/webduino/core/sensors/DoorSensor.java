@@ -75,9 +75,9 @@ public class DoorSensor extends SensorBase {
             }
 
             String message = jsonstatus.toString();
-            updateHomeAssistant("homeassistant/sensor/"+ id , message);
+            Core.updateHomeAssistant("homeassistant/sensor/"+ id , message);
 
-            updateHomeAssistant("homeassistant/sensor/"+ id , "/availability/online");
+            Core.updateHomeAssistant("homeassistant/sensor/"+ id , "/availability/online");
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

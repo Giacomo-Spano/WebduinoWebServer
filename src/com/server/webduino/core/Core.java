@@ -64,6 +64,11 @@ public class Core {
 
     static SimpleMqttClient smc;
 
+    static String MQTTUrl = "localhost";
+    static String DBUrl = "localhost";
+    static String dbUser = "";
+    static String dbPassword = "";
+
     public static Trigger triggerFromId(int triggerid) {
         for (Trigger trigger : triggerClass.list) {
             if (trigger.id == triggerid)
@@ -186,17 +191,20 @@ public class Core {
 
     public static String getUser() {
 
-            return "giacomo";
+            return dbUser;
+            //return "giacomo";
             //return "root";
     }
 
     public static String getPassword() {
-            return "giacomo";
+        return dbPassword;
+        //return "giacomo";
             //return "";
     }
 
     public static String getDbUrl() {
 
+        //return "jdbc:mysql://" + DBUrl + ":3306/webduino?useTimezone=true&serverTimezone=UTC";
         return "jdbc:mysql://192.168.1.111:3306/webduino?useTimezone=true&serverTimezone=UTC";
         //return "jdbc:mysql://127.0.0.1:3306/webduino?useTimezone=true&serverTimezone=UTC";
 
@@ -213,7 +221,9 @@ public class Core {
     }
 
     public static String getMQTTUrl() {
-        return "192.168.1.111";
+
+        return MQTTUrl;
+        //return "192.168.1.111";
         //return "localhost";
         //return "giacomocasa.duckdns.org";
     }
@@ -257,7 +267,7 @@ public class Core {
         return list;
     }
 
-    public WebduinoSystemActuator getWebduinoSystemActuatorFromId(int id) {
+    public static WebduinoSystemActuator getWebduinoSystemActuatorFromId(int id) {
         for (WebduinoSystem system : webduinoSystems) {
             for (WebduinoSystemActuator webduinoSystemActuator: system.actuators) {
                 if (webduinoSystemActuator.sensorid == id)
@@ -290,7 +300,7 @@ public class Core {
     public List<WebduinoSystemScenario> getWebduinoSystemScenarios() {
         List<WebduinoSystemScenario> list = new ArrayList<>();
         for (WebduinoSystem system : webduinoSystems) {
-            if (system.status.status.equals(STATUS_DISABLED))
+            if (system.getStatus().status.equals(STATUS_DISABLED))
                 continue;
             for (WebduinoSystemScenario scenario: system.getScenarios()) {
                 list.add(scenario);
@@ -440,6 +450,13 @@ public class Core {
             }
 
         }, 5000, 5000);
+    }
+
+    public void initServerPath(String mqtturl, String dburl, String user, String password) {
+        MQTTUrl = mqtturl;
+        DBUrl = dburl;
+        dbUser = user;
+        dbPassword = password;
     }
 
     public void init() {
@@ -1120,4 +1137,20 @@ public class Core {
     public static JSONObject loadShieldSettings(String macAddress) {
         return mShields.loadShieldSettings(macAddress);
     }
+
+    public static boolean updateHomeAssistant(String path, String message) {
+        LOGGER.info("SensorBase::updateHomeAssistant");
+
+        SimpleMqttClient smc;
+        smc = new SimpleMqttClient("homeassistantClient");
+        if (!smc.runClient("giacomocasa.duckdns.org",1883)) {
+            LOGGER.severe("cannot open MQTT client");
+            return false;
+        }
+
+        smc.publish(/*"homeassistant" + */path/* + mediaplayer.name, message*/,message);
+        smc.disconnect();
+        return true;
+    }
+
 }

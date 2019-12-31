@@ -1,7 +1,8 @@
 package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.sensors.commands.Command;
+import com.server.webduino.core.webduinosystem.WebduinoSystem;
+import com.server.webduino.core.webduinosystem.WebduinoSystemActuator;
 import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,8 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.logging.Logger;
-
-import static com.server.webduino.core.sensors.TemperatureSensor.TemperatureSensorListener.TemperatureEvents;
 
 /**
  * Created by Giacomo Span� on 08/11/2015.
@@ -55,7 +54,7 @@ public class Shields {
     public Shields() {
     }
 
-    SimpleMqttClient smc, homeassistantMQTTClient;
+    SimpleMqttClient smc, homeassistantSensorCommandMQTTClient, homeassistantMQTTHeaterCommandClient;
 
     public void init() {
 
@@ -207,80 +206,64 @@ public class Shields {
 
     public void initHomeAssistantCommandHandler() {
 
-        homeassistantMQTTClient = new SimpleMqttClient("homeassistantMQTTClient");
-        if (!homeassistantMQTTClient.runClient())
+        homeassistantSensorCommandMQTTClient = new SimpleMqttClient("homeassistantSensorCommandMQTTClient");
+        if (!homeassistantSensorCommandMQTTClient.runClient())
             return;
 
-        homeassistantMQTTClient.subscribe("toServer/homeassistant/sensor/command/#");
+        homeassistantSensorCommandMQTTClient.subscribe("toServer/homeassistant/sensor/command/#");
 
-        homeassistantMQTTClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+        homeassistantSensorCommandMQTTClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
             @Override
             public synchronized void messageReceived(String topic, String message) {
 
-                //int index = topic.indexOf("toServer/homeassistant/sensor/command/");
-                String subTopic = topic.replace("toServer/homeassistant/sensor/command/","");
-                String command = subTopic.substring(0,subTopic.indexOf('/'));
-                String sensorStr = subTopic.substring(subTopic.indexOf('/')+1);;
-                //command = command.substring(0,index);
-
-                if (command.equals("temperature")) { // XXXXXXXX
-
-                    //try {
-                        //String sensorStr = topic.substring(topic.lastIndexOf('/'),topic.length());
-                        int sensorid = Integer.parseInt(sensorStr);
-                        SensorBase sensorBase = getSensorFromId(sensorid);
-                        if (sensorBase != null) {
-                            //JSONObject json = new JSONObject(message);
-                            //if (json.has("sensorid")) {
-                                //int sensorid = json.getInt("sensorid");
-                                //SensorBase sensorBase = getSensorFromId(sensorid);
-                                /*if (sensorBase != null) {
-                                    sensorBase.updateFromJson(Core.getDate(), json);
-                                }*/
-                            //}
-                            //sensorBase.updateFromJson(Core.getDate(), json);
-                        }
-
-
-                    /*} catch (JSONException e) {
-                        e.printStackTrace();
-                    }*/
-
-                } else if (topic.equals("toServer/shield/update")) { // chiamata dalla scheda quando un sensore cambia qualcosa
-                    // da eliminarte
-
+                String subTopic = topic.replace("toServer/homeassistant/sensor/command/", "");
+                String sensorStr;
+                if (subTopic.indexOf('/') >= 0)
+                    sensorStr = subTopic.substring(0, subTopic.indexOf('/'));
+                else
+                    sensorStr = subTopic;
+                int sensorid = Integer.parseInt(sensorStr);
+                SensorBase sensorBase = getSensorFromId(sensorid);
+                if (sensorBase != null) {
                     try {
                         JSONObject json = new JSONObject(message);
-                        if (json.has("MAC")) {
-                            String MACAddress = json.getString("MAC");
-                            //int sensorid = json.getInt("MAC");
-                            Shield shield = getShieldFromMACAddress(MACAddress);
-                            if (shield != null) {
-                                shield.updateShieldStatus(json);
-                            }
+                        if (json.has("command")) {
+                            String command = json.getString("command");
+                            sensorBase.sendCommand(json);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
-                } else if (topic.equals("toServer/shield/log/#")) { // chiamata dalla scheda quando un sensore cambia qualcosa
-                    // da eliminarte
-
-                    try {
-                        JSONObject json = new JSONObject(message);
-                        if (json.has("MAC")) {
-                            String MACAddress = json.getString("MAC");
-                            //int sensorid = json.getInt("MAC");
-                            Shield shield = getShieldFromMACAddress(MACAddress);
-                            if (shield != null) {
-                                shield.updateShieldStatus(json);
-                            }
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
                 }
+            }
+
+            @Override
+            public void connectionLost() {
+
+            }
+        });
+
+        homeassistantMQTTHeaterCommandClient = new SimpleMqttClient("homeassistantMQTTHeaterCommandClient");
+        if (!homeassistantMQTTHeaterCommandClient.runClient())
+            return;
+
+        homeassistantMQTTHeaterCommandClient.subscribe("toServer/homeassistant/webduinosystem/#");
+
+        homeassistantMQTTHeaterCommandClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+            @Override
+            public synchronized void messageReceived(String topic, String message) {
+
+                int index = topic.indexOf("toServer/homeassistant/webduinosystem/");
+                String subTopic = topic.replace("toServer/homeassistant/webduinosystem/", "");
+                String command = subTopic.substring(0, subTopic.indexOf('/'));
+                String idStr = subTopic.substring(subTopic.indexOf('/') + 1);
+                int id = Integer.parseInt(idStr);
+
+                WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(id);
+
+                webduinoSystem.receiveHomeAssistantCommand(command, message);
+
+
 
             }
 
@@ -291,7 +274,7 @@ public class Shields {
         });
 
 
-        requestSensorsStatusUpdate();
+        //requestSensorsStatusUpdate();
 
     }
 

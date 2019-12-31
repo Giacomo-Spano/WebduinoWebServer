@@ -6,8 +6,15 @@ import static org.quartz.SimpleScheduleBuilder.*;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import com.server.webduino.core.Core;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import sun.misc.IOUtils;
+
+import java.io.*;
 import java.util.logging.Logger;
 import javax.servlet.ServletContext;
 
@@ -26,13 +33,50 @@ public class QuartzListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent servletContext) {
 
+        ServletContext cntxt = servletContext.getServletContext();
+
+        //ServletContext context = getServletContext();
+        servletContext.getServletContext().getRealPath("WEB-INF/nodes.txt");
+        String path = cntxt.getRealPath("/");
+
+        String mqtturl = "giacomohome.duckdn.org";
+        String dburl = "giacomohome.duckdn.org";
+        String dbuser = "root";
+        String dbpassword = "";
+
+        String filename = path + "settings.json";
+        File f = new File(filename);
+        if (f.exists()) {
+
+            JSONParser parser = new JSONParser();
+            Object obj = null;
+            try {
+                obj = parser.parse(new FileReader(filename));
+                JSONObject jsonObject = (JSONObject) obj;
+
+                mqtturl = (String) jsonObject.get("mqtturl");
+                dburl = (String) jsonObject.get("dburl");
+                dbuser = (String) jsonObject.get("dbuser");
+                dbpassword = (String) jsonObject.get("dbpassword");
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+
+            }
+        }
+
         core = new Core();
+
+        core.initServerPath(mqtturl,dburl,dbuser,dbpassword);
 
         core.initMQTT();
 
         core.init();
 
-        ServletContext cntxt = servletContext.getServletContext();
+        //ServletContext cntxt = servletContext.getServletContext();
         cntxt.setAttribute(CoreClass, core);
 
         System.out.println("Context Initialized");

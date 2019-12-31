@@ -384,17 +384,17 @@ public class SensorBase extends DBObject {
                 }
 
                 if (status.equals(STATUS_OFFLINE))
-                    updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "offline");
+                    Core.updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "offline");
                 else
-                    updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "online");
+                    Core.updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "online");
                 return true;
             }
         }
-        updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "offline");
+        Core.updateHomeAssistant("homeassistant/sensor/" + id + "/availability", "offline");
         return false;
     }
 
-    public boolean updateHomeAssistant(String path, String message) {
+    /*public boolean updateHomeAssistant(String path, String message) {
         LOGGER.info("SensorBase::updateHomeAssistant");
 
         SimpleMqttClient smc;
@@ -404,10 +404,10 @@ public class SensorBase extends DBObject {
             return false;
         }
 
-        smc.publish(/*"homeassistant" + */path/* + mediaplayer.name, message*/,message);
+        smc.publish(path,message);
         smc.disconnect();
         return true;
-    }
+    }*/
 
     public Status getStatus() {
         return status;

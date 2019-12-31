@@ -3,6 +3,7 @@ package com.server.webduino.core.webduinosystem;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.Core;
 import com.server.webduino.core.Devices;
+import com.server.webduino.core.sensors.SensorBase;
 import com.server.webduino.core.webduinosystem.keys.SecurityKey;
 import com.server.webduino.core.webduinosystem.scenario.actions.Action;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
@@ -29,7 +30,7 @@ public class WebduinoSystem extends DBObject {
     private List<SecurityKey> keys = new ArrayList<>();
     protected List<ActionCommand> actionCommandList = new ArrayList<>();
     protected List<Status> statusList = new ArrayList<>();
-    public Status status;
+    protected Status status;
     Status status_enabled , status_disabled;
 
     public int id;
@@ -40,6 +41,8 @@ public class WebduinoSystem extends DBObject {
     public List<WebduinoSystemActuator> actuators = new ArrayList<>();
     public List<WebduinoSystemService> services = new ArrayList<>();
     public List<WebduinoSystemScenario> scenarios = new ArrayList<>();
+
+    WebduinoSystemActuator activeActuator = null;
 
     public Boolean endCommand() {
         return false;
@@ -174,6 +177,8 @@ public class WebduinoSystem extends DBObject {
             WebduinoSystemActuator webduinosystemactuator = new WebduinoSystemActuator(id, actuatorid, webduinosystemid, name);
             actuators.add(webduinosystemactuator);
         }
+        if (actuators.size() > 0)
+            activeActuator = actuators.get(0);
         rs.close();
         stmt.close();
     }
@@ -385,6 +390,14 @@ public class WebduinoSystem extends DBObject {
             }
         }
         return false;
+    }
+
+    public WebduinoSystemActuator getActiveActuator() {
+        return activeActuator;
+    }
+
+    public void receiveHomeAssistantCommand(String command, String message) {
+
     }
 
     private class EnableActionCommand implements ActionCommand.Command {

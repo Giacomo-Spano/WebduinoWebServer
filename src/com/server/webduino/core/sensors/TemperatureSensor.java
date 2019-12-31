@@ -119,15 +119,16 @@ public class TemperatureSensor extends SensorBase {
                 String message = "";
                 message += jsonstatus.toString();
                 message = "{";
-                message += "\"value\":" + id;
-                message += ", \"value\":" + "\"" + name + "\"";
-                message += ", \"desciption\":" + "\"" + description + "\"";
+                message += "\"id\":" + "\"" + id + "\"";
+                message += ", \"name\":" + "\"" + name + "\"";
+                message += ", \"description\":" + "\"" + description + "\"";
                 message += ", \"date\":" + "\"" + df.format(Core.getDate()) + "\"";
                 message += ", \"lastUpdate\":" + "\"" + lastUpdate + "\"";
                 message += ", \"type\":" + "\"" + type + "\"";
                 message += ", \"value\":" + getValue();
+                message += ", \"temperature\":" + "\"" + getValue() + "\"" ;
                 message += "}";
-                updateHomeAssistant("homeassistant/sensor/"+ id , message);
+                Core.updateHomeAssistant("homeassistant/sensor/"+ id , message);
 
             } catch (JSONException e) {
                 e.printStackTrace();

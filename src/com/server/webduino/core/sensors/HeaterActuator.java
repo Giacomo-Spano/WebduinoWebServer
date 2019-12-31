@@ -388,28 +388,28 @@ public class HeaterActuator extends Actuator {
 
             // Attributes
             String message = "{\"Attributes\":" + json.toString() + "}";
-            updateHomeAssistant("homeassistant/sensor/"+ id + "/attributes", message);   //send
+            Core.updateHomeAssistant("homeassistant/sensor/"+ id + "/attributes", message);   //send
 
             // current temperature and target
             message = "{\"temperature\":" + temperature + ",\"target\":" + targetTemperature + "}";
-            updateHomeAssistant("homeassistant/sensor/"+ id + "/temperature", message);   //send
+            Core.updateHomeAssistant("homeassistant/sensor/"+ id + "/temperature", message);   //send
 
 
 
             // mode
             if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE) || this.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
-                updateHomeAssistant("homeassistant/sensor/"+ id + "/mode", "{\"mode\": \"auto\"}");   //send
+                Core.updateHomeAssistant("homeassistant/sensor/"+ id + "/mode", "{\"mode\": \"auto\"}");   //send
             } else {
-                updateHomeAssistant("homeassistant/sensor/"+ id + "/mode", "{\"mode\": \"off\"}");
+                Core.updateHomeAssistant("homeassistant/sensor/"+ id + "/mode", "{\"mode\": \"off\"}");
             }
 
             // action
             if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE)) {
-                updateHomeAssistant("homeassistant/sensor/"+ id + "/action", "{\"action\": \"heating\"}");   //send
+                Core.updateHomeAssistant("homeassistant/sensor/"+ id + "/action", "{\"action\": \"heating\"}");   //send
             }
 
             if (this.getStatus().status.equals(STATUS_KEEPTEMPERATURE_RELEOFF)) {
-                updateHomeAssistant("homeassistant/sensor/"+ id + "/action", "{\"action\": \"idle\"}");   //send
+                Core.updateHomeAssistant("homeassistant/sensor/"+ id + "/action", "{\"action\": \"idle\"}");   //send
             }
 
             //String message = jsonstatus.toString();

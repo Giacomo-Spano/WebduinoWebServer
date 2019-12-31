@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand.ACTIONCOMMAND_KEEPTEMPERATURE;
+import static com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand.ACTIONCOMMAND_MANUAL;
 import static com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand.ACTIONCOMMAND_STOP_KEEPTEMPERATURE;
 
 //import static com.server.webduino.core.sensors.HeaterActuator.*;
@@ -85,42 +86,70 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
         return null;
     }
 
-    public class AutoCommand implements ActionCommand.Command {
-            @Override
-            public boolean execute(JSONObject json) {
+    public void receiveHomeAssistantCommand(String command, String message) {
 
-                HeaterActuator heaterActuator = getHeaterActuator();
-                if (heaterActuator == null)
-                    return false;
-                JSONObject commandjson = new JSONObject();
+        //SensorBase actuator = Core.getSensorFromId(activeActuator.sensorid);
+        //if (actuator != null) {
+            if (command.equals("temperature")) {
                 try {
-                    commandjson.put("command", ACTIONCOMMAND_STOP_KEEPTEMPERATURE);
-                    ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
-                    if (actioncommand != null) {
-                        setStatus(status_auto);
+                    JSONObject json = new JSONObject();
+                    json.put("command", ACTIONCOMMAND_MANUAL);
+                    json.put("duration", 1800);
+                    json.put("webduinosystemid", this.id);
+                    json.put("zoneid", 19);
+                    json.put("zonesensorid", 2);
+                    double target = Double.parseDouble(message);
+                    json.put("targetvalue", target);
 
-                        return true;
-                    }
-                } catch (Exception e) {
+                    this.sendCommand(json);
+                } catch (JSONException e) {
                     e.printStackTrace();
-                    return false;
                 }
-                return true;
+            } else if (command.equals("mode")) {
             }
+        //}
+    }
 
-            @Override
-            public void end() {
+    public class AutoCommand implements ActionCommand.Command {
+        @Override
+        public boolean execute(JSONObject json) {
 
+            HeaterActuator heaterActuator = getHeaterActuator();
+            if (heaterActuator == null)
+                return false;
+            JSONObject commandjson = new JSONObject();
+            try {
+                commandjson.put("command", ACTIONCOMMAND_STOP_KEEPTEMPERATURE);
+                ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
+                if (actioncommand != null) {
+                    setStatus(status_auto);
+
+                    // mode
+                    Core.updateHomeAssistant("homeassistant/system/"+ id + "/mode", "{\"mode\": \"auto\"}");
+
+                    return true;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
             }
+            return true;
+        }
 
-            @Override
-            public JSONObject getResult() {
-                return null;
-            }
+        @Override
+        public void end() {
+
+        }
+
+        @Override
+        public JSONObject getResult() {
+            return null;
+        }
     }
 
     private class ManualCommand implements ActionCommand.Command {
         JSONObject result;
+
         @Override
         public boolean execute(JSONObject json) {
             try {
@@ -151,7 +180,8 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
                                 ActionCommand.Command actioncommand = heaterActuator.sendCommand(commandjson);
                                 if (actioncommand != null) {
                                     setStatus(status_manual);
-                                    result = toJson();
+                                    Core.updateHomeAssistant("homeassistant/system/"+ id + "/mode", "{\"mode\": \"heat\"}");
+                                    result = toJson(); //a cosa servee??? da cancellare
                                     return true;
                                 }
                             } catch (JSONException e) {

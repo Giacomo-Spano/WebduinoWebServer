@@ -70,7 +70,7 @@ public class WebduinoSystemZone extends DBObject {
     public void write(Connection conn) throws SQLException {
 
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String sql = "INSERT INTO webduino_system_zones (id, zoneid, name, webduinosystemid)" +
+        String sql = "INSERT INTO webduino_system_zones (id, zoneid, /*name, */webduinosystemid)" +
                 " VALUES ("
                 + id + ","
                 + zoneid + ","

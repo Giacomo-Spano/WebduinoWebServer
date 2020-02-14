@@ -16,6 +16,8 @@ public class ServiceFactory {
             service = new AlarmNotificationService(id,name,type,param);
         } else if (type.equals("androidnotification")) {
             service = new AndroidNotificationService(id,name,type,param);
+        } else if (type.equals("ping")) {
+            service = new PingService(id,name,type,param);
         } else if (type.equals("sms")) {
             service = new SMSService(id,name,type,param);
         } else if (type.equals("tts")) {

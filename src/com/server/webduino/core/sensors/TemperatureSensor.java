@@ -118,7 +118,7 @@ public class TemperatureSensor extends SensorBase {
 
                 String message = "";
                 message += jsonstatus.toString();
-                message = "{";
+                /*message = "{";
                 message += "\"id\":" + "\"" + id + "\"";
                 message += ", \"name\":" + "\"" + name + "\"";
                 message += ", \"description\":" + "\"" + description + "\"";
@@ -127,7 +127,7 @@ public class TemperatureSensor extends SensorBase {
                 message += ", \"type\":" + "\"" + type + "\"";
                 message += ", \"value\":" + getValue();
                 message += ", \"temperature\":" + "\"" + getValue() + "\"" ;
-                message += "}";
+                message += "}";*/
                 Core.updateHomeAssistant("homeassistant/sensor/"+ id , message);
 
             } catch (JSONException e) {

@@ -1,1 +1,1 @@
-{ "mqtturl":"192.168.1.111", "dburl":"192.168.1.111", "dbuser":"root", "dbpassword":"giacomo"}
+{ "mqtturl":"giacomocasa.duckdns.org", "mqttport":1883, "mqttuser":"giacomo", "mqttpassword":"giacomo", "dburl":"192.168.1.156", "dbuser":"giacomo", "dbpassword":"giacomo"}

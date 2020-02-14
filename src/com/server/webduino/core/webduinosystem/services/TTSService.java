@@ -63,7 +63,7 @@ public class TTSService extends Service {
 
         SimpleMqttClient smc;
         smc = new SimpleMqttClient("ttsClient");
-        if (!smc.runClient("giacomocasa.duckdns.org",1883)) {
+        if (!smc.runClient(Core.getMQTTUrl(),Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
             LOGGER.severe("cannot open MQTT client");
             return false;
         }

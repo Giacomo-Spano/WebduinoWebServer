@@ -47,37 +47,34 @@ public class DoorSensor extends SensorBase {
     @Override
     public void updateFromJson(Date date, JSONObject json) {
 
-        super.updateFromJson(date,json);
+        super.updateFromJson(date, json);
         LOGGER.info("updateFromJson json=" + json.toString());
         try {
 
+            String message;
+            if (getStatus().status.equals(STATUS_OPEN))
+                message = "ON";
+            else
+                message = "OFF";
+            Core.updateHomeAssistant("homeassistant/sensor/" + id, message);
 
-            JSONObject jsonstatus = new JSONObject();
+            JSONObject jsonattributes = new JSONObject();
             try {
-                jsonstatus.put("sensorid", id);
-                jsonstatus.put("shieldid", shieldid);
-                jsonstatus.put("name", name);
-                jsonstatus.put("description", description);
-                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-                jsonstatus.put("date", df.format(Core.getDate()));
-                jsonstatus.put("status", getStatus());
-                //jsonstatus.put("valuetextxx", valuetext);
-                //jsonstatus.put("valuetype", valuetype);
-                //jsonstatus.put("valueunit", valueunit);
-                jsonstatus.put("lastUpdate", lastUpdate);
-                jsonstatus.put("type", type);
-                //json.put("zoneid", zoneId);
-                //json.put("zonesensorid", remoteSensorId);
+                jsonattributes.put("sensorid", id);
+                jsonattributes.put("shieldid", shieldid);
+                jsonattributes.put("name", name);
+                jsonattributes.put("description", description);
+                jsonattributes.put("date", Core.getDate());
+                jsonattributes.put("status", getStatus().status);
+                jsonattributes.put("lastUpdate", lastUpdate);
+                jsonattributes.put("type", type);
             } catch (JSONException e) {
                 e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-            String message = jsonstatus.toString();
-            Core.updateHomeAssistant("homeassistant/sensor/"+ id , message);
-
-            Core.updateHomeAssistant("homeassistant/sensor/"+ id , "/availability/online");
+            String attr_message = "{\"Attributes\":" + jsonattributes.toString() + "}";
+            Core.updateHomeAssistant("homeassistant/sensor/" + id + "/attributes", attr_message);
 
         } catch (Exception e) {
             // TODO Auto-generated catch block

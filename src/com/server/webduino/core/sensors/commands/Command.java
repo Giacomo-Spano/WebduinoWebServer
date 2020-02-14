@@ -5,7 +5,6 @@ import com.server.webduino.core.Shield;
 import com.server.webduino.core.SimpleMqttClient;
 import com.server.webduino.core.datalog.CommandDataLog;
 import com.server.webduino.core.sensors.SensorBase;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.UUID;
@@ -125,7 +124,7 @@ public class Command {
             LOGGER.info("Thread started: " + t.getName());
 
             smc = new SimpleMqttClient(command.uuid);
-            if (!smc.runClient())
+            if (!smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
                 return;
             smc.subscribe(responseTopic);
             smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {

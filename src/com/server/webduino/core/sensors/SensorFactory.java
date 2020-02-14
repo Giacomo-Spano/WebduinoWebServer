@@ -20,6 +20,8 @@ public class SensorFactory {
             sensor = (SensorBase) new CurrentSensor(id,name,description,subaddress,shieldid,pin,enabled);
         } else if (type.equals("doorsensor")) {
             sensor = (SensorBase) new DoorSensor(id,name,description,subaddress,shieldid,pin,enabled);
+        } else if (type.equals("pingsensor")) {
+            sensor = (SensorBase) new PingSensor(id,name,description,subaddress,shieldid,pin,enabled);
         } else if (type.equals("heatersensor")) {
             sensor = (SensorBase) new HeaterActuator(id,name,description,subaddress,shieldid,pin,enabled);
             //sensor.startPrograms();

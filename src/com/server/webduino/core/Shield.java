@@ -36,6 +36,7 @@ public class Shield extends DBObject {
     protected boolean oled = false;
     protected String loraaddress = "";
     protected boolean loraserver = false;
+    protected boolean virtual = false;
 
     public ShieldDataLog datalog;
 

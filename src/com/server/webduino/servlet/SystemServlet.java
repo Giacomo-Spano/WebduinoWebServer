@@ -133,8 +133,8 @@ public class SystemServlet extends HttpServlet {
                     int actuatorid = json.getInt("sensorid");
                     SensorBase sensor = core.getSensorFromId(actuatorid);
                     if (sensor != null) {
-                        ActionCommand.Command actioncommand = sensor.sendCommand(json);
-                        if (actioncommand != null)
+                        //ActionCommand.Command actioncommand = sensor.sendCommand(json);
+                        if (sensor.sendCommand(json))
                             out.print(sensor.toJson());
                         response.setStatus(HttpServletResponse.SC_OK);
                         return;

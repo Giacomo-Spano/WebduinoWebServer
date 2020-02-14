@@ -15,8 +15,8 @@ import java.util.logging.Logger;
 public class SecuritySystem extends com.server.webduino.core.webduinosystem.WebduinoSystem {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
-    public SecuritySystem(int id, String name, String type, boolean enabled) {
-        super(id, name, type, enabled);
+    public SecuritySystem(int id, String name, String type, boolean enabled, String status) {
+        super(id, name, type, enabled, status);
     }
 
 }

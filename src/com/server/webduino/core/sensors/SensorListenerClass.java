@@ -8,6 +8,11 @@ import com.server.webduino.core.webduinosystem.Status;
 public class SensorListenerClass implements SensorBase.SensorListener {
 
     @Override
+    public void onChangeOnlineStatus(Status newStatus, Status oldStatus) {
+
+    }
+
+    @Override
     public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
 
     }

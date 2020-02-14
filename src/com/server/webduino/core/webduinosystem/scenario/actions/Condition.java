@@ -147,6 +147,11 @@ public class Condition extends SensorListenerClass {
                         }
 
                         @Override
+                        public void onChangeOnlineStatus(Status newStatus, Status oldStatus) {
+
+                        }
+
+                        @Override
                         public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {
 
                             boolean oldactive = getActive();
@@ -197,6 +202,11 @@ public class Condition extends SensorListenerClass {
                 sensor = Core.getSensorFromId(zoneSensor.getSensorId());
                 if (sensor != null) {
                     zoneSensorValueListener = new SensorBase.SensorListener() {
+
+                        @Override
+                        public void onChangeOnlineStatus(Status newStatus, Status oldStatus) {
+
+                        }
 
                         @Override
                         public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus) {

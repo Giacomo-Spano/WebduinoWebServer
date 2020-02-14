@@ -221,6 +221,11 @@ public class Zone extends DBObject implements SensorBase.SensorListener/*, Tempe
     }*/
 
     @Override
+    public void onChangeOnlineStatus(Status newStatus, Status oldStatus) {
+
+    }
+
+    @Override
     public void onChangeStatus(SensorBase sensor, Status status, Status oldstatus) {
 
         for (WebduinoZoneListener listener : listeners) {

@@ -24,19 +24,20 @@ import static com.server.webduino.core.webduinosystem.Status.*;
 /**
  * Created by giaco on 12/05/2017.
  */
-public class WebduinoSystem extends DBObject {
+public class WebduinoSystem extends DBObject implements Core.CoreListener {
     private static final Logger LOGGER = Logger.getLogger(Devices.class.getName());
 
     private List<SecurityKey> keys = new ArrayList<>();
     protected List<ActionCommand> actionCommandList = new ArrayList<>();
     protected List<Status> statusList = new ArrayList<>();
     protected Status status;
-    Status status_enabled , status_disabled;
+    Status status_enabled, status_disabled, status_offline;
 
     public int id;
     private String name;
     private String type;
     private boolean enabled;
+    private String initialStatus;
     public List<WebduinoSystemZone> zones = new ArrayList<>();
     public List<WebduinoSystemActuator> actuators = new ArrayList<>();
     public List<WebduinoSystemService> services = new ArrayList<>();
@@ -44,21 +45,33 @@ public class WebduinoSystem extends DBObject {
 
     WebduinoSystemActuator activeActuator = null;
 
+    @Override
+    public void onChangeOutOfHomeStatus(boolean newStatus, boolean oldStatus) {
+
+    }
+
     public Boolean endCommand() {
         return false;
     }
 
-    public String getType()
-    {
+    public String getType() {
         return type;
     }
 
+    public boolean getEnabled() {
+        return enabled;
+    }
 
-    public WebduinoSystem(int id, String name, String type, boolean enabled) {
+    public String getInitialStatus() {
+        return initialStatus;
+    }
+
+    public WebduinoSystem(int id, String name, String type, boolean enabled, String initialStatus) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.enabled = enabled;
+        this.initialStatus = initialStatus;
         initCommandList();
         createStatusList();
     }
@@ -70,12 +83,12 @@ public class WebduinoSystem extends DBObject {
     }
 
     protected void createStatusList() {
-        status_enabled = new Status(STATUS_ENABLED,STATUS_DESCRIPTION_ENABLED);
+        status_enabled = new Status(STATUS_ENABLED, STATUS_DESCRIPTION_ENABLED);
         statusList.add(status_enabled);
-        status_disabled = new Status(STATUS_DISABLED,STATUS_DESCRIPTION_DISABLED);
+        status_disabled = new Status(STATUS_DISABLED, STATUS_DESCRIPTION_DISABLED);
         statusList.add(status_disabled);
-
-        this.status = status_enabled;
+        status_offline = new Status(STATUS_OFFLINE, STATUS_DESCRIPTION_OFFLINE);
+        statusList.add(status_offline);
     }
 
     public Action getActionFromId(int id) {
@@ -140,7 +153,21 @@ public class WebduinoSystem extends DBObject {
         this.name = name;
     }
 
-    public void init(int system) {
+    public void init() {
+
+        try {
+            if (enabled) {
+                setStatus(status_enabled);
+            } else {
+                setStatus(status_disabled);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void destroy() {
+        // serve per cancellare eventuali listener a cui siu è sottoscritto per es. Vedi heater system
     }
 
     public void readWebduinoSystemsZones(Connection conn, int webduinosystemid) throws SQLException {
@@ -281,16 +308,18 @@ public class WebduinoSystem extends DBObject {
     @Override
     public void write(Connection conn) throws SQLException {
 
-        String sql = "INSERT INTO webduino_systems (id, type, name, enabled)" +
+        String sql = "INSERT INTO webduino_systems (id, type, name, status, enabled)" +
                 " VALUES ("
                 + id + ","
                 + "\"" + type + "\","
                 + "\"" + name + "\","
+                + "\"" + status.status + "\","
                 + Core.boolToString(enabled)
                 + ") " +
                 "ON DUPLICATE KEY UPDATE "
                 + "type=\"" + type + "\","
                 + "name=\"" + name + "\","
+                + "status=\"" + status.status + "\","
                 + "enabled=" + Core.boolToString(enabled) + ";";
 
         Statement stmt = conn.createStatement();
@@ -305,9 +334,9 @@ public class WebduinoSystem extends DBObject {
             actuator.write(conn);
         }
 
-        for (WebduinoSystemZone actuator : zones) {
-            if (actuator.webduinosystemid == 0) actuator.webduinosystemid = id;
-            actuator.write(conn);
+        for (WebduinoSystemZone zone : zones) {
+            if (zone.webduinosystemid == 0) zone.webduinosystemid = id;
+            zone.write(conn);
         }
 
         for (WebduinoSystemService service : services) {
@@ -331,6 +360,8 @@ public class WebduinoSystem extends DBObject {
             name = json.getString("name");
         if (json.has("enabled"))
             enabled = json.getBoolean("enabled");
+        if (json.has("status"))
+            initialStatus = json.getString("status");
 
         if (json.has("actuators")) {
             JSONArray jArray = json.getJSONArray("actuators");
@@ -383,9 +414,16 @@ public class WebduinoSystem extends DBObject {
     }
 
     public boolean setStatus(Status status) throws Exception {
-        for (Status webduinosystemstatus: statusList) {
+        for (Status webduinosystemstatus : statusList) {
             if (webduinosystemstatus.status.equals(status.status)) {
                 this.status = status;
+
+                if (status.equals(STATUS_OFFLINE))
+                    Core.updateHomeAssistant("homeassistant/webduinosystem/" + id + "/availability", "offline");
+                else
+                    Core.updateHomeAssistant("homeassistant/webduinosystem/" + id + "/availability", "online");
+
+                save();
                 return true;
             }
         }
@@ -400,66 +438,73 @@ public class WebduinoSystem extends DBObject {
 
     }
 
-    private class EnableActionCommand implements ActionCommand.Command {
-        @Override
-        public boolean execute(JSONObject json) {
-            try {
-                setStatus(status_enabled);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-            return true;
+private class EnableActionCommand implements ActionCommand.Command {
+    @Override
+    public boolean execute(JSONObject json) {
+        try {
+            setStatus(status_enabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
-        @Override
-        public void end() {
-
-        }
-
-        @Override
-        public JSONObject getResult() {
-            return null;
-        }
+        return true;
     }
-    private class DisableActionCommand implements ActionCommand.Command {
-        @Override
-        public boolean execute(JSONObject json) {
-            try {
-                setStatus(status_disabled);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-            return true;
-        }
-        @Override
-        public void end() {
 
-        }
-        @Override
-        public JSONObject getResult() {
-            return null;
-        }
-    }
-    private class PauseActionCommand implements ActionCommand.Command {
-        @Override
-        public boolean execute(JSONObject json) {
-            try {
-                //setStatus(status_disabled);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-            return true;
-        }
-        @Override
-        public void end() {
+    @Override
+    public void end() {
 
-        }
-        @Override
-        public JSONObject getResult() {
-            return null;
-        }
     }
+
+    @Override
+    public JSONObject getResult() {
+        return null;
+    }
+}
+
+private class DisableActionCommand implements ActionCommand.Command {
+    @Override
+    public boolean execute(JSONObject json) {
+        try {
+            setStatus(status_disabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void end() {
+
+    }
+
+    @Override
+    public JSONObject getResult() {
+        return null;
+    }
+}
+
+private class PauseActionCommand implements ActionCommand.Command {
+    @Override
+    public boolean execute(JSONObject json) {
+        try {
+            //setStatus(status_disabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void end() {
+
+    }
+
+    @Override
+    public JSONObject getResult() {
+        return null;
+    }
+}
 
 }

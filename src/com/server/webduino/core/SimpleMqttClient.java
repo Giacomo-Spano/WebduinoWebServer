@@ -4,7 +4,6 @@ package com.server.webduino.core;
  * Created by giaco on 25/04/2017.
  */
 
-import com.quartz.QuartzListener;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 
@@ -28,8 +27,8 @@ public class SimpleMqttClient implements MqttCallback {
     //String BROKER_URL_TEST = "tcp://192.168.1.3:1883";
 
     private String clientId = "WebserverClient";
-    static final String M2MIO_USERNAME = "";
-    static final String M2MIO_PASSWORD_MD5 = "";
+    static final String M2MIO_USERNAME = "giacomo";
+    static final String M2MIO_PASSWORD_MD5 = "giacomo";
 
     public SimpleMqttClient(String clientId) {
         this.clientId = clientId;
@@ -93,18 +92,20 @@ public class SimpleMqttClient implements MqttCallback {
 
     }
 
-    public boolean runClient() {
-        return runClient(Core.getMQTTUrl()/*"localhost"*/,1883);
-    }
+    /*public boolean runClient(String mqttUrl, long mqttPort, String mqttUser, String mqttPassword) {
+        return runClient(Core.getMQTTUrl(),Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword());
+    }*/
 
-    public boolean runClient(String serveraddress, int serverport) {
+    public boolean runClient(String serveraddress, long serverport, String user, String password) {
         // setup MQTT Client
-        String clientID = clientId;//M2MIO_THING;
+        double x = Math.random();
+        String str = ("" + x).replace("0.","-");
+        String clientID = clientId + str;//M2MIO_THING;
         connOpt = new MqttConnectOptions();
         connOpt.setCleanSession(true);
         connOpt.setKeepAliveInterval(600);
-        //connOpt.setUserName(M2MIO_USERNAME);
-        //connOpt.setPassword(M2MIO_PASSWORD_MD5.toCharArray());
+        connOpt.setUserName(/*M2MIO_USERNAME*/user);
+        connOpt.setPassword(/*M2MIO_PASSWORD_MD5.toCharArray()*/password.toCharArray());
 
         // Connect to Broker
         try {
@@ -123,19 +124,8 @@ public class SimpleMqttClient implements MqttCallback {
             if (debugenv != null && debugenv.equals("true"))
                 tmpDir = "c:\\scratch";
 
-            //String tmpDir = System.getenv("tmp");
-            //System.out.println("GIACOMO --xx-- tmpDir = " + tmpDir);
             MqttDefaultFilePersistence dataStore = new MqttDefaultFilePersistence(tmpDir);
-
-
-            /*if(!Core.isProduction())
-                //myClient = new MqttClient("tcp://192.168.1.3:1883", clientID, dataStore);
-                myClient = new MqttClient("tcp://localhost:1883", clientID, dataStore);
-            else*/
-            //myClient = new MqttClient("tcp://192.168.1.41:1883", clientID, dataStore);
             myClient = new MqttClient(/*"tcp://localhost:1883"*/"tcp://" + serveraddress + ":" + serverport, clientID, dataStore);
-            //myClient = new MqttClient(BROKER_URL, clientID, dataStore);
-
             myClient.setCallback(this);
             myClient.connect(connOpt);
         } catch (MqttException e) {
@@ -146,7 +136,6 @@ public class SimpleMqttClient implements MqttCallback {
 
         System.out.println("Connected to " + BROKER_URL);
         return true;
-
     }
 
 

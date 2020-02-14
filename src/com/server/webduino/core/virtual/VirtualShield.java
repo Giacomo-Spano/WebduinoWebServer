@@ -1,5 +1,6 @@
 package com.server.webduino.core.virtual;
 
+import com.server.webduino.core.Core;
 import com.server.webduino.core.SimpleMqttClient;
 
 import java.util.UUID;
@@ -22,7 +23,7 @@ public class VirtualShield implements Runnable {
 
 
         smc = new SimpleMqttClient(UUID.randomUUID().toString());
-        smc.runClient();
+        smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword());
         smc.subscribe(responseTopic);
         smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
             @Override

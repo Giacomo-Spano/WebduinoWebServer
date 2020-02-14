@@ -1,8 +1,7 @@
 package com.server.webduino.core;
 
 import com.server.webduino.core.sensors.SensorBase;
-import com.server.webduino.core.webduinosystem.WebduinoSystem;
-import com.server.webduino.core.webduinosystem.WebduinoSystemActuator;
+import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
 import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import java.util.logging.Logger;
+
 
 /**
  * Created by Giacomo Span� on 08/11/2015.
@@ -54,7 +54,7 @@ public class Shields {
     public Shields() {
     }
 
-    SimpleMqttClient smc, homeassistantSensorCommandMQTTClient, homeassistantMQTTHeaterCommandClient;
+    SimpleMqttClient smc;//, homeassistantSensorCommandMQTTClient, homeassistantMQTTHeaterCommandClient, homeassistantMQTTUpdateValueClient;
 
     public void init() {
 
@@ -62,7 +62,7 @@ public class Shields {
 
         /*SimpleMqttClient*/
         smc = new SimpleMqttClient("ShieldClient");
-        if (!smc.runClient())
+        if (!smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
             return;
 
         smc.subscribe("toServer/shield/#");
@@ -172,6 +172,26 @@ public class Shields {
                         e.printStackTrace();
                     }
 
+                } else if (topic.equals("toServer/shield/sensor/command")) { // chiamata dalla scheda quando un sensore cambia qualcosa
+
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("sensorid")) {
+                            int sensorid = json.getInt("sensorid");
+                            SensorBase sensorBase = getSensorFromId(sensorid);
+                            if (json.has("command")) {
+                                String command = json.getString("command");
+                                if (sensorBase != null) {
+                                    JSONObject commandjson = new JSONObject();
+                                    commandjson.put("command", ActionCommand.ACTIONCOMMAND_STATUSUPDATE);
+                                    boolean res = sensorBase.sendCommand(commandjson);
+                                }
+                            }
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
                 } else if (topic.equals("toServer/shield/log/#")) { // chiamata dalla scheda quando un sensore cambia qualcosa
                     // da eliminarte
 
@@ -204,79 +224,6 @@ public class Shields {
 
     }
 
-    public void initHomeAssistantCommandHandler() {
-
-        homeassistantSensorCommandMQTTClient = new SimpleMqttClient("homeassistantSensorCommandMQTTClient");
-        if (!homeassistantSensorCommandMQTTClient.runClient())
-            return;
-
-        homeassistantSensorCommandMQTTClient.subscribe("toServer/homeassistant/sensor/command/#");
-
-        homeassistantSensorCommandMQTTClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
-            @Override
-            public synchronized void messageReceived(String topic, String message) {
-
-                String subTopic = topic.replace("toServer/homeassistant/sensor/command/", "");
-                String sensorStr;
-                if (subTopic.indexOf('/') >= 0)
-                    sensorStr = subTopic.substring(0, subTopic.indexOf('/'));
-                else
-                    sensorStr = subTopic;
-                int sensorid = Integer.parseInt(sensorStr);
-                SensorBase sensorBase = getSensorFromId(sensorid);
-                if (sensorBase != null) {
-                    try {
-                        JSONObject json = new JSONObject(message);
-                        if (json.has("command")) {
-                            String command = json.getString("command");
-                            sensorBase.sendCommand(json);
-                        }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void connectionLost() {
-
-            }
-        });
-
-        homeassistantMQTTHeaterCommandClient = new SimpleMqttClient("homeassistantMQTTHeaterCommandClient");
-        if (!homeassistantMQTTHeaterCommandClient.runClient())
-            return;
-
-        homeassistantMQTTHeaterCommandClient.subscribe("toServer/homeassistant/webduinosystem/#");
-
-        homeassistantMQTTHeaterCommandClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
-            @Override
-            public synchronized void messageReceived(String topic, String message) {
-
-                int index = topic.indexOf("toServer/homeassistant/webduinosystem/");
-                String subTopic = topic.replace("toServer/homeassistant/webduinosystem/", "");
-                String command = subTopic.substring(0, subTopic.indexOf('/'));
-                String idStr = subTopic.substring(subTopic.indexOf('/') + 1);
-                int id = Integer.parseInt(idStr);
-
-                WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(id);
-
-                webduinoSystem.receiveHomeAssistantCommand(command, message);
-
-
-
-            }
-
-            @Override
-            public void connectionLost() {
-
-            }
-        });
-
-
-        //requestSensorsStatusUpdate();
-
-    }
 
 
     public List<SensorBase> getLastSensorData() {
@@ -380,12 +327,13 @@ public class Shields {
     public void requestSensorsStatusUpdate() {
 
         for (Shield shield : getShields()) {
-            boolean res = shield.checkHealth(); // questo andrebbe messo in un quartz separato
-            if (!res) {
-                //String description = "Shield " + shield.boardName + " offline";
-                //Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+            if (shield.enabled) {
+                boolean res = shield.checkHealth(); // questo andrebbe messo in un quartz separato
+                if (!res) {
+                    //String description = "Shield " + shield.boardName + " offline";
+                    //Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
+                }
             }
-            //shield.requestAsyncAllSensorStatusUpdate();
         }
     }
 
@@ -414,6 +362,7 @@ public class Shields {
                 json.put("oled", shieldRs.getBoolean("oled"));
                 json.put("loraaddress", shieldRs.getString("loraaddress"));
                 json.put("loraserver", shieldRs.getBoolean("loraserver"));
+                json.put("virtual", shieldRs.getBoolean("virtual"));
 
                 int parentId = 0;
                 JSONArray sensors = addChildSensors(conn, shieldid, parentId);
@@ -427,6 +376,7 @@ public class Shields {
                 json.put("oled", false);
                 json.put("loraaddress", "");
                 json.put("loraserver", false);
+                json.put("virtual", false);
             }
             shieldRs.close();
             stmt.close();
@@ -559,7 +509,14 @@ public class Shields {
             ResultSet rs = stmt.executeQuery(sql);
             // Extract data from result set
             while (rs.next()) {
-                Shield shield = new Shield();
+                boolean virtual = rs.getBoolean("virtual");
+                Shield shield;
+                if (virtual)
+                    shield = new VirtualShield();
+                else
+                    shield = new Shield();
+
+
                 if (rs.getInt("id") <= 0) continue;
                 shield.id = rs.getInt("id");
                 if (rs.getString("macaddress") == null || rs.getString("macaddress").equals("")) continue;
@@ -573,6 +530,7 @@ public class Shields {
                 shield.oled = rs.getBoolean("oled");
                 shield.loraaddress = rs.getString("loraaddress");
                 shield.loraserver = rs.getBoolean("loraserver");
+                shield.virtual = virtual;
 
                 shield.sensors = SensorBase.readSensors(conn, shield.id, 0);
                 addShield(shield);

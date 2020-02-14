@@ -35,6 +35,8 @@ public class ActionCommand {
     public static final String ACTIONCOMMAND_SWITCHON_DESCRIPTION = "Accendi";
     public static final String ACTIONCOMMAND_SWITCHOFF = "switchoff";
     public static final String ACTIONCOMMAND_SWITCHOFF_DESCRIPTION = "Spengi";
+    public static final String ACTIONCOMMAND_OUT_OF_HOME = "outofhome";
+    public static final String ACTIONCOMMAND_OUT_OF_HOME_DESCRIPTION = "out of home";
 
     public interface Command
     {

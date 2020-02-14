@@ -1,0 +1,1 @@
+{ "mqtturl":"192.168.1.209", "mqttport":1883, "mqttuser":"giacomo", "mqttpassword":"giacomo", "dburl":"localhost", "dbuser":"root", "dbpassword":"giacomo"}

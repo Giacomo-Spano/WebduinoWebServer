@@ -29,7 +29,8 @@ import java.util.*;
 import java.util.Date;
 import java.util.logging.Logger;
 
-import static com.server.webduino.core.webduinosystem.Status.STATUS_DISABLED;
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Created by Giacomo Span� on 08/11/2015.
@@ -65,9 +66,35 @@ public class Core {
     static SimpleMqttClient smc;
 
     static String MQTTUrl = "localhost";
+    static long MQTTPort = 1883;
+    static String MQTTUser = "giacomo";
+    static String MQTTPassword = "giacomo";
     static String DBUrl = "localhost";
     static String dbUser = "";
     static String dbPassword = "";
+
+    SimpleMqttClient homeassistantSensorCommandMQTTClient, homeassistantMQTTHeaterCommandClient, homeassistantMQTTUpdateValueClient;
+
+    private static boolean OutOfHome = false;
+
+    protected List<CoreListener> listeners = new ArrayList<>();
+
+    public interface CoreListener {
+        public void onChangeOutOfHomeStatus(boolean newStatus, boolean oldStatus);
+    }
+
+
+    public void addListener(CoreListener toAdd) {
+        listeners.add(toAdd);
+    }
+
+    public void removeListener(CoreListener toRemove) {
+        listeners.remove(toRemove);
+    }
+
+    public boolean getOutOfHome() {
+        return OutOfHome;
+    }
 
     public static Trigger triggerFromId(int triggerid) {
         for (Trigger trigger : triggerClass.list) {
@@ -176,10 +203,6 @@ public class Core {
         return condition;
     }
 
-    public interface CoreListener {
-        void onCommandResponse(String uuid, String response);
-    }
-
     public Core() {
         production_envVar = System.getenv("PRODUCTION");
         appDNS_envVar = System.getenv("OPENSHIFT_APP_DNS");
@@ -204,8 +227,10 @@ public class Core {
 
     public static String getDbUrl() {
 
-        //return "jdbc:mysql://" + DBUrl + ":3306/webduino?useTimezone=true&serverTimezone=UTC";
-        return "jdbc:mysql://192.168.1.111:3306/webduino?useTimezone=true&serverTimezone=UTC";
+        return "jdbc:mysql://" + DBUrl + ":3306/webduino?useTimezone=true&serverTimezone=UTC";
+        //return "jdbc:mysql://192.168.1.111:3306/webduino?useTimezone=true&serverTimezone=UTC";
+
+
         //return "jdbc:mysql://127.0.0.1:3306/webduino?useTimezone=true&serverTimezone=UTC";
 
         //test
@@ -221,12 +246,21 @@ public class Core {
     }
 
     public static String getMQTTUrl() {
-
         return MQTTUrl;
-        //return "192.168.1.111";
-        //return "localhost";
-        //return "giacomocasa.duckdns.org";
     }
+
+    public static long getMQTTPort() {
+        return MQTTPort;
+    }
+
+    public static String getMQTTUser() {
+        return MQTTUser;
+    }
+
+    public static String getMQTTPassword() {
+        return MQTTPassword;
+    }
+
 
     public static boolean isProduction() {
 
@@ -300,7 +334,7 @@ public class Core {
     public List<WebduinoSystemScenario> getWebduinoSystemScenarios() {
         List<WebduinoSystemScenario> list = new ArrayList<>();
         for (WebduinoSystem system : webduinoSystems) {
-            if (system.getStatus().status.equals(STATUS_DISABLED))
+            if (!system.getEnabled())
                 continue;
             for (WebduinoSystemScenario scenario: system.getScenarios()) {
                 list.add(scenario);
@@ -419,7 +453,7 @@ public class Core {
 
         // inizializzazione code MQTT
         smc = new SimpleMqttClient("CoreClient");
-        if (smc.runClient()) {
+        if (smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
             smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
                 @Override
                 public synchronized void messageReceived(String topic, String message) {
@@ -443,7 +477,7 @@ public class Core {
             public void run() {
                 System.out.println("CIAO!");
 
-                if (smc.runClient()) {
+                if (smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
                     this.cancel();
                     init();
                 }
@@ -452,8 +486,11 @@ public class Core {
         }, 5000, 5000);
     }
 
-    public void initServerPath(String mqtturl, String dburl, String user, String password) {
+    public void initServerPath(String mqtturl, long mqttport, String mqttuser, String mqttpassword, String dburl, String user, String password) {
         MQTTUrl = mqtturl;
+        MQTTPort = mqttport;
+        MQTTUser = mqttuser;
+        MQTTPassword = mqttpassword;
         DBUrl = dburl;
         dbUser = user;
         dbPassword = password;
@@ -472,7 +509,8 @@ public class Core {
         // Le schede ed isensori devono essere caricati prima degli scenari e zone altrimenti non funzionano i listener
         mShields = new Shields();
         mShields.init();
-        mShields.initHomeAssistantCommandHandler();
+        //mShields.initHomeAssistantCommandHandler();
+        initHomeAssistantCommandHandler();
 
         /*VirtualShield virtualshield = new VirtualShield();
         Thread thread = new Thread(virtualshield, "commandThread" + 1);
@@ -489,6 +527,13 @@ public class Core {
         // questa deve esserer chiamata dopo la creazione dei sensor altrimenti i listener non funzionano
         addZoneSensorListeners(); //
         initScenarios();
+
+        requestHomeAssistantStatusUpdate();
+    }
+
+    private void requestHomeAssistantStatusUpdate() {
+
+        updateHomeAssistant("fromServer/homeassistant/updaterequest", "request");
     }
 
 
@@ -663,6 +708,11 @@ public class Core {
     public void readWebduinoSystems() {
         LOGGER.info(" readWebduinoSystems");
 
+        for(WebduinoSystem system: webduinoSystems) {
+            removeListener(system);
+            system.destroy();
+        }
+
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
@@ -677,13 +727,17 @@ public class Core {
                 String name = rs.getString("name");
                 String type = rs.getString("type");
                 boolean enabled = rs.getBoolean("enabled");
+                String status = rs.getString("status");
                 WebduinoSystemFactory factory = new WebduinoSystemFactory();
-                WebduinoSystem system = factory.createWebduinoSystem(id, name, type, enabled);
+                WebduinoSystem system = factory.createWebduinoSystem(id, name, type, enabled, status);
                 if (system != null) {
                     system.readWebduinoSystemsZones(conn, id);
                     system.readWebduinoSystemsActuators(conn, id);
                     system.readWebduinoSystemsServices(conn, id);
                     system.readWebduinoSystemsScenarios(conn, id);
+
+                    addListener(system); // Deve essere prima di init
+                    system.init();
                     webduinoSystems.add(system);
                 }
             }
@@ -1138,19 +1192,145 @@ public class Core {
         return mShields.loadShieldSettings(macAddress);
     }
 
-    public static boolean updateHomeAssistant(String path, String message) {
+    public static boolean updateHomeAssistant(String topic, String message) {
         LOGGER.info("SensorBase::updateHomeAssistant");
 
         SimpleMqttClient smc;
         smc = new SimpleMqttClient("homeassistantClient");
-        if (!smc.runClient("giacomocasa.duckdns.org",1883)) {
+        if (!smc.runClient(Core.getMQTTUrl(),/*1883*/Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
             LOGGER.severe("cannot open MQTT client");
             return false;
         }
-
-        smc.publish(/*"homeassistant" + */path/* + mediaplayer.name, message*/,message);
+        byte[] ptext = message.getBytes(ISO_8859_1);
+        // converti il messaggio in UTF8 altrimenti home assistant con windows non funziona
+        String messageUTF8 = new String(ptext, UTF_8);
+        smc.publish(topic, messageUTF8);
         smc.disconnect();
         return true;
     }
+
+    public void initHomeAssistantCommandHandler() {
+
+        homeassistantSensorCommandMQTTClient = new SimpleMqttClient("homeassistantSensorCommandMQTTClient");
+        if (!homeassistantSensorCommandMQTTClient.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
+            return;
+
+        homeassistantSensorCommandMQTTClient.subscribe("toServer/homeassistant/sensor/command/#");
+
+        homeassistantSensorCommandMQTTClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+            @Override
+            public synchronized void messageReceived(String topic, String message) {
+
+                LOGGER.info("homeassistantSensorCommandMQTTClient::messageReceived - topic: " + topic + " Message: " + message);
+
+                String subTopic = topic.replace("toServer/homeassistant/sensor/command/", "");
+                String sensorStr;
+                if (subTopic.indexOf('/') >= 0)
+                    sensorStr = subTopic.substring(0, subTopic.indexOf('/'));
+                else
+                    sensorStr = subTopic;
+                int sensorid = Integer.parseInt(sensorStr);
+                SensorBase sensorBase = getSensorFromId(sensorid);
+                if (sensorBase != null) {
+                    try {
+                        JSONObject json = new JSONObject(message);
+                        if (json.has("command")) {
+                            String command = json.getString("command");
+                            sensorBase.sendCommand(json);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void connectionLost() {
+
+            }
+        });
+
+        homeassistantMQTTHeaterCommandClient = new SimpleMqttClient("homeassistantMQTTHeaterCommandClient");
+        if (!homeassistantMQTTHeaterCommandClient.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
+            return;
+
+        homeassistantMQTTHeaterCommandClient.subscribe("toServer/homeassistant/webduinosystem/#");
+
+        homeassistantMQTTHeaterCommandClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+            @Override
+            public synchronized void messageReceived(String topic, String message) {
+
+                LOGGER.info("homeassistantMQTTHeaterCommandClient::messageReceived - topic: " + topic + " Message: " + message);
+
+                int index = topic.indexOf("toServer/homeassistant/webduinosystem/");
+                String subTopic = topic.replace("toServer/homeassistant/webduinosystem/", "");
+                String command = subTopic.substring(0, subTopic.indexOf('/'));
+                String idStr = subTopic.substring(subTopic.indexOf('/') + 1);
+                int id = Integer.parseInt(idStr);
+
+                WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(id);
+
+                webduinoSystem.receiveHomeAssistantCommand(command, message);
+            }
+
+            @Override
+            public void connectionLost() {
+
+            }
+        });
+
+
+
+        homeassistantMQTTUpdateValueClient = new SimpleMqttClient("homeassistantMQTTUpdateValueClient");
+        if (!homeassistantMQTTUpdateValueClient.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
+            return;
+
+        homeassistantMQTTUpdateValueClient.subscribe("toServer/homeassistant/updatevalue/#");
+
+        homeassistantMQTTUpdateValueClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+            @Override
+            public synchronized void messageReceived(String topic, String message) {
+
+                LOGGER.info("homeassistantMQTTUpdateValueClient::messageReceived - topic: " + topic + " Message: " + message);
+
+                int index = topic.indexOf("toServer/homeassistant/updatevalue/");
+                String param = topic.replace("toServer/homeassistant/updatevalue/", "");
+                //String param = subTopic.substring(0, subTopic.indexOf('/'));
+                String value = message;
+
+                try {
+                    JSONObject json = new JSONObject(message);
+                    //String prova = json.getString("prova");
+                    String outofhome = json.getString("out_of_home");
+                    boolean oldOutOfHome = OutOfHome;
+                    if (outofhome.equals("not_home"))
+                        OutOfHome = true;
+                    else
+                        OutOfHome = false;
+                    for(CoreListener listener: listeners) {
+                            listener.onChangeOutOfHomeStatus(OutOfHome, oldOutOfHome);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                //WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(id);
+
+                //webduinoSystem.receiveHomeAssistantCommand(command, message);
+
+
+
+            }
+
+            @Override
+            public void connectionLost() {
+
+            }
+        });
+
+        //requestSensorsStatusUpdate();
+
+    }
+
 
 }

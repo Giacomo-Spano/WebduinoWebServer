@@ -3,18 +3,15 @@ package com.server.webduino.core.sensors;
 import com.server.webduino.DBObject;
 import com.server.webduino.core.*;
 import com.server.webduino.core.datalog.DataLog;
-import com.server.webduino.core.sensors.commands.ActuatorCommand;
 import com.server.webduino.core.sensors.commands.Command;
 import com.server.webduino.core.sensors.commands.SensorCommand;
 import com.server.webduino.core.webduinosystem.Status;
 import com.server.webduino.core.webduinosystem.scenario.actions.ActionCommand;
-import com.server.webduino.servlet.SendPushMessages;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 //import sun.management.Sensor;
 
-import java.net.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -131,10 +128,8 @@ public class SensorBase extends DBObject {
 
         SensorCommand command = new SensorCommand(SensorCommand.Command_RequestSensorStatusUpdate, shieldid, id);
         boolean res = command.send();
-        if (!res && !status.status.equals(STATUS_OFFLINE)) {
+        if (!res /*&& !status.status.equals(STATUS_OFFLINE)*/) {
             setStatus(STATUS_OFFLINE);
-            //String description = "Sensor " + name + " offline";
-            //Core.sendPushNotification(SendPushMessages.notification_offline, "Offline", description, "0", 0);
         }
         return res;
     }
@@ -219,21 +214,21 @@ public class SensorBase extends DBObject {
         return null;
     }
 
-    public ActionCommand.Command sendCommand(JSONObject json) {
+    public boolean sendCommand(JSONObject json) {
         for (ActionCommand actionCommand : actionCommandList) {
             String cmd = null;
             try {
                 cmd = json.getString("command");
                 if (cmd.equals(actionCommand.command)) {
-                    actionCommand.commandMethod.execute(json);
-                    return actionCommand.commandMethod;
+                    return actionCommand.commandMethod.execute(json);
+                    //return actionCommand.commandMethod;
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-                return null;
+                return false;
             }
         }
-        return null;
+        return false;
     }
 
 
@@ -271,8 +266,8 @@ public class SensorBase extends DBObject {
 
     public interface SensorListener {
         //static public String SensorEvents = "sensor event";
-        //public void changeOnlineStatus(boolean online);
-        //public void changeOnlineStatus(int sensorId, boolean online);
+        public void onChangeOnlineStatus(Status newStatus, Status oldStatus);
+        //public void onChangeOnlineStatus(int sensorId, boolean online);
         public void onChangeStatus(SensorBase sensor, Status newStatus, Status oldStatus);
         //public void changeDoorStatus(int sensorId, boolean open, boolean oldOpen);
         public void onChangeValue(SensorBase sensor, double value);
@@ -379,8 +374,16 @@ public class SensorBase extends DBObject {
             if (sensorstatus.status.equals(status)) {
                 this.status = sensorstatus;
                 if (!status.equals(oldStatus.status)) {
-                    for (SensorListener listener : listeners)
+                    for (SensorListener listener : listeners) {
                         listener.onChangeStatus(this, this.status, oldStatus);
+
+                        if (status.equals(STATUS_OFFLINE) && !oldStatus.equals(STATUS_OFFLINE)) {
+                            listener.onChangeOnlineStatus(this.status, oldStatus);
+                        } else if (!status.equals(STATUS_OFFLINE) && oldStatus.equals(STATUS_OFFLINE)) {
+                            listener.onChangeOnlineStatus(this.status, oldStatus);
+                        }
+
+                    }
                 }
 
                 if (status.equals(STATUS_OFFLINE))
@@ -413,6 +416,9 @@ public class SensorBase extends DBObject {
         return status;
     }
 
+    public Status getOldStatus() {
+        return oldStatus;
+    }
 
     public String getPin() {
         return pin;

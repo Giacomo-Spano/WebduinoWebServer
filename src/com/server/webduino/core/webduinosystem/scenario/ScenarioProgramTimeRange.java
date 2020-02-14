@@ -67,11 +67,13 @@ public class ScenarioProgramTimeRange extends DBObject {
     }
 
     public void start() {
+
         active = true;
         for (Condition condition:conditions) {
             condition.start(startTime,endTime);
             condition.addListener(conditionListener);
         }
+        conditionsActive = false;////
         checkConditionsandStartActions(Core.getTime(),endTime);
     }
 

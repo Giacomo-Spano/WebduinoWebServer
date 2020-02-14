@@ -11,18 +11,18 @@ import java.sql.*;
  */
 public class WebduinoSystemFactory {
 
-    public WebduinoSystem createWebduinoSystem(int id, String name, String type, boolean enabled) {
+    public WebduinoSystem createWebduinoSystem(int id, String name, String type, boolean enabled, String status) {
         WebduinoSystem system = null;
         if (type.equals("securitysystem")) {
-            system = new SecuritySystem(id,name,type,enabled);
+            system = new SecuritySystem(id,name,type,enabled,status);
         } else if (type.equals("heatersystem")) {
-            system = new HeaterSystem(id,name,type,enabled);
+            system = new HeaterSystem(id,name,type,enabled,status);
         } else {
-            system = new WebduinoSystem(id,name,type,enabled);
+            system = new WebduinoSystem(id,name,type,enabled,status);
         }
-        if (system != null) {
+        /*if (system != null) {
             system.init(id);
-        }
+        }*/
         return system;
     }
 

@@ -40,6 +40,9 @@ public class QuartzListener implements ServletContextListener {
         String path = cntxt.getRealPath("/");
 
         String mqtturl = "giacomohome.duckdn.org";
+        long mqttport = 1883;
+        String mqttuser = "giacomo";
+        String mqttpassword = "giacomo";
         String dburl = "giacomohome.duckdn.org";
         String dbuser = "root";
         String dbpassword = "";
@@ -55,6 +58,9 @@ public class QuartzListener implements ServletContextListener {
                 JSONObject jsonObject = (JSONObject) obj;
 
                 mqtturl = (String) jsonObject.get("mqtturl");
+                mqttport = (long) jsonObject.get("mqttport");
+                mqttuser = (String) jsonObject.get("mqttuser");
+                mqttpassword = (String) jsonObject.get("mqttpassword");
                 dburl = (String) jsonObject.get("dburl");
                 dbuser = (String) jsonObject.get("dbuser");
                 dbpassword = (String) jsonObject.get("dbpassword");
@@ -70,7 +76,7 @@ public class QuartzListener implements ServletContextListener {
 
         core = new Core();
 
-        core.initServerPath(mqtturl,dburl,dbuser,dbpassword);
+        core.initServerPath(mqtturl,mqttport,mqttuser,mqttpassword,dburl,dbuser,dbpassword);
 
         core.initMQTT();
 

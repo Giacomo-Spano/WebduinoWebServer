@@ -172,6 +172,7 @@ public class Shields {
                         e.printStackTrace();
                     }
 
+
                 } else if (topic.equals("toServer/shield/sensor/command")) { // chiamata dalla scheda quando un sensore cambia qualcosa
 
                     try {

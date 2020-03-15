@@ -38,33 +38,17 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class Core {
 
     private static final Logger LOGGER = Logger.getLogger(Core.class.getName());
-
+    public static String APP_DNS_OPENSHIFT = "webduinocenter.rhcloud.com";
+    public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
+    public static Shields mShields; // rendere private
+    public static Devices devices = new Devices();
+    public static Mediaplayers mediaplayers = new Mediaplayers();
     protected static String production_envVar;
     protected static String appDNS_envVar;
     protected static String mysqlDBHost_envVar;
     protected static String mysqlDBPort_envVar;
     protected static String tmpDir_envVar;
     protected static String dataDir_envVar;
-    private static String version = "0.11";
-
-    public static String APP_DNS_OPENSHIFT = "webduinocenter.rhcloud.com";
-    public static String APP_DNS_OPENSHIFTTEST = "webduinocenterbeta-giacomohome.rhcloud.com";
-
-    private static List<WebduinoSystem> webduinoSystems = new ArrayList<>();
-    private static List<Zone> zones = new ArrayList<>();
-    private static List<Service> services = new ArrayList<>();
-    private static Triggers triggerClass = new Triggers();
-    private Scenarios scenarios = new Scenarios();
-    private List<Exit> exits = new ArrayList<>();
-    private List<Key> keys = new ArrayList<>();
-    public static Shields mShields; // rendere private
-    private static List<SWVersion> swversions = new ArrayList<>();
-
-    public static Devices devices = new Devices();
-    public static Mediaplayers mediaplayers = new Mediaplayers();
-
-    static SimpleMqttClient smc;
-
     static String MQTTUrl = "localhost";
     static long MQTTPort = 1883;
     static String MQTTUser = "giacomo";
@@ -72,136 +56,18 @@ public class Core {
     static String DBUrl = "localhost";
     static String dbUser = "";
     static String dbPassword = "";
-
-    SimpleMqttClient homeassistantSensorCommandMQTTClient, homeassistantMQTTHeaterCommandClient, homeassistantMQTTUpdateValueClient;
-
+    private static String version = "0.11";
+    private static List<WebduinoSystem> webduinoSystems = new ArrayList<>();
+    private static List<Zone> zones = new ArrayList<>();
+    private static List<Service> services = new ArrayList<>();
+    private static Triggers triggerClass = new Triggers();
+    private static List<SWVersion> swversions = new ArrayList<>();
     private static boolean OutOfHome = false;
-
     protected List<CoreListener> listeners = new ArrayList<>();
-
-    public interface CoreListener {
-        public void onChangeOutOfHomeStatus(boolean newStatus, boolean oldStatus);
-    }
-
-
-    public void addListener(CoreListener toAdd) {
-        listeners.add(toAdd);
-    }
-
-    public void removeListener(CoreListener toRemove) {
-        listeners.remove(toRemove);
-    }
-
-    public boolean getOutOfHome() {
-        return OutOfHome;
-    }
-
-    public static Trigger triggerFromId(int triggerid) {
-        for (Trigger trigger : triggerClass.list) {
-            if (trigger.id == triggerid)
-                return trigger;
-        }
-        return null;
-    }
-
-    public List<NextTimeRangeAction> getNextTimeRangeActions(/*int scenarioProgramId*/) {
-        return scenarios.nextTimeRangeActions;
-    }
-
-    public DataLog.DataLogValues getCommandDatalogs(int actuatorId, Date start, Date end) {
-        SensorBase sensor = getSensorFromId(actuatorId);
-        if (sensor != null && sensor instanceof Actuator) {
-
-            Actuator actuator = (Actuator) sensor;
-            if (actuator.command.commandDataLog != null)
-                return actuator.command.commandDataLog.getDataLogValue(actuatorId, start, end);
-        }
-        return null;
-
-    }
-
-
-
-    public static Zone getZoneFromName(String name) {
-        for (Zone zone: zones) {
-            String zonename = zone.getName().toUpperCase();
-            if (zonename.equals(name.toUpperCase()))
-                return zone;
-        }
-        return null;
-    }
-
-    public List<Zone> getZones() {
-        return zones;
-    }
-
-    public Action getActionFromId(int id) {
-        for (WebduinoSystem webduinoSystem : webduinoSystems) {
-            Action action = webduinoSystem.getActionFromId(id);
-            if (action != null)
-                return action;
-        }
-        return null;
-    }
-
-    public void initScenarios() {
-
-        if (scenarios.scenarioList != null) {
-            for (WebduinoSystemScenario scenario : scenarios.scenarioList) {
-                scenario.stop();
-            }
-        }
-
-        readWebduinoSystems();
-        scenarios.scenarioList.clear();
-        scenarios.scenarioList = getWebduinoSystemScenarios();
-        for (WebduinoSystemScenario scenario:scenarios.scenarioList) {
-
-            scenario.setActionListener(new Action.ActionListener() {
-                @Override
-                public void onStart(Action action) {
-                    scenarios.checkConflict(action);
-                }
-
-                @Override
-                public void onStop(Action action) {
-                    scenarios.removeConflict(action);
-                }
-            });
-            scenario.start();
-        }
-
-
-        scenarios.checkNextTimeRangeActions(Core.getDate());
-    }
-
-    public Condition removeCondition(JSONObject json) throws Exception {
-        Condition condition = new Condition(json);
-        condition.remove();
-        initScenarios();
-        return condition;
-    }
-
-    public Action removeAction(JSONObject json) throws Exception {
-        Action action = new Action(json);
-        action.remove();
-        initScenarios();
-        return action;
-    }
-
-    public Action saveAction(JSONObject json) throws Exception {
-        Action action = new Action(json);
-        action.save();
-        initScenarios();
-        return action;
-    }
-
-    public Condition saveCondition(JSONObject json) throws Exception {
-        Condition condition = new Condition(json);
-        condition.save();
-        initScenarios();
-        return condition;
-    }
+    private Scenarios scenarios = new Scenarios();
+    private List<Exit> exits = new ArrayList<>();
+    private List<Key> keys = new ArrayList<>();
+    private SimpleMqttClient homeassistantMQTTClient;
 
     public Core() {
         production_envVar = System.getenv("PRODUCTION");
@@ -212,37 +78,33 @@ public class Core {
         dataDir_envVar = System.getenv("OPENSHIFT_DATA_DIR");
     }
 
-    public static String getUser() {
+    public static Trigger triggerFromId(int triggerid) {
+        for (Trigger trigger : triggerClass.list) {
+            if (trigger.id == triggerid)
+                return trigger;
+        }
+        return null;
+    }
 
+    public static Zone getZoneFromName(String name) {
+        for (Zone zone: zones) {
+            String zonename = zone.getName().toUpperCase();
+            if (zonename.equals(name.toUpperCase()))
+                return zone;
+        }
+        return null;
+    }
+
+    public static String getUser() {
             return dbUser;
-            //return "giacomo";
-            //return "root";
     }
 
     public static String getPassword() {
         return dbPassword;
-        //return "giacomo";
-            //return "";
     }
 
     public static String getDbUrl() {
-
         return "jdbc:mysql://" + DBUrl + ":3306/webduino?useTimezone=true&serverTimezone=UTC";
-        //return "jdbc:mysql://192.168.1.111:3306/webduino?useTimezone=true&serverTimezone=UTC";
-
-
-        //return "jdbc:mysql://127.0.0.1:3306/webduino?useTimezone=true&serverTimezone=UTC";
-
-        //test
-        /*if (production_envVar != null && production_envVar.equals("0")) {
-            //LOGGER.info("jdbc:mysql://127.0.0.1:3306/webduino_debug");
-            return "jdbc:mysql://127.0.0.1:3306/webduino_debug?useTimezone=true&serverTimezone=UTC";
-        } else {
-            //LOGGER.info("jdbc:mysql://127.0.0.1:3306/webduino");
-            //return "jdbc:mysql://127.0.0.1:3306/webduino?useTimezone=true&serverTimezone=UTC";
-            return "jdbc:mysql://192.168.1.240:3306/webduino?useTimezone=true&serverTimezone=UTC";
-        }*/
-
     }
 
     public static String getMQTTUrl() {
@@ -260,7 +122,6 @@ public class Core {
     public static String getMQTTPassword() {
         return MQTTPassword;
     }
-
 
     public static boolean isProduction() {
 
@@ -311,39 +172,6 @@ public class Core {
         return null;
     }
 
-    public WebduinoSystemZone getWebduinoSystemZoneFromId(int id) {
-        for (WebduinoSystem system : webduinoSystems) {
-            for (WebduinoSystemZone webduinoSystemZone: system.zones) {
-                if (webduinoSystemZone.zoneid == id)
-                    return webduinoSystemZone;
-            }
-        }
-        return null;
-    }
-
-    public WebduinoSystemService getWebduinoSystemServiceFromId(int id) {
-        for (WebduinoSystem system : webduinoSystems) {
-            for (WebduinoSystemService webduinoSystemService: system.services) {
-                if (webduinoSystemService.serviceid == id)
-                    return webduinoSystemService;
-            }
-        }
-        return null;
-    }
-
-    public List<WebduinoSystemScenario> getWebduinoSystemScenarios() {
-        List<WebduinoSystemScenario> list = new ArrayList<>();
-        for (WebduinoSystem system : webduinoSystems) {
-            if (!system.getEnabled())
-                continue;
-            for (WebduinoSystemScenario scenario: system.getScenarios()) {
-                list.add(scenario);
-            }
-        }
-        return list;
-    }
-
-
     public static Service getServiceFromId(int serviceid) {
         for (Service service : services) {
             if (serviceid == service.getId()) {
@@ -352,7 +180,6 @@ public class Core {
         }
         return null;
     }
-
 
     public static JSONArray getServicesJSONArray() {
         JSONArray jsonArray = new JSONArray();
@@ -385,7 +212,6 @@ public class Core {
     public static Mediaplayer getMediaplayersFromId(int id) {
         return mediaplayers.getMediaplayerFromId(id);
     }
-
 
     public static JSONArray getSensorsJSONArray(int shieldid, String type) {
         JSONArray jsonArray = new JSONArray();
@@ -422,6 +248,315 @@ public class Core {
         return jsonArray;
     }
 
+    public static void readTriggers() {
+
+        LOGGER.info(" readTriggers");
+
+        try {
+            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
+            // Execute SQL query
+            Statement stmt = conn.createStatement();
+            String sql;
+            sql = "SELECT * FROM triggers";//" WHERE systemid=" + systemid;
+            ResultSet triggersResultSet = stmt.executeQuery(sql);
+            triggerClass.clear();
+            while (triggersResultSet.next()) {
+                //ZoneFactory factory = new ZoneFactory();
+                int id = triggersResultSet.getInt("id");
+                String name = triggersResultSet.getString("name");
+                //boolean status = triggersResultSet.getBoolean("status");
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
+                Date date = null;
+                if (triggersResultSet.getTimestamp("lastupdate") != null)
+                    date = df.parse(String.valueOf(triggersResultSet.getTimestamp("lastupdate")));
+                Trigger trigger = new Trigger(id, name, date);
+                triggerClass.add(trigger);
+            }
+            // Clean-up environment
+            triggersResultSet.close();
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendPushNotification(String type, String title, String description, String value, int id) {
+
+        LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
+        new PushNotificationThread(type, title, description, value, id, null).start();
+        LOGGER.info("sendPushNotification sent");
+    }
+
+    public static void sendPushNotification(String type, String title, String description, String value, int id, List<Device> devices) {
+
+        LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
+        new PushNotificationThread(type, title, description, value, id, devices).start();
+        LOGGER.info("sendPushNotification sent");
+    }
+
+    public static void sendPushNotification(JSONObject json) {
+
+        new PushNotificationThread(json).start();
+    }
+
+    public static List<SensorBase> getLastSensorData() {
+        return mShields.getLastSensorData();
+    }
+
+    static public boolean updateShieldStatus(int shieldid, JSONObject json) {
+        return mShields.updateShieldStatus(shieldid, json);
+    }
+
+    static public String getShieldSettingStatus(int shieldid) {
+        return mShields.getSettingStatus(shieldid);
+    }
+
+    static public String getShieldSensorsStatus(int shieldid) {
+        return mShields.getSensorStatus(shieldid);
+    }
+
+    public static SensorBase getFromShieldId(int shieldid, String subaddress) {
+        return mShields.getFromShieldIdandSubaddress(shieldid, subaddress);
+    }
+
+    public static Shield getShieldFromId(int shieldid) {
+        return mShields.fromId(shieldid);
+    }
+
+    public static Shield getShieldFromMACAddress(String MACAddress) {
+        return mShields.getShieldFromMACAddress(MACAddress);
+    }
+
+    public static boolean requestShieldSettingsUpdate(int shieldid) {
+        return mShields.requestShieldSettingStatusUpdate(shieldid);
+    }
+
+    public static void requestShieldSensorsUpdate(int shieldid) {
+
+        Shield shield = getShieldFromId(shieldid);
+        if (shield != null)
+            shield.requestAsyncAllSensorStatusUpdate();
+    }
+
+    public static SensorBase getSensorFromId(int id) {
+        return mShields.getSensorFromId(id);
+    }
+
+    public static Trigger getTriggerFromId(int id) {
+        return triggerClass.getFromId(id);
+    }
+
+    public static Date getDate() {
+
+        Date date = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        df.setTimeZone(TimeZone.getTimeZone("Europe/Rome"));
+
+        final String dateInString = df.format(date);
+
+        Date newDate = null;
+        try {
+
+            newDate = df.parse(dateInString);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return newDate;
+    }
+
+    public static long getTimeOffset() {
+
+        TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
+        long diff = tz.getOffset(new Date().getTime()) / 1000;
+
+        return diff;
+    }
+
+    public static LocalTime getTime() {
+        Date time = getDate();
+        Instant instant = Instant.ofEpochMilli(time.getTime());
+        LocalTime res = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+        return res;
+    }
+
+    public static String getStrLastUpdate(Date date) {
+        if (date == null)
+            return "";
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return df.format(date);
+    }
+
+    public static String boolToString(boolean val) {
+        if (val)
+            return "true";
+        else
+            return "false";
+    }
+
+    public static JSONObject getShieldSettingJson(int shieldid) {
+        return mShields.getShieldSettingJson(shieldid);
+    }
+
+    public static JSONObject getShieldSensorsJson(int shieldid) {
+        return mShields.getShieldSensorsJson(shieldid);
+    }
+
+    public static JSONObject loadShieldSettings(String macAddress) {
+        return mShields.loadShieldSettings(macAddress);
+    }
+
+    public static boolean updateHomeAssistant(String topic, String message) {
+        LOGGER.info("SensorBase::updateHomeAssistant");
+
+        SimpleMqttClient homeAssistantMQTTClient;
+        homeAssistantMQTTClient = new SimpleMqttClient("homeassistantClient");
+        if (!homeAssistantMQTTClient.runClient(Core.getMQTTUrl(),/*1883*/Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
+            LOGGER.severe("cannot open MQTT client");
+            return false;
+        }
+        byte[] ptext = message.getBytes(ISO_8859_1);
+        // converti il messaggio in UTF8 altrimenti home assistant con windows non funziona
+        String messageUTF8 = new String(ptext, UTF_8);
+        homeAssistantMQTTClient.publish(topic, messageUTF8);
+        homeAssistantMQTTClient.disconnect();
+        return true;
+    }
+
+    public void addListener(CoreListener toAdd) {
+        listeners.add(toAdd);
+    }
+
+    public void removeListener(CoreListener toRemove) {
+        listeners.remove(toRemove);
+    }
+
+    public boolean getOutOfHome() {
+        return OutOfHome;
+    }
+
+    public List<NextTimeRangeAction> getNextTimeRangeActions(/*int scenarioProgramId*/) {
+        return scenarios.nextTimeRangeActions;
+    }
+
+    public DataLog.DataLogValues getCommandDatalogs(int actuatorId, Date start, Date end) {
+        SensorBase sensor = getSensorFromId(actuatorId);
+        if (sensor != null && sensor instanceof Actuator) {
+
+            Actuator actuator = (Actuator) sensor;
+            if (actuator.command.commandDataLog != null)
+                return actuator.command.commandDataLog.getDataLogValue(actuatorId, start, end);
+        }
+        return null;
+    }
+
+    public List<Zone> getZones() {
+        return zones;
+    }
+
+    public Action getActionFromId(int id) {
+        for (WebduinoSystem webduinoSystem : webduinoSystems) {
+            Action action = webduinoSystem.getActionFromId(id);
+            if (action != null)
+                return action;
+        }
+        return null;
+    }
+
+    public void initScenarios() {
+
+        if (scenarios.scenarioList != null) {
+            for (WebduinoSystemScenario scenario : scenarios.scenarioList) {
+                scenario.stop();
+            }
+        }
+
+        readWebduinoSystems();
+        scenarios.scenarioList.clear();
+        scenarios.scenarioList = getWebduinoSystemScenarios();
+        for (WebduinoSystemScenario scenario:scenarios.scenarioList) {
+
+            scenario.setActionListener(new Action.ActionListener() {
+                @Override
+                public void onStart(Action action) {
+                    scenarios.checkConflict(action);
+                }
+
+                @Override
+                public void onStop(Action action) {
+                    scenarios.removeConflict(action);
+                }
+            });
+            scenario.start();
+        }
+        scenarios.checkNextTimeRangeActions(Core.getDate());
+    }
+
+    public Condition removeCondition(JSONObject json) throws Exception {
+        Condition condition = new Condition(json);
+        condition.remove();
+        initScenarios();
+        return condition;
+    }
+
+    public Action removeAction(JSONObject json) throws Exception {
+        Action action = new Action(json);
+        action.remove();
+        initScenarios();
+        return action;
+    }
+
+    public Action saveAction(JSONObject json) throws Exception {
+        Action action = new Action(json);
+        action.save();
+        initScenarios();
+        return action;
+    }
+
+    public Condition saveCondition(JSONObject json) throws Exception {
+        Condition condition = new Condition(json);
+        condition.save();
+        initScenarios();
+        return condition;
+    }
+
+    public WebduinoSystemZone getWebduinoSystemZoneFromId(int id) {
+        for (WebduinoSystem system : webduinoSystems) {
+            for (WebduinoSystemZone webduinoSystemZone: system.zones) {
+                if (webduinoSystemZone.zoneid == id)
+                    return webduinoSystemZone;
+            }
+        }
+        return null;
+    }
+
+    public WebduinoSystemService getWebduinoSystemServiceFromId(int id) {
+        for (WebduinoSystem system : webduinoSystems) {
+            for (WebduinoSystemService webduinoSystemService: system.services) {
+                if (webduinoSystemService.serviceid == id)
+                    return webduinoSystemService;
+            }
+        }
+        return null;
+    }
+
+    public List<WebduinoSystemScenario> getWebduinoSystemScenarios() {
+        List<WebduinoSystemScenario> list = new ArrayList<>();
+        for (WebduinoSystem system : webduinoSystems) {
+            if (!system.getEnabled())
+                continue;
+            for (WebduinoSystemScenario scenario: system.getScenarios()) {
+                list.add(scenario);
+            }
+        }
+        return list;
+    }
+
     public JSONArray getZonesJSONArray() {
         JSONArray jsonArray = new JSONArray();
         for (Zone zone : zones) {
@@ -438,51 +573,26 @@ public class Core {
         return jsonArray;
     }
 
-   /* public WebduinoSystem getWebduinoSystemFromId(int id) {
-        for (WebduinoSystem system : webduinoSystems) {
-           if(system.id == id)
-               return system;
-        }
-        return null;
-    }*/
-
-
     public void initMQTT() {
 
         LOGGER.info("initMQTT");
 
-        // inizializzazione code MQTT
-        smc = new SimpleMqttClient("CoreClient");
-        if (smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
-            smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
-                @Override
-                public synchronized void messageReceived(String topic, String message) {
-                }
-
-                @Override
-                public void connectionLost() {
-                    reconnect();
-                }
-            });
-        //smc.subscribe("toServer/#");
-        //smc.subscribe("uuid/#");
-        //smc.addListener(this);
-        }
+        homeassistantMQTTClient = new SimpleMqttClient("homeassistantMQTTClient");
+        reconnectHomeAssistantMQTTClient();
     }
 
-    public void reconnect() {
+    public void reconnectHomeAssistantMQTTClient() {
+        LOGGER.info("reconnectCoreMQTTClient MQTT client");
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                System.out.println("CIAO!");
-
-                if (smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
+                LOGGER.info("reconnectCoreMQTTClient timer");
+                if (initHomeAssistantMQTTClientMessageHandler()) {
                     this.cancel();
-                    init();
+                    //init();
                 }
             }
-
         }, 5000, 5000);
     }
 
@@ -498,23 +608,13 @@ public class Core {
 
     public void init() {
 
-        LOGGER.info("start");
-
-        // versione sw
         readSoftwareVersions();
-
-
 
         // inizializzazione schede.
         // Le schede ed isensori devono essere caricati prima degli scenari e zone altrimenti non funzionano i listener
         mShields = new Shields();
-        mShields.init();
-        //mShields.initHomeAssistantCommandHandler();
-        initHomeAssistantCommandHandler();
 
-        /*VirtualShield virtualshield = new VirtualShield();
-        Thread thread = new Thread(virtualshield, "commandThread" + 1);
-        thread.start();*/
+        mShields.init();
 
         // caricamento dati scernari e zone
         readZones();
@@ -535,7 +635,6 @@ public class Core {
 
         updateHomeAssistant("fromServer/homeassistant/updaterequest", "request");
     }
-
 
     public void addZoneSensorListeners() {
         for (Zone zone : zones) {
@@ -615,43 +714,6 @@ public class Core {
             //schedule = new Schedule();
             //schedule.readZoneSensors(id);
 
-            conn.close();
-        } catch (SQLException se) {
-            //Handle errors for JDBC
-            se.printStackTrace();
-        } catch (Exception e) {
-            //Handle errors for Class.forName
-            e.printStackTrace();
-        }
-    }
-
-    public static void readTriggers() {
-
-        LOGGER.info(" readTriggers");
-
-        try {
-            Connection conn = DriverManager.getConnection(Core.getDbUrl(), Core.getUser(), Core.getPassword());
-            // Execute SQL query
-            Statement stmt = conn.createStatement();
-            String sql;
-            sql = "SELECT * FROM triggers";//" WHERE systemid=" + systemid;
-            ResultSet triggersResultSet = stmt.executeQuery(sql);
-            triggerClass.clear();
-            while (triggersResultSet.next()) {
-                //ZoneFactory factory = new ZoneFactory();
-                int id = triggersResultSet.getInt("id");
-                String name = triggersResultSet.getString("name");
-                //boolean status = triggersResultSet.getBoolean("status");
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-                Date date = null;
-                if (triggersResultSet.getTimestamp("lastupdate") != null)
-                    date = df.parse(String.valueOf(triggersResultSet.getTimestamp("lastupdate")));
-                Trigger trigger = new Trigger(id, name, date);
-                triggerClass.add(trigger);
-            }
-            // Clean-up environment
-            triggersResultSet.close();
-            stmt.close();
             conn.close();
         } catch (SQLException se) {
             //Handle errors for JDBC
@@ -856,14 +918,6 @@ public class Core {
         return trigger;
     }
 
-    /*public void enableTrigger(int id, boolean enable) throws Exception {
-        Trigger trigger = getTriggerFromId(id);
-        if (trigger == null)
-            throw new Exception("trigger id " + id + " not found");
-        trigger.enable(enable);
-        scenarios.initScenarios();
-    }*/
-
     public Triggers removeTrigger(JSONObject json) throws Exception {
 
         Trigger trigger = new Trigger(json);
@@ -974,7 +1028,6 @@ public class Core {
         return webduinoSystem;
     }
 
-
     public ScenarioTimeInterval saveScenarioTimeinterval(JSONObject json) throws Exception {
         ScenarioTimeInterval timeInterval = new ScenarioTimeInterval(json);
         timeInterval.save();
@@ -1039,204 +1092,88 @@ public class Core {
         return sensor.datalog.getDataLogValue(actuatorid, startdate, enddate);
     }
 
-    public static void sendPushNotification(String type, String title, String description, String value, int id) {
-
-        LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
-        new PushNotificationThread(type, title, description, value, id, null).start();
-        LOGGER.info("sendPushNotification sent");
-    }
-
-    public static void sendPushNotification(String type, String title, String description, String value, int id, List<Device> devices) {
-
-        LOGGER.info("sendPushNotification type=" + type + "title=" + title + "value=" + value);
-        new PushNotificationThread(type, title, description, value, id, devices).start();
-        LOGGER.info("sendPushNotification sent");
-    }
-
-    public static void sendPushNotification(JSONObject json) {
-
-        new PushNotificationThread(json).start();
-    }
-
     public List<Shield> getShields() {
         return mShields.getShields();
-    }
-
-    public static List<SensorBase> getLastSensorData() {
-        return mShields.getLastSensorData();
     }
 
     boolean updateSensors(int shieldid, JSONArray jsonArray) {
         return mShields.updateShieldSensors(shieldid, jsonArray);
     }
 
-    static public boolean updateShieldStatus(int shieldid, JSONObject json) {
-        return mShields.updateShieldStatus(shieldid, json);
-    }
-
-    static public String getShieldSettingStatus(int shieldid) {
-        return mShields.getSettingStatus(shieldid);
-    }
-
-    static public String getShieldSensorsStatus(int shieldid) {
-        return mShields.getSensorStatus(shieldid);
-    }
-
-    public static SensorBase getFromShieldId(int shieldid, String subaddress) {
-        return mShields.getFromShieldIdandSubaddress(shieldid, subaddress);
-    }
-
-    public static Shield getShieldFromId(int shieldid) {
-        return mShields.fromId(shieldid);
-    }
-
-    public static Shield getShieldFromMACAddress(String MACAddress) {
-        return mShields.getShieldFromMACAddress(MACAddress);
-    }
-
-
-    public static boolean requestShieldSettingsUpdate(int shieldid) {
-        return mShields.requestShieldSettingStatusUpdate(shieldid);
-    }
-
-    public static void requestShieldSensorsUpdate(int shieldid) {
-
-        Shield shield = getShieldFromId(shieldid);
-        if (shield != null)
-            shield.requestAsyncAllSensorStatusUpdate();
-    }
-
-    public static SensorBase getSensorFromId(int id) {
-        return mShields.getSensorFromId(id);
-    }
-
-    public static Trigger getTriggerFromId(int id) {
-        return triggerClass.getFromId(id);
-    }
-
     public JSONArray getShieldsJsonArray() {
         return mShields.getShieldsJsonArray();
     }
 
-    public static Date getDate() {
-
-        //LOGGER.info("getDate");
-        Date date = new Date();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        df.setTimeZone(TimeZone.getTimeZone("Europe/Rome"));
-
-        final String dateInString = df.format(date);
-
-
-        Date newDate = null;
-        try {
-
-            newDate = df.parse(dateInString);
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return newDate;
-    }
-
-    public static long getTimeOffset() {
-
-        TimeZone tz = TimeZone.getTimeZone("Europe/Rome");
-        long diff = tz.getOffset(new Date().getTime()) / 1000;
-
-        return diff;
-    }
-
-    public static LocalTime getTime() {
-        Date time = getDate();
-        Instant instant = Instant.ofEpochMilli(time.getTime());
-        LocalTime res = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
-        return res;
-    }
-
-    public static String getStrLastUpdate(Date date) {
-        if (date == null)
-            return "";
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return df.format(date);
-    }
-
-    public static String boolToString(boolean val) {
-        if (val)
-            return "true";
-        else
-            return "false";
-    }
-
-    static public boolean publish(String topic, String message) {
-
-        if (smc != null)
-            return smc.publish(topic, message);
-
-        return false;
-    }
-
     public void mqttDisconnect() {
-        smc.disconnect();
+        //coreMQTTClient.disconnect();
+        homeassistantMQTTClient.disconnect();
     }
 
-    public static JSONObject getShieldSettingJson(int shieldid) {
-        return mShields.getShieldSettingJson(shieldid);
-    }
+    public boolean initHomeAssistantMQTTClientMessageHandler() {
 
-    public static JSONObject getShieldSensorsJson(int shieldid) {
-        return mShields.getShieldSensorsJson(shieldid);
-    }
-
-    public static JSONObject loadShieldSettings(String macAddress) {
-        return mShields.loadShieldSettings(macAddress);
-    }
-
-    public static boolean updateHomeAssistant(String topic, String message) {
-        LOGGER.info("SensorBase::updateHomeAssistant");
-
-        SimpleMqttClient smc;
-        smc = new SimpleMqttClient("homeassistantClient");
-        if (!smc.runClient(Core.getMQTTUrl(),/*1883*/Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword())) {
-            LOGGER.severe("cannot open MQTT client");
+        if (!homeassistantMQTTClient.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
             return false;
-        }
-        byte[] ptext = message.getBytes(ISO_8859_1);
-        // converti il messaggio in UTF8 altrimenti home assistant con windows non funziona
-        String messageUTF8 = new String(ptext, UTF_8);
-        smc.publish(topic, messageUTF8);
-        smc.disconnect();
-        return true;
-    }
 
-    public void initHomeAssistantCommandHandler() {
+        String subscribedTopic = "toServer/homeassistant/";
+        homeassistantMQTTClient.subscribe(subscribedTopic + "#");
 
-        homeassistantSensorCommandMQTTClient = new SimpleMqttClient("homeassistantSensorCommandMQTTClient");
-        if (!homeassistantSensorCommandMQTTClient.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
-            return;
-
-        homeassistantSensorCommandMQTTClient.subscribe("toServer/homeassistant/sensor/command/#");
-
-        homeassistantSensorCommandMQTTClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
+        homeassistantMQTTClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
             @Override
             public synchronized void messageReceived(String topic, String message) {
 
-                LOGGER.info("homeassistantSensorCommandMQTTClient::messageReceived - topic: " + topic + " Message: " + message);
+                LOGGER.info("homeassistantMQTTClient::messageReceived:\n\ttopic: " + topic + "\n\tmessage: " + message);
 
-                String subTopic = topic.replace("toServer/homeassistant/sensor/command/", "");
-                String sensorStr;
-                if (subTopic.indexOf('/') >= 0)
-                    sensorStr = subTopic.substring(0, subTopic.indexOf('/'));
-                else
-                    sensorStr = subTopic;
-                int sensorid = Integer.parseInt(sensorStr);
-                SensorBase sensorBase = getSensorFromId(sensorid);
-                if (sensorBase != null) {
+                if (topic.equals(subscribedTopic + "sensor/command/")) {
+
+                    String subTopic = topic.replace("toServer/homeassistant/sensor/command/", "");
+                    String sensorStr;
+                    if (subTopic.indexOf('/') >= 0)
+                        sensorStr = subTopic.substring(0, subTopic.indexOf('/'));
+                    else
+                        sensorStr = subTopic;
+                    int sensorid = Integer.parseInt(sensorStr);
+                    SensorBase sensorBase = getSensorFromId(sensorid);
+                    if (sensorBase != null) {
+                        try {
+                            JSONObject json = new JSONObject(message);
+                            if (json.has("command")) {
+                                String command = json.getString("command");
+                                sensorBase.sendCommand(json);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else if (topic.replace(subscribedTopic,"").substring(0,"webduinosystem".length()).equals("webduinosystem")) {
+
+                    int index = topic.indexOf("toServer/homeassistant/webduinosystem/");
+                    String subTopic = topic.replace("toServer/homeassistant/webduinosystem/", "");
+                    String command = subTopic.substring(0, subTopic.indexOf('/'));
+                    String idStr = subTopic.substring(subTopic.indexOf('/') + 1);
+                    int id = Integer.parseInt(idStr);
+
+                    WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(id);
+
+                    webduinoSystem.receiveHomeAssistantCommand(command, message);
+
+                } else if (topic.equals(subscribedTopic + "updatevalue/")) {
+
+                    int index = topic.indexOf("toServer/homeassistant/updatevalue/");
+                    String param = topic.replace("toServer/homeassistant/updatevalue/", "");
+                    //String param = subTopic.substring(0, subTopic.indexOf('/'));
+                    String value = message;
+
                     try {
                         JSONObject json = new JSONObject(message);
-                        if (json.has("command")) {
-                            String command = json.getString("command");
-                            sensorBase.sendCommand(json);
+                        //String prova = json.getString("prova");
+                        String outofhome = json.getString("out_of_home");
+                        boolean oldOutOfHome = OutOfHome;
+                        if (outofhome.equals("not_home"))
+                            OutOfHome = true;
+                        else
+                            OutOfHome = false;
+                        for(CoreListener listener: listeners) {
+                            listener.onChangeOutOfHomeStatus(OutOfHome, oldOutOfHome);
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -1246,91 +1183,15 @@ public class Core {
 
             @Override
             public void connectionLost() {
-
+                reconnectHomeAssistantMQTTClient();
             }
         });
-
-        homeassistantMQTTHeaterCommandClient = new SimpleMqttClient("homeassistantMQTTHeaterCommandClient");
-        if (!homeassistantMQTTHeaterCommandClient.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
-            return;
-
-        homeassistantMQTTHeaterCommandClient.subscribe("toServer/homeassistant/webduinosystem/#");
-
-        homeassistantMQTTHeaterCommandClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
-            @Override
-            public synchronized void messageReceived(String topic, String message) {
-
-                LOGGER.info("homeassistantMQTTHeaterCommandClient::messageReceived - topic: " + topic + " Message: " + message);
-
-                int index = topic.indexOf("toServer/homeassistant/webduinosystem/");
-                String subTopic = topic.replace("toServer/homeassistant/webduinosystem/", "");
-                String command = subTopic.substring(0, subTopic.indexOf('/'));
-                String idStr = subTopic.substring(subTopic.indexOf('/') + 1);
-                int id = Integer.parseInt(idStr);
-
-                WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(id);
-
-                webduinoSystem.receiveHomeAssistantCommand(command, message);
-            }
-
-            @Override
-            public void connectionLost() {
-
-            }
-        });
-
-
-
-        homeassistantMQTTUpdateValueClient = new SimpleMqttClient("homeassistantMQTTUpdateValueClient");
-        if (!homeassistantMQTTUpdateValueClient.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
-            return;
-
-        homeassistantMQTTUpdateValueClient.subscribe("toServer/homeassistant/updatevalue/#");
-
-        homeassistantMQTTUpdateValueClient.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
-            @Override
-            public synchronized void messageReceived(String topic, String message) {
-
-                LOGGER.info("homeassistantMQTTUpdateValueClient::messageReceived - topic: " + topic + " Message: " + message);
-
-                int index = topic.indexOf("toServer/homeassistant/updatevalue/");
-                String param = topic.replace("toServer/homeassistant/updatevalue/", "");
-                //String param = subTopic.substring(0, subTopic.indexOf('/'));
-                String value = message;
-
-                try {
-                    JSONObject json = new JSONObject(message);
-                    //String prova = json.getString("prova");
-                    String outofhome = json.getString("out_of_home");
-                    boolean oldOutOfHome = OutOfHome;
-                    if (outofhome.equals("not_home"))
-                        OutOfHome = true;
-                    else
-                        OutOfHome = false;
-                    for(CoreListener listener: listeners) {
-                            listener.onChangeOutOfHomeStatus(OutOfHome, oldOutOfHome);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                //WebduinoSystem webduinoSystem = Core.getWebduinoSystemFromId(id);
-
-                //webduinoSystem.receiveHomeAssistantCommand(command, message);
-
-
-
-            }
-
-            @Override
-            public void connectionLost() {
-
-            }
-        });
-
-        //requestSensorsStatusUpdate();
-
+        return true;
     }
 
 
+
+    public interface CoreListener {
+        public void onChangeOutOfHomeStatus(boolean newStatus, boolean oldStatus);
+    }
 }

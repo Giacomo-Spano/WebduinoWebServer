@@ -36,8 +36,8 @@ public class MQTTThread extends Thread {
 
     public void run() {
 
-        /*SimpleMqttClient smc = new SimpleMqttClient();
-        smc.runClient();*/
+        /*SimpleMqttClient coreMQTTClient = new SimpleMqttClient();
+        coreMQTTClient.runClient();*/
 
 
 

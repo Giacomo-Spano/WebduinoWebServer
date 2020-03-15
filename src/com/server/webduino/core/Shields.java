@@ -23,6 +23,18 @@ public class Shields {
 
     static private List<Shield> list = new ArrayList<>();//shields.getShields();
 
+    public interface ShieldsListener {
+
+        void connectionLost();
+    }
+
+    protected List<ShieldsListener> listeners = new ArrayList<>();
+
+    public void addListener(ShieldsListener toAdd) {
+        listeners.add(toAdd);
+    }
+
+
     public JSONArray getShieldsJsonArray() {
         JSONArray jarray = new JSONArray();
         for (Shield shield : list) {
@@ -57,22 +69,49 @@ public class Shields {
     SimpleMqttClient smc;//, homeassistantSensorCommandMQTTClient, homeassistantMQTTHeaterCommandClient, homeassistantMQTTUpdateValueClient;
 
     public void init() {
-
         read();
+        initMQTT();
+    }
 
-        /*SimpleMqttClient*/
+    public void initMQTT() {
+
+        LOGGER.info("initMQTT");
+
         smc = new SimpleMqttClient("ShieldClient");
+        reconnectMQTTClient();
+        requestSensorsStatusUpdate();
+    }
+
+    public void reconnectMQTTClient() {
+        LOGGER.info("reconnectCoreMQTTClient MQTT client");
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                LOGGER.info("reconnectCoreMQTTClient timer");
+                if (initMQTTMessageHandler()) {
+                    this.cancel();
+                    //init();
+                }
+            }
+        }, 5000, 5000);
+    }
+
+    public boolean initMQTTMessageHandler() {
+
+        //read();
+
+        //smc = new SimpleMqttClient("ShieldClient");
         if (!smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
-            return;
+            return false;
 
         smc.subscribe("toServer/shield/#");
-        //smc.subscribe("toServer/sensor");
         smc.addListener(new SimpleMqttClient.SimpleMqttClientListener() {
             @Override
             public synchronized void messageReceived(String topic, String message) {
 
+                LOGGER.info("messageReceived:\n\ttopic: " + topic + "\n\tmessage: " + message);
                 if (topic.equals("toServer/shield/loadsettings")) {  // chiamata all'inizio dalla schesa
-
 
                     try {
                         JSONObject json = new JSONObject(message);
@@ -102,22 +141,7 @@ public class Shields {
                         e.printStackTrace();
                     }
 
-                    /*String MACAddress = message;
-                    JSONObject jsonResult = loadShieldSettings(MACAddress);
-                    if (smc != null)
-                        smc.publish("fromServer/shield/" + MACAddress + "/settings", jsonResult.toString());
-                    // questo va cambiato. Dovrebbe chiamare un comando e dovrebbe essere messo tutto nell'if successivop
-
-                    Shield shield = Core.getShieldFromMACAddress(MACAddress);
-
-                    if (shield != null) {
-                        shield.datalog.writelog("loadsettings", shield);
-                        String description = "Shield " + shield.boardName + " restarted";
-                        Core.sendPushNotification(SendPushMessages.notification_restarted, "Restart", description, "0", 0);
-                    }*/
-
                 } else if (topic.equals("toServer/shield/time")) {  // chiamata all'inizio dalla schesa
-
 
                     String MACAddress = message;
                     JSONObject jsonResult = loadShieldSettings(MACAddress);
@@ -172,7 +196,6 @@ public class Shields {
                         e.printStackTrace();
                     }
 
-
                 } else if (topic.equals("toServer/shield/sensor/command")) { // chiamata dalla scheda quando un sensore cambia qualcosa
 
                     try {
@@ -216,13 +239,14 @@ public class Shields {
 
             @Override
             public void connectionLost() {
+                LOGGER.info("connectionLost");
 
+                reconnectMQTTClient();
             }
         });
 
-
-        requestSensorsStatusUpdate();
-
+        //requestSensorsStatusUpdate();
+        return true;
     }
 
 

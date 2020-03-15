@@ -502,9 +502,13 @@ public class HeaterSystem extends com.server.webduino.core.webduinosystem.Webdui
                 }
 
 
-            } else if (message.equals("off")) {
+            } /*else if (message.equals("off")) {
                 SendOffCommand();
 
+            }*/
+        } else if (command.equals("power")) {
+            if (message.equals("OFF")) {
+                SendOffCommand();
             }
         } else if (command.equals("outofhome")) {
             if (status.equals(status_out_of_home.status)) {

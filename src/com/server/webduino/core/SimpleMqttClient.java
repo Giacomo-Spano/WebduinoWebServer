@@ -50,7 +50,7 @@ public class SimpleMqttClient implements MqttCallback {
     @Override
     public void connectionLost(Throwable t) {
         System.out.println("Connection lost!");
-        // code to reconnect to the broker would go here if desired
+        // code to reconnectCoreMQTTClient to the broker would go here if desired
 
         //connect();
 
@@ -61,6 +61,7 @@ public class SimpleMqttClient implements MqttCallback {
             if (listener != null)
                 listener.connectionLost();
         }
+
     }
 
     @Override

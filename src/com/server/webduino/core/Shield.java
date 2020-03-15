@@ -101,17 +101,28 @@ public class Shield extends DBObject {
 
         LOGGER.info("requestReboot:");
         sensorStatus = updateStatus_updating;
-        return Core.publish("fromServer/shield/" + MACAddress + "/reboot", "immediate");
+        //return Core.publish("fromServer/shield/" + MACAddress + "/reboot", "immediate");
+        return publishMessage("fromServer/shield/" + MACAddress + "/reboot", "immediate");
     }
 
     public boolean requestResetSettings() { //
 
         LOGGER.info("requestResetSettings:");
         sensorStatus = updateStatus_updating;
-        return Core.publish("fromServer/shield/" + MACAddress + "/resetsettings", "immediate");
+        //return Core.publish("fromServer/shield/" + MACAddress + "/resetsettings", "immediate");
+        return publishMessage("fromServer/shield/" + MACAddress + "/resetsettings", "immediate");
     }
 
+    public boolean publishMessage(String topic, String message) {
 
+        SimpleMqttClient smc;
+        smc = new SimpleMqttClient("Shield-" + id + "-Client");
+        if (!smc.runClient(Core.getMQTTUrl(), Core.getMQTTPort(), Core.getMQTTUser(), Core.getMQTTPassword()))
+            return false;
+        smc.publish(topic,message);
+        smc.disconnect();
+        return true;
+    }
 
     public boolean requestSettingUpdate() { //
 
@@ -119,7 +130,8 @@ public class Shield extends DBObject {
 
         settingsStatus = updateStatus_updating;
 
-        return Core.publish("fromServer/shield/" + MACAddress + "/updatesettingstatusrequest", "");
+        //return Core.publish("fromServer/shield/" + MACAddress + "/updatesettingstatusrequest", "");
+        return publishMessage("fromServer/shield/" + MACAddress + "/updatesettingstatusrequest", "");
     }
 
     public void fromJson(JSONObject json) throws Exception {

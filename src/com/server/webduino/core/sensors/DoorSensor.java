@@ -53,10 +53,10 @@ public class DoorSensor extends SensorBase {
 
             String message;
             if (getStatus().status.equals(STATUS_OPEN))
-                message = "ON";
+                message = "dooropen";
             else
-                message = "OFF";
-            Core.updateHomeAssistant("homeassistant/sensor/" + id, message);
+                message = "doorclosed";
+            Core.updateHomeAssistant("homeassistant/sensor/" + id + "/status", message);
 
             JSONObject jsonattributes = new JSONObject();
             try {
